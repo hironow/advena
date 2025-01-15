@@ -1,0 +1,22 @@
+[project]
+name = "genai"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "cloudevents>=1.11.0",
+    "fastapi>=0.115.6",
+    "google-cloud-aiplatform>=1.76.0",
+    "google-cloud-firestore>=2.20.0",
+    "google-cloud-storage>=2.19.0",
+    "google-generativeai>=0.8.3",
+    "pydantic>=2.10.5",
+    "tenacity>=9.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.4",
+    "ruff>=0.9.1",
+]
