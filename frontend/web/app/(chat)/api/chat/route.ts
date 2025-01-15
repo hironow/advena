@@ -263,6 +263,12 @@ export async function POST(request: Request) {
                         content: currentContent,
                       },
                     },
+                    openaiCompatible: {},
+                    vertex: {},
+                    google: {},
+                    anthropic: {
+                      cacheControl: { type: 'ephemeral' },
+                    },
                   },
                 });
 
@@ -286,6 +292,20 @@ export async function POST(request: Request) {
                   model: customModel(model.apiIdentifier),
                   system: updateDocumentPrompt(currentContent, 'code'),
                   prompt: description,
+                  experimental_providerMetadata: {
+                    openai: {
+                      prediction: {
+                        type: 'content',
+                        content: currentContent,
+                      },
+                    },
+                    openaiCompatible: {},
+                    vertex: {},
+                    google: {},
+                    anthropic: {
+                      cacheControl: { type: 'ephemeral' },
+                    },
+                  },
                   schema: z.object({
                     code: z.string(),
                   }),

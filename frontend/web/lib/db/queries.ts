@@ -147,6 +147,8 @@ export async function voteMessage({
         .set({ isUpvoted: type === 'up' })
         .where(and(eq(vote.messageId, messageId), eq(vote.chatId, chatId)));
     }
+
+    // TODO: エラーが出るのはmessageIdがuuidを要求するが、直近のmessageはまだdbに保存されていないidで、clientサイドのidを使っているため
     return await db.insert(vote).values({
       chatId,
       messageId,
