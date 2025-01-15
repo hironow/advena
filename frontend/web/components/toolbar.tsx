@@ -142,6 +142,7 @@ const Tool = ({
             if (selectedTool !== type) setIsHovered(false);
           }}
           onKeyDown={(event) => {
+            // TODO: 文字変換で誤送信してしまう
             if (event.key === 'Enter') {
               handleSelect();
             }

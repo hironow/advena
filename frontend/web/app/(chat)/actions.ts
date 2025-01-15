@@ -7,7 +7,7 @@ import { customModel } from '@/lib/ai';
 import {
   deleteMessagesByChatIdAfterTimestamp,
   getMessageById,
-  updateChatVisiblityById,
+  updateChatVisibilityById,
 } from '@/lib/db/queries';
 import { VisibilityType } from '@/components/visibility-selector';
 
@@ -24,7 +24,7 @@ export async function generateTitleFromUserMessage({
   const { text: title } = await generateText({
     // custom options for the model
     // see: https://sdk.vercel.ai/providers/ai-sdk-providers/google-vertex#language-models
-    model: customModel('gemini-2.0-flash-exp'),
+    model: customModel('gemini-1.5-flash'),
     system: `\n
     - you will generate a short title based on the first message a user begins a conversation with
     - ensure it is not more than 80 characters long
@@ -52,5 +52,5 @@ export async function updateChatVisibility({
   chatId: string;
   visibility: VisibilityType;
 }) {
-  await updateChatVisiblityById({ chatId, visibility });
+  await updateChatVisibilityById({ chatId, visibility });
 }

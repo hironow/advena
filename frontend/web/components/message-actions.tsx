@@ -36,6 +36,8 @@ export function PureMessageActions({
   if (message.toolInvocations && message.toolInvocations.length > 0)
     return null;
 
+  console.log('chatId on PureMessageActions', chatId);
+
   return (
     <TooltipProvider delayDuration={0}>
       <div className="flex flex-row gap-2">

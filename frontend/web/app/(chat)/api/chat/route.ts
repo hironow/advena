@@ -36,10 +36,11 @@ import { generateTitleFromUserMessage } from '../../actions';
 export const maxDuration = 60;
 
 type AllowedTools =
-  | 'createDocument'
-  | 'updateDocument'
-  | 'requestSuggestions'
-  | 'getWeather';
+  // とrender
+  | 'createDocument' // DocumentPreview
+  | 'updateDocument' // DocumentPreview
+  | 'requestSuggestions' // DocumentToolCall
+  | 'getWeather'; // Weather
 
 const blocksTools: AllowedTools[] = [
   'createDocument',
@@ -94,6 +95,11 @@ export async function POST(request: Request) {
   });
 
   return createDataStreamResponse({
+    headers: {
+      'x-vercel-ai-data-stream': 'v1',
+      // debug用にtext plainで返すことでstreamの中身を確認できる
+      'content-type': 'text/plain; charset=utf-8',
+    },
     execute: (dataStream) => {
       dataStream.writeData({
         type: 'user-message-id',

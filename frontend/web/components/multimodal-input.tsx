@@ -242,6 +242,7 @@ function PureMultimodalInput({
         rows={2}
         autoFocus
         onKeyDown={(event) => {
+          // TODO: 文字変換で誤送信してしまう
           if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
 

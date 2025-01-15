@@ -9,11 +9,11 @@ export interface Model {
 
 export const models: Array<Model> = [
   {
-    id: 'gemini-2.0-flash-exp',
-    label: 'gemini-2.0-flash-exp',
-    apiIdentifier: 'gemini-2.0-flash-exp',
-    description: 'gemini-2.0-flash-exp model.',
+    id: 'gemini-1.5-flash',
+    label: 'gemini-1.5-flash',
+    apiIdentifier: 'gemini-1.5-flash',
+    description: 'gemini-1.5-flash model.',
   },
 ] as const;
 
-export const DEFAULT_MODEL_NAME: string = 'gemini-2.0-flash-exp';
+export const DEFAULT_MODEL_NAME: string = 'gemini-1.5-flash';
