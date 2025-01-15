@@ -1,0 +1,49 @@
+[tools]
+node = "lts"
+python = "3.13"
+
+[tasks]
+c = "code vs.code-workspace"
+g = "gcloud config configurations activate advena-dev"
+
+
+# gcloud tasks
+[tasks."g:login"]
+run = "gcloud auth application-default login"
+description = "Login to gcloud as application default credentials"
+
+
+# backend dir tasks
+[tasks."be:dev"]
+run = "dotenvx run -- uv run python -m uvicorn src.index:app --reload"
+dir = "backend/genai/"
+
+[tasks."be:update"]
+run = "uv lock --upgrade && uv sync"
+dir = "backend/genai/"
+
+[tasks."be:format"]
+run = "uv run ruff check --select I --fix && ruff format"
+dir = "backend/genai/"
+
+[tasks."be:test"]
+run = "uv run pytest"
+dir = "backend/genai/"
+
+
+# frontend dir tasks
+[tasks."fe:dev"]
+run = "dotenvx run -- pnpm run dev"
+dir = "frontend/web/"
+
+[tasks."fe:update"]
+run = "pnpm update"
+dir = "frontend/web/"
+
+[tasks."fe:format"]
+run = "pnpm run format"
+dir = "frontend/web/"
+
+[tasks."fe:test"]
+run = "pnpm run test"
+dir = "frontend/web/"
