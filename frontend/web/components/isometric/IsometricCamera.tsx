@@ -46,6 +46,10 @@ export default function IsometricCamera({
     // );
   });
 
+  // transformの初期値はcontainerの中心に合わせる
+  // (プレイヤーが画面中央に来るように)
+  const initialTransform = `translate(${containerWidth / 2}px, ${containerHeight / 2}px)`;
+
   return (
     <div
       // "world" 要素。ワールド(背景+プレイヤー等)全体をこの中に入れる
@@ -56,7 +60,8 @@ export default function IsometricCamera({
         top: 0,
         width: '600px', // マップ全体より大きめに確保
         height: '800px',
-        backgroundColor: 'red',
+        backgroundColor: 'rgba(200, 200, 0, 0.5)',
+        transform: initialTransform,
       }}
     >
       {children}
