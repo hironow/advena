@@ -1,5 +1,7 @@
 // touchInput.ts
 
+import { consoleLogWithStyle } from './utils';
+
 // タッチ時の状態を保持
 // 複数指タッチをどう扱うか？ → シンプルに「最初の1本」だけ見る想定で実装
 export const touchState = {
@@ -71,7 +73,7 @@ export function initTouchListeners(element: HTMLElement) {
   element.addEventListener('touchend', onTouchEnd, { passive: false });
   element.addEventListener('touchcancel', onTouchCancel, { passive: false });
 
-  console.info('[isometric] TouchInput listeners initialized');
+  consoleLogWithStyle('%cisometric%c TouchInput listeners initialized');
 
   // アンマウント時に解除するなら
   return () => {

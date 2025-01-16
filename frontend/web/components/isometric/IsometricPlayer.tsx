@@ -6,6 +6,7 @@ import { initTouchListeners, getTouchVector } from './touchInput';
 import { bird1, clock1, getTilePosition, power1, WORLD_SIZE } from './tileset';
 import { useRafLoop } from '../../hooks/use-ref-loop';
 import Tile from './Tile';
+import { consoleLogWithStyle } from './utils';
 
 const tileSpeed = 2.5; // 1秒に2.5マス進む想定
 
@@ -96,8 +97,9 @@ export default function IsometricPlayer({ onUpdatePos }: IsometricPlayerProps) {
   useEffect(() => {
     const keyCleanup = initKeyListeners();
     const touchCleanup = initTouchListeners(document.body);
+    // TODO: clickした場所 (x,y) にプレイヤーを移動する機能もいる
 
-    console.info('[isometric] Player mounted in (0, 0)');
+    consoleLogWithStyle('%cisometric%c Player mounted in (0, 0)');
     return () => {
       if (keyCleanup) keyCleanup();
       if (touchCleanup) touchCleanup();

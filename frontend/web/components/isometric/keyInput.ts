@@ -1,3 +1,5 @@
+import { consoleLogWithStyle } from './utils';
+
 // keyInput.ts
 export const keysDown = {
   w: false,
@@ -44,7 +46,7 @@ export function initKeyListeners() {
   window.addEventListener('keydown', handleKeyDown);
   window.addEventListener('keyup', handleKeyUp);
 
-  console.info('[isometric] KeyInput listeners initialized');
+  consoleLogWithStyle('%cisometric%c KeyInput listeners initialized');
 
   // アンマウント時に削除するなら
   return () => {
