@@ -1,6 +1,8 @@
 # advena
 
-コードネーム: `advena` (アドヴェナ)
+<p align="center">
+    コードネーム: `advena` (アドヴェナ)
+</p>
 
 ## Preparing for development
 

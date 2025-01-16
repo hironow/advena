@@ -50,8 +50,6 @@ const IsometricBackground: React.FC<IsometricBackgroundProps> = ({
         </div>,
       );
     }
-
-    // break;
   }
 
   return (

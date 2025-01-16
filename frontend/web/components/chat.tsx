@@ -4,7 +4,7 @@ import type { Attachment, Message } from 'ai';
 import { useChat } from 'ai/react';
 import { useState } from 'react';
 import useSWR, { useSWRConfig } from 'swr';
-
+import dynamic from 'next/dynamic';
 import { ChatHeader } from '@/components/chat-header';
 import type { Vote } from '@/lib/db/schema';
 import { fetcher } from '@/lib/utils';
@@ -15,6 +15,30 @@ import { Messages } from './messages';
 import { VisibilityType } from './visibility-selector';
 import { useBlockSelector } from '@/hooks/use-block';
 import IsometricWorld from './isometric/IsometricWorld';
+
+import { useAudioContextState } from '@/components/visualizer/audio-context-provider';
+import BgmController from '@/components/visualizer/BgmController';
+import { Button } from './ui/button';
+
+// SSRオフにしてD3を使う
+const LedVisualizer = dynamic(
+  () => import('@/components/visualizer/LedVisualizer'),
+  { ssr: false },
+);
+
+const InitMicButton: React.FC = () => {
+  const { initAudio, micAllowed } = useAudioContextState();
+
+  if (micAllowed) {
+    return (
+      <Button variant="ghost" className="text-blue-400">
+        Mic is active. Speak up!
+      </Button>
+    );
+  }
+
+  return <Button onClick={initAudio}>Init Mic & Start Visualization</Button>;
+};
 
 export function Chat({
   id,
@@ -71,6 +95,13 @@ export function Chat({
           isReadonly={isReadonly}
         />
 
+        <div className="flex justify-center">
+          <BgmController src="/assets/bgm/bgm1.mp3" />
+          <InitMicButton />
+        </div>
+        <div className="flex justify-center">
+          <LedVisualizer width={600} height={300} />
+        </div>
         <div className="flex justify-center">
           <IsometricWorld />
         </div>

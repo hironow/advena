@@ -1,112 +1,52 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import styles from './IsometricWorld.module.css';
+import styles from './isometric.module.css';
 import IsometricBackground from './IsometricBackground';
-
-import Tile from './FrogIcon';
-import { clock1, START_X, START_Y, WORLD_SIZE } from './tileset';
 import IsometricPlayer from './IsometricPlayer';
+import IsometricCamera from './IsometricCamera';
+import { initKeyListeners } from './keyInput';
 
-interface IPlayer {
-  x: number;
-  y: number;
-  dir: 'up' | 'down' | 'left' | 'right';
-  dead: boolean;
-}
-
+/**
+ * 全体をまとめる "ワールド" コンポーネント
+ * - 画面中央にプレイヤーを固定するために、IsometricCamera を利用
+ * - カメラが毎フレーム「プレイヤー座標」を参照して動く
+ */
 export default function IsometricWorld() {
-  const [frog, setFrog] = useState<IPlayer>({
-    x: START_X,
-    y: START_Y,
-    dir: 'up',
-    dead: false,
-  });
+  // プレイヤーのスクリーン座標を state で保持
+  // (これをカメラに渡して、中心に持ってくる)
+  const [playerPos, setPlayerPos] = useState({ x: 0, y: 0 });
 
-  // --- キー操作 ---
-  // useEffect(() => {
-  //   const onKeyDown = (e: KeyboardEvent) => {
-  //     let next = { ...frog };
-  //     const minXorY = 0;
-  //     const maxXorY = WORLD_SIZE - 1;
+  // キー入力のセットアップ (W/A/S/D)
+  useEffect(() => {
+    initKeyListeners();
+  }, []);
 
-  //     switch (e.key) {
-  //       case 'ArrowLeft':
-  //         next.x = frog.x - 1;
-  //         next.y = frog.y + 1;
-  //         next.dir = 'left';
-  //         break;
-  //       case 'ArrowRight':
-  //         next.x = frog.x + 1;
-  //         next.y = frog.y - 1;
-  //         next.dir = 'right';
-  //         break;
-  //       case 'ArrowUp':
-  //         next.x = frog.x - 1;
-  //         next.y = frog.y - 1;
-  //         next.dir = 'up';
-  //         break;
-  //       case 'ArrowDown':
-  //         next.x = frog.x + 1;
-  //         next.y = frog.y + 1;
-  //         next.dir = 'down';
-  //         break;
-  //       default:
-  //         return;
-  //     }
-
-  //     // TODO: mapに応じて行ける範囲がレイヤーで決まる、右端にいけない
-  //     // 範囲外にいってしまうのは避ける
-  //     if (
-  //       next.x < minXorY ||
-  //       next.x > maxXorY ||
-  //       next.y < minXorY ||
-  //       next.y > maxXorY
-  //     ) {
-  //       return;
-  //     }
-  //     console.info('next', next);
-  //     setFrog(next);
-  //   };
-  //   window.addEventListener('keydown', onKeyDown);
-  //   return () => window.removeEventListener('keydown', onKeyDown);
-  // }, [frog]);
+  // プレイヤーの描画座標更新を受け取る
+  const handlePlayerPosUpdate = (pxX: number, pxY: number) => {
+    setPlayerPos({ x: pxX, y: pxY });
+  };
 
   return (
     <div className={styles.isometricGame}>
+      {/* gameInner: カメラ含む全体。overflowを使い画面サイズを固定して表示 */}
       <div className={styles.gameInner}>
-        <IsometricBackground className={styles.backgroundContainer} />
-        <IsometricPlayer />
+        {/*
+          IsometricCamera にプレイヤー座標を渡す
+          children に 背景 + プレイヤー を入れる
+        */}
+        <IsometricCamera
+          containerWidth={1200} // 同じ値をCSS側の .isometricGame width と合わせる
+          containerHeight={600} // 同じ値をCSS側の .isometricGame height と合わせる
+          getPlayerScreenPos={() => ({ x: playerPos.x, y: playerPos.y })}
+        >
+          {/* 背景 */}
+          <IsometricBackground />
 
-        <PlayerOnTile x={frog.x} y={frog.y} dir={frog.dir} />
+          {/* プレイヤー */}
+          <IsometricPlayer onUpdatePos={handlePlayerPosUpdate} />
+        </IsometricCamera>
       </div>
-    </div>
-  );
-}
-
-/** Player描画用 */
-function PlayerOnTile(props: {
-  x: number;
-  y: number;
-  dir: 'up' | 'down' | 'left' | 'right';
-}) {
-  const [reverse, setReverse] = useState(false);
-  const [prevDir, setPrevDir] = useState<'up' | 'down' | 'left' | 'right'>(
-    'up',
-  );
-
-  // 左右反転時にreverseを切り替える
-  useEffect(() => {
-    if (props.dir === 'left') {
-      setReverse(true);
-    } else {
-      setReverse(false);
-    }
-  }, [props.dir]);
-
-  return (
-    <div className={styles.frogContainer}>
-      <Tile tile={clock1} x={props.x} y={props.y} layer={0} reverse={reverse} />
     </div>
   );
 }
