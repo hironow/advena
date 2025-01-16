@@ -83,9 +83,8 @@ export default function IsometricPlayer({ onUpdatePos }: IsometricPlayerProps) {
 
     // --- 6) DOM スタイル反映
     if (playerDivRef.current) {
-      // transform で移動
+      // transform で移動 (カメラにこの移動を逆転して渡したい、Reactの再レンダリングは避けること)
       playerDivRef.current.style.transform = `translate(${finalPxX}px, ${finalPxY}px)`;
-
       // console.info('[isometric] Player is moved from (', xInt, ',', yInt, ') to (', tileXRef.current, ',', tileYRef.current, ')');
     }
 

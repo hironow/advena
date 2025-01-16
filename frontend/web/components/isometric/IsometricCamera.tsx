@@ -18,10 +18,22 @@ export default function IsometricCamera({
 }: {
   containerWidth: number;
   containerHeight: number;
-  getPlayerScreenPos?: () => { pxX: number; pxY: number };
+  getPlayerScreenPos: () => { pxX: number; pxY: number };
   children: React.ReactNode;
 }) {
   const worldRef = useRef<HTMLDivElement | null>(null);
+
+  useRafLoop(() => {
+    if (!worldRef.current) return;
+
+    const { pxX, pxY } = getPlayerScreenPos();
+
+    // プレイヤーの画面座標を取得して、カメラを移動
+    // 移動は left と top に pxX, pxY を設定することで行う
+    // (transform だと中心がずれるため)
+    // worldRef.current.style.left = `${containerWidth / 2 + pxX}px`;
+    // worldRef.current.style.top = `${containerHeight / 2 + pxY}px`;
+  });
 
   // transformの初期値はcontainerの中心に合わせる
   // (プレイヤーが画面中央に来るように)
@@ -30,15 +42,15 @@ export default function IsometricCamera({
   return (
     <div
       // "world" 要素。ワールド(背景+プレイヤー等)全体をこの中に入れる
+      id="world"
       ref={worldRef}
       style={{
         position: 'absolute',
-        left: 0,
-        top: 0,
-        width: '600px', // マップ全体より大きめに確保
-        height: '800px',
-        backgroundColor: 'rgba(200, 200, 0, 0.5)',
-        transform: initialTransform,
+        left: '50%',
+        top: '50%',
+        width: '1200px', // マップ全体より大きめに確保
+        height: '1800px',
+        backgroundColor: 'rgba(230, 0, 0, 0.5)',
       }}
     >
       {children}
