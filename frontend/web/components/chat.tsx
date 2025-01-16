@@ -100,7 +100,7 @@ export function Chat({
           <InitMicButton />
         </div>
         <div className="flex justify-center">
-          <LedVisualizer width={600} height={300} />
+          <LedVisualizer width={800} height={200} />
         </div>
         <div className="flex justify-center">
           <IsometricWorld />

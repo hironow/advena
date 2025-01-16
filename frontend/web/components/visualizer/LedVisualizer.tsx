@@ -79,7 +79,7 @@ const LedVisualizer: React.FC<{ width?: number; height?: number }> = ({
       ref={svgRef}
       width={width}
       height={height}
-      style={{ background: '#111' }}
+      style={{ background: '#333' }}
     />
   );
 };
