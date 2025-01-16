@@ -14,7 +14,7 @@ import { MultimodalInput } from './multimodal-input';
 import { Messages } from './messages';
 import { VisibilityType } from './visibility-selector';
 import { useBlockSelector } from '@/hooks/use-block';
-import IsometricFrogger from './isometric/IsometricFrogger';
+import IsometricWorld from './isometric/IsometricWorld';
 
 export function Chat({
   id,
@@ -72,7 +72,7 @@ export function Chat({
         />
 
         <div className="flex justify-center">
-          <IsometricFrogger />
+          <IsometricWorld />
         </div>
 
         <Messages

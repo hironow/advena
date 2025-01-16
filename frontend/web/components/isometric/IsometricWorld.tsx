@@ -1,22 +1,22 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import styles from './IsometricFrogger.module.css';
+import styles from './IsometricWorld.module.css';
 import IsometricBackground from './IsometricBackground';
 
-import FrogIcon from './FrogIcon';
+import Tile from './FrogIcon';
 import { clock1, START_X, START_Y, WORLD_SIZE } from './tileset';
 import IsometricPlayer from './IsometricPlayer';
 
-interface IFrog {
+interface IPlayer {
   x: number;
   y: number;
   dir: 'up' | 'down' | 'left' | 'right';
   dead: boolean;
 }
 
-export default function IsometricFrogger() {
-  const [frog, setFrog] = useState<IFrog>({
+export default function IsometricWorld() {
+  const [frog, setFrog] = useState<IPlayer>({
     x: START_X,
     y: START_Y,
     dir: 'up',
@@ -78,14 +78,14 @@ export default function IsometricFrogger() {
         <IsometricBackground className={styles.backgroundContainer} />
         <IsometricPlayer />
 
-        <FrogOnTile x={frog.x} y={frog.y} dir={frog.dir} />
+        <PlayerOnTile x={frog.x} y={frog.y} dir={frog.dir} />
       </div>
     </div>
   );
 }
 
-/** カエル描画用 */
-function FrogOnTile(props: {
+/** Player描画用 */
+function PlayerOnTile(props: {
   x: number;
   y: number;
   dir: 'up' | 'down' | 'left' | 'right';
@@ -106,13 +106,7 @@ function FrogOnTile(props: {
 
   return (
     <div className={styles.frogContainer}>
-      <FrogIcon
-        tile={clock1}
-        x={props.x}
-        y={props.y}
-        layer={0}
-        reverse={reverse}
-      />
+      <Tile tile={clock1} x={props.x} y={props.y} layer={0} reverse={reverse} />
     </div>
   );
 }

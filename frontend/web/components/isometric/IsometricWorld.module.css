@@ -1,7 +1,7 @@
 .isometricGame {
   @apply relative overflow-hidden;
-  width: 1200px;
-  height: 1200px;
+  width: 1000px;
+  height: 600px;
   background-color: #333;
   color: #fff;
   border: 2px solid #444;

@@ -11,7 +11,7 @@ import {
 
 // bird1が見えないので、clock1に変更
 
-interface IFrog {
+interface ITile {
   tile: TileSetName;
   x: number;
   y: number;
@@ -19,7 +19,7 @@ interface IFrog {
   reverse?: boolean;
 }
 
-const FrogIcon: FC<IFrog> = ({ tile, x, y, layer, reverse }) => {
+const Tile: FC<ITile> = ({ tile, x, y, layer, reverse }) => {
   // mapの上に載せないといけない
   const mapLayer = dummy_layer_map[x][y];
   const { pxX, pxY } = getTilePosition(x, y, mapLayer);
@@ -33,7 +33,7 @@ const FrogIcon: FC<IFrog> = ({ tile, x, y, layer, reverse }) => {
 
   return (
     <div
-      key={`flog-${x}-${y}`}
+      key={`tile-${x}-${y}`}
       style={{
         position: 'absolute',
         // 原点(0, 0)は左上なので、左上を中心に配置するためにオフセット
@@ -56,4 +56,4 @@ const FrogIcon: FC<IFrog> = ({ tile, x, y, layer, reverse }) => {
   );
 };
 
-export default FrogIcon;
+export default Tile;
