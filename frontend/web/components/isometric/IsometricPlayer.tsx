@@ -89,7 +89,7 @@ export default function IsometricPlayer({ onUpdatePos }: IsometricPlayerProps) {
     }
 
     // 親に「今の描画座標」を通知 (カメラ用)
-    onUpdatePos?.(finalPxX, finalPxY);
+    onUpdatePos?.(tileXRef.current, tileYRef.current);
   });
 
   // 初回マウント時にイベント設定

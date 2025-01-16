@@ -18,7 +18,7 @@ export default function IsometricCamera({
 }: {
   containerWidth: number;
   containerHeight: number;
-  getPlayerScreenPos: () => { pxX: number; pxY: number };
+  getPlayerScreenPos: () => { x: number; y: number };
   children: React.ReactNode;
 }) {
   const worldRef = useRef<HTMLDivElement | null>(null);
@@ -26,7 +26,7 @@ export default function IsometricCamera({
   useRafLoop(() => {
     if (!worldRef.current) return;
 
-    const { pxX, pxY } = getPlayerScreenPos();
+    const { x, y } = getPlayerScreenPos();
 
     // プレイヤーの画面座標を取得して、カメラを移動
     // 移動は left と top に pxX, pxY を設定することで行う
