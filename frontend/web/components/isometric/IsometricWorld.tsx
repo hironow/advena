@@ -20,6 +20,7 @@ export default function IsometricWorld() {
   // キー入力のセットアップ (W/A/S/D)
   useEffect(() => {
     initKeyListeners();
+    console.info('[isometric] Key listeners initialized');
   }, []);
 
   // プレイヤーの描画座標更新を受け取る
@@ -36,7 +37,7 @@ export default function IsometricWorld() {
           children に 背景 + プレイヤー を入れる
         */}
         <IsometricCamera
-          containerWidth={1200} // 同じ値をCSS側の .isometricGame width と合わせる
+          containerWidth={800} // 同じ値をCSS側の .isometricGame width と合わせる
           containerHeight={600} // 同じ値をCSS側の .isometricGame height と合わせる
           getPlayerScreenPos={() => ({ x: playerPos.x, y: playerPos.y })}
         >

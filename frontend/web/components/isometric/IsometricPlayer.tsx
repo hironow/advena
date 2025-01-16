@@ -3,8 +3,9 @@
 import React, { useEffect, useRef } from 'react';
 import { keysDown } from './keyInput';
 import { initTouchListeners, getTouchVector } from './touchInput';
-import { getTilePosition, WORLD_SIZE } from './tileset';
+import { bird1, clock1, getTilePosition, power1, WORLD_SIZE } from './tileset';
 import { useRafLoop } from '../../hooks/use-ref-loop';
+import Tile from './Tile';
 
 const tileSpeed = 2.0; // 1秒に2マス進む想定
 
@@ -80,30 +81,36 @@ export default function IsometricPlayer({ onUpdatePos }: IsometricPlayerProps) {
 
     // --- 6) DOM スタイル反映
     if (playerDivRef.current) {
-      playerDivRef.current.style.left = `${finalPxX}px`;
-      playerDivRef.current.style.top = `${finalPxY}px`;
+      // playerDivRef.current.style.left = `${finalPxX}px`;
+      // playerDivRef.current.style.top = `${finalPxY}px`;
     }
 
     // 親に「今の描画座標」を通知 (カメラ用)
     onUpdatePos?.(finalPxX, finalPxY);
+    // console.info('[isometric] Player is moved to (', finalPxX, ',', finalPxY, ')');
   });
 
   // 初回マウント時にタッチイベント設定
   useEffect(() => {
     const cleanup = initTouchListeners(document.body);
     if (playerDivRef.current) {
-      playerDivRef.current.style.position = 'absolute';
-      playerDivRef.current.style.width = '40px';
-      playerDivRef.current.style.height = '40px';
-      playerDivRef.current.style.backgroundColor = 'red';
-      playerDivRef.current.style.zIndex = '999';
+      // playerDivRef.current.style.position = 'absolute';
+      // playerDivRef.current.style.width = '40px';
+      // playerDivRef.current.style.height = '40px';
+      // playerDivRef.current.style.backgroundColor = 'red';
+      // playerDivRef.current.style.zIndex = '999';
       // プレイヤーを見た目で中心合わせ
-      playerDivRef.current.style.transform = 'translate(50%, 100%)';
+      // playerDivRef.current.style.transform = 'translate(50%, 100%)';
     }
+    console.info('[isometric] Player mounted');
     return () => {
       if (cleanup) cleanup();
     };
   }, []);
 
-  return <div ref={playerDivRef} />;
+  return (
+    <div ref={playerDivRef}>
+      <Tile tile={clock1} x={0} y={0} layer={0} />
+    </div>
+  );
 }

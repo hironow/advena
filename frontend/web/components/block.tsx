@@ -35,6 +35,7 @@ import { useSidebar } from './ui/sidebar';
 import { useBlock } from '@/hooks/use-block';
 import equal from 'fast-deep-equal';
 
+// TODO: radio transcription を実装する
 export type BlockKind = 'text' | 'code';
 
 export interface UIBlock {

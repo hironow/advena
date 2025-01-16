@@ -1,4 +1,6 @@
-import React, { FC } from 'react';
+'use client';
+
+import React from 'react';
 import Image from 'next/image';
 import {
   getTilePosition,
@@ -6,12 +8,12 @@ import {
   TILE_IMG_WIDTH,
   TILE_SCALE,
   dummy_layer_map,
-  TileSetName,
+  type TileSetName,
 } from './tileset';
 
 // bird1が見えないので、clock1に変更
 
-interface ITile {
+interface TileProps {
   tile: TileSetName;
   x: number;
   y: number;
@@ -19,10 +21,8 @@ interface ITile {
   reverse?: boolean;
 }
 
-const Tile: FC<ITile> = ({ tile, x, y, layer, reverse }) => {
-  // mapの上に載せないといけない
-  const mapLayer = dummy_layer_map[x][y];
-  const { pxX, pxY } = getTilePosition(x, y, mapLayer);
+const Tile: React.FC<TileProps> = ({ tile, x, y, layer, reverse }) => {
+  const { pxX, pxY } = getTilePosition(x, y, layer);
 
   let img_style = {};
   if (reverse) {
@@ -41,13 +41,14 @@ const Tile: FC<ITile> = ({ tile, x, y, layer, reverse }) => {
         top: pxY, // 下にy座標
         width: TILE_IMG_WIDTH * TILE_SCALE,
         height: TILE_IMG_HEIGHT * TILE_SCALE,
-        // 中心を原点(0, 0)から、下揃え中央にするためにオフセット
-        transform: 'translate(50%, 100%)',
+        // Imageの中心を原点(0, 0)へ (tile画像の下揃え中央が基準点になる)
+        transform: 'translate(-50%, -100%)',
       }}
     >
       <Image
+        className="object-contain"
         src={`/assets/city_game_tileset/${tile}`}
-        alt={`tile: (${x}, ${y}) = (${pxX}, ${pxY})`}
+        alt={`${tile} tile: (${x}, ${y}) = (${pxX}, ${pxY})`}
         width={TILE_IMG_WIDTH}
         height={TILE_IMG_HEIGHT}
         style={img_style}

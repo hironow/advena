@@ -42,20 +42,6 @@ export function getTilePosition(xIndex: number, yIndex: number, layer: number) {
   return { pxX, pxY };
 }
 
-// ダミー10x10レイヤー情報 描画範囲確認用
-export const dummy_layer_map = [
-  [9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
-  [8, 7, 6, 5, 4, 3, 2, 1, 0, 0],
-  [7, 6, 5, 4, 3, 2, 1, 0, 0, 0],
-  [6, 5, 4, 3, 2, 1, 0, 0, 0, 0],
-  [5, 4, 3, 2, 1, 0, 0, 0, 0, 0],
-  [4, 3, 2, 1, 0, 0, 0, 0, 0, 0],
-  [3, 2, 1, 0, 0, 0, 0, 0, 0, 0],
-  [2, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-];
-
 // tileset filename
 export type TileSetName = string;
 export const agave1: TileSetName = 'agave1.png';
@@ -339,3 +325,155 @@ export const well1: TileSetName = 'well1.png';
 export const window1: TileSetName = 'window1.png';
 export const wolf1: TileSetName = 'wolf1.png';
 export const wood1: TileSetName = 'wood1.png';
+
+// ダミー10x10レイヤーベース 描画範囲確認用
+export const zero_layer_map = [
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+];
+
+// ダミー10x10レイヤー情報 描画範囲確認用
+export const dummy_layer_map = [
+  [9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
+  [8, 7, 6, 5, 4, 3, 2, 1, 0, 0],
+  [7, 6, 5, 4, 3, 2, 1, 0, 0, 0],
+  [6, 5, 4, 3, 2, 1, 0, 0, 0, 0],
+  [5, 4, 3, 2, 1, 0, 0, 0, 0, 0],
+  [4, 3, 2, 1, 0, 0, 0, 0, 0, 0],
+  [3, 2, 1, 0, 0, 0, 0, 0, 0, 0],
+  [2, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+];
+
+// ダミー10x10タイル情報 描画範囲確認用
+export const dummy_tile_map = [
+  [
+    brick1,
+    brick1,
+    brick1,
+    brick1,
+    brick1,
+    brick1,
+    brick1,
+    brick1,
+    brick1,
+    ground_tile_foliage1,
+  ],
+  [
+    brick1,
+    brick1,
+    brick1,
+    brick1,
+    brick1,
+    brick1,
+    brick1,
+    brick1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+  ],
+  [
+    brick1,
+    brick1,
+    brick1,
+    brick1,
+    brick1,
+    brick1,
+    brick1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+  ],
+  [
+    brick1,
+    brick1,
+    brick1,
+    brick1,
+    brick1,
+    brick1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+  ],
+  [
+    brick1,
+    brick1,
+    brick1,
+    brick1,
+    brick1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+  ],
+  [
+    brick1,
+    brick1,
+    brick1,
+    brick1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+  ],
+  [
+    brick1,
+    brick1,
+    brick1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+  ],
+  [
+    brick1,
+    brick1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+  ],
+  [
+    brick1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+  ],
+  [
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+    ground_tile_foliage1,
+  ],
+];

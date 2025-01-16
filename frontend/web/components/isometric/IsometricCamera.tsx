@@ -1,4 +1,5 @@
 'use client';
+
 import React, { useRef } from 'react';
 import { useRafLoop } from '../../hooks/use-ref-loop';
 
@@ -34,7 +35,15 @@ export default function IsometricCamera({
     const camOffsetY = -y + containerHeight / 2;
 
     // 3) transform で移動
-    worldRef.current.style.transform = `translate(${camOffsetX}px, ${camOffsetY}px)`;
+    // worldRef.current.style.transform = `translate(${camOffsetX}px, ${camOffsetY}px)`;
+
+    // console.info(
+    //   '[isometric] Camera is moved to (',
+    //   camOffsetX,
+    //   ',',
+    //   camOffsetY,
+    //   ')',
+    // );
   });
 
   return (
@@ -45,8 +54,9 @@ export default function IsometricCamera({
         position: 'absolute',
         left: 0,
         top: 0,
-        width: '2000px', // マップ全体より大きめに確保
-        height: '2000px',
+        width: '600px', // マップ全体より大きめに確保
+        height: '800px',
+        backgroundColor: 'red',
       }}
     >
       {children}
