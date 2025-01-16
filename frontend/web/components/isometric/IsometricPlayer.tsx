@@ -15,11 +15,13 @@ interface IsometricPlayerProps {
 }
 
 export default function IsometricPlayer({ onUpdatePos }: IsometricPlayerProps) {
-  const tileXRef = useRef<number>(WORLD_SIZE - 2);
-  const tileYRef = useRef<number>(WORLD_SIZE - 2);
+  const tileXRef = useRef<number>(0);
+  const tileYRef = useRef<number>(0);
   const layerRef = useRef<number>(0);
 
   const playerDivRef = useRef<HTMLDivElement | null>(null);
+
+  const maxXorY = WORLD_SIZE - 1;
 
   useRafLoop((deltaMs) => {
     const dt = deltaMs / 1000;
@@ -54,11 +56,11 @@ export default function IsometricPlayer({ onUpdatePos }: IsometricPlayerProps) {
     // --- 4) タイル座標を更新 (0〜WORLD_SIZE-1 でクリップ)
     tileXRef.current = Math.max(
       0,
-      Math.min(WORLD_SIZE - 1, tileXRef.current + vx * tileSpeed * dt),
+      Math.min(maxXorY, tileXRef.current + vx * tileSpeed * dt),
     );
     tileYRef.current = Math.max(
       0,
-      Math.min(WORLD_SIZE - 1, tileYRef.current + vy * tileSpeed * dt),
+      Math.min(maxXorY, tileYRef.current + vy * tileSpeed * dt),
     );
 
     // --- 5) タイル座標 -> ピクセル座標
@@ -81,26 +83,22 @@ export default function IsometricPlayer({ onUpdatePos }: IsometricPlayerProps) {
 
     // --- 6) DOM スタイル反映
     if (playerDivRef.current) {
-      // playerDivRef.current.style.left = `${finalPxX}px`;
-      // playerDivRef.current.style.top = `${finalPxY}px`;
+      // transform で移動
+      playerDivRef.current.style.transform = `translate(${finalPxX}px, ${finalPxY}px)`;
+
+      // console.info('[isometric] Player is moved from (', xInt, ',', yInt, ') to (', tileXRef.current, ',', tileYRef.current, ')');
     }
 
     // 親に「今の描画座標」を通知 (カメラ用)
     onUpdatePos?.(finalPxX, finalPxY);
-    // console.info('[isometric] Player is moved to (', finalPxX, ',', finalPxY, ')');
   });
 
-  // 初回マウント時にタッチイベント設定
+  // 初回マウント時にイベント設定
   useEffect(() => {
     const keyCleanup = initKeyListeners();
     const touchCleanup = initTouchListeners(document.body);
 
-    if (playerDivRef.current) {
-      // プレイヤーを見た目で中心合わせ
-      // playerDivRef.current.style.transform = 'translate(50%, 100%)';
-    }
-
-    console.info('[isometric] Player mounted');
+    console.info('[isometric] Player mounted in (0, 0)');
     return () => {
       if (keyCleanup) keyCleanup();
       if (touchCleanup) touchCleanup();
@@ -109,7 +107,7 @@ export default function IsometricPlayer({ onUpdatePos }: IsometricPlayerProps) {
 
   return (
     <div ref={playerDivRef}>
-      <Tile tile={clock1} x={8} y={8} layer={0} />
+      <Tile tile={clock1} x={0} y={0} layer={0} />
     </div>
   );
 }

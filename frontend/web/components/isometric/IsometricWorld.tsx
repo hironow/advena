@@ -6,6 +6,7 @@ import IsometricBackground from './IsometricBackground';
 import IsometricPlayer from './IsometricPlayer';
 import IsometricCamera from './IsometricCamera';
 import { initKeyListeners } from './keyInput';
+import { WORLD_SIZE } from './tileset';
 
 /**
  * 全体をまとめる "ワールド" コンポーネント
@@ -15,11 +16,11 @@ import { initKeyListeners } from './keyInput';
 export default function IsometricWorld() {
   // プレイヤーのスクリーン座標を state で保持
   // (これをカメラに渡して、中心に持ってくる)
-  const [playerPos, setPlayerPos] = useState({ x: 0, y: 0 });
+  const [playerPos, setPlayerPos] = useState({ pxX: 0, pxY: 0 });
 
   // プレイヤーの描画座標更新を受け取る
   const handlePlayerPosUpdate = (pxX: number, pxY: number) => {
-    setPlayerPos({ x: pxX, y: pxY });
+    setPlayerPos({ pxX: pxX, pxY: pxY });
   };
 
   return (
@@ -33,7 +34,10 @@ export default function IsometricWorld() {
         <IsometricCamera
           containerWidth={800} // 同じ値をCSS側の .isometricGame width と合わせる
           containerHeight={600} // 同じ値をCSS側の .isometricGame height と合わせる
-          getPlayerScreenPos={() => ({ x: playerPos.x, y: playerPos.y })}
+          getPlayerScreenPos={() => ({
+            pxX: playerPos.pxX,
+            pxY: playerPos.pxY,
+          })}
         >
           {/* 背景 */}
           <IsometricBackground />

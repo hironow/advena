@@ -18,33 +18,10 @@ export default function IsometricCamera({
 }: {
   containerWidth: number;
   containerHeight: number;
-  getPlayerScreenPos: () => { x: number; y: number };
+  getPlayerScreenPos?: () => { pxX: number; pxY: number };
   children: React.ReactNode;
 }) {
   const worldRef = useRef<HTMLDivElement | null>(null);
-
-  useRafLoop(() => {
-    if (!worldRef.current) return;
-
-    // 1) プレイヤーの描画上の座標を取得
-    const { x, y } = getPlayerScreenPos();
-
-    // 2) カメラオフセットを計算
-    //    プレイヤーが画面中央(containerWidth/2, containerHeight/2)になるように
-    const camOffsetX = -x + containerWidth / 2;
-    const camOffsetY = -y + containerHeight / 2;
-
-    // 3) transform で移動
-    // worldRef.current.style.transform = `translate(${camOffsetX}px, ${camOffsetY}px)`;
-
-    // console.info(
-    //   '[isometric] Camera is moved to (',
-    //   camOffsetX,
-    //   ',',
-    //   camOffsetY,
-    //   ')',
-    // );
-  });
 
   // transformの初期値はcontainerの中心に合わせる
   // (プレイヤーが画面中央に来るように)
