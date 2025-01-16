@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import { keysDown } from './keyInput';
+import { initKeyListeners, keysDown } from './keyInput';
 import { initTouchListeners, getTouchVector } from './touchInput';
 import { bird1, clock1, getTilePosition, power1, WORLD_SIZE } from './tileset';
 import { useRafLoop } from '../../hooks/use-ref-loop';
@@ -92,25 +92,24 @@ export default function IsometricPlayer({ onUpdatePos }: IsometricPlayerProps) {
 
   // 初回マウント時にタッチイベント設定
   useEffect(() => {
-    const cleanup = initTouchListeners(document.body);
+    const keyCleanup = initKeyListeners();
+    const touchCleanup = initTouchListeners(document.body);
+
     if (playerDivRef.current) {
-      // playerDivRef.current.style.position = 'absolute';
-      // playerDivRef.current.style.width = '40px';
-      // playerDivRef.current.style.height = '40px';
-      // playerDivRef.current.style.backgroundColor = 'red';
-      // playerDivRef.current.style.zIndex = '999';
       // プレイヤーを見た目で中心合わせ
       // playerDivRef.current.style.transform = 'translate(50%, 100%)';
     }
+
     console.info('[isometric] Player mounted');
     return () => {
-      if (cleanup) cleanup();
+      if (keyCleanup) keyCleanup();
+      if (touchCleanup) touchCleanup();
     };
   }, []);
 
   return (
     <div ref={playerDivRef}>
-      <Tile tile={clock1} x={0} y={0} layer={0} />
+      <Tile tile={clock1} x={8} y={8} layer={0} />
     </div>
   );
 }

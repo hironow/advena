@@ -44,5 +44,11 @@ export function initKeyListeners() {
   window.addEventListener('keydown', handleKeyDown);
   window.addEventListener('keyup', handleKeyUp);
 
-  // アンマウント時に削除するなら、返り値などで管理
+  console.info('[isometric] KeyInput listeners initialized');
+
+  // アンマウント時に削除するなら
+  return () => {
+    window.removeEventListener('keydown', handleKeyDown);
+    window.removeEventListener('keyup', handleKeyUp);
+  };
 }

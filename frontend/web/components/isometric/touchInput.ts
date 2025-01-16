@@ -71,6 +71,8 @@ export function initTouchListeners(element: HTMLElement) {
   element.addEventListener('touchend', onTouchEnd, { passive: false });
   element.addEventListener('touchcancel', onTouchCancel, { passive: false });
 
+  console.info('[isometric] TouchInput listeners initialized');
+
   // アンマウント時に解除するなら
   return () => {
     element.removeEventListener('touchstart', onTouchStart);

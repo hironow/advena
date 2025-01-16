@@ -17,12 +17,6 @@ export default function IsometricWorld() {
   // (これをカメラに渡して、中心に持ってくる)
   const [playerPos, setPlayerPos] = useState({ x: 0, y: 0 });
 
-  // キー入力のセットアップ (W/A/S/D)
-  useEffect(() => {
-    initKeyListeners();
-    console.info('[isometric] Key listeners initialized');
-  }, []);
-
   // プレイヤーの描画座標更新を受け取る
   const handlePlayerPosUpdate = (pxX: number, pxY: number) => {
     setPlayerPos({ x: pxX, y: pxY });
