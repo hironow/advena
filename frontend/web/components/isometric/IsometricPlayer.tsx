@@ -7,7 +7,7 @@ import { bird1, clock1, getTilePosition, power1, WORLD_SIZE } from './tileset';
 import { useRafLoop } from '../../hooks/use-ref-loop';
 import Tile from './Tile';
 
-const tileSpeed = 2.0; // 1秒に2マス進む想定
+const tileSpeed = 2.5; // 1秒に2.5マス進む想定
 
 interface IsometricPlayerProps {
   // 毎フレーム計算した「スクリーン座標」を親に通知するコールバック
