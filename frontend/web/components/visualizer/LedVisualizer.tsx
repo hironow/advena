@@ -19,7 +19,7 @@ const LedVisualizer: React.FC<{ width?: number; height?: number }> = ({
     .range([0, width]);
   const yScale = d3.scaleLinear().domain([0, 255]).range([height, 0]);
   const colorScale = d3
-    .scaleSequential(d3.interpolateSpectral)
+    .scaleSequential(d3.interpolateSpectral) // スペクトル なので interpolateSpectral で。他には interpolateViridis, interpolateInferno, interpolateRdYlBu, interpolatePlasma が良さそう
     .domain([0, binCount - 1]);
 
   // 初期化
@@ -30,7 +30,7 @@ const LedVisualizer: React.FC<{ width?: number; height?: number }> = ({
     d3.select(svgRef.current)
       .append('g')
       .attr('class', 'led-border')
-      .attr('stroke-width', 0.2)
+      .attr('stroke-width', 0.0)
       .attr('stroke', 'white')
       .call(
         d3
@@ -79,7 +79,7 @@ const LedVisualizer: React.FC<{ width?: number; height?: number }> = ({
       ref={svgRef}
       width={width}
       height={height}
-      style={{ background: '#333' }}
+      style={{ background: '#222' }}
     />
   );
 };
