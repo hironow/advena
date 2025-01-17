@@ -2,6 +2,7 @@
 
 import React, { useRef } from 'react';
 import { useRafLoop } from '../../hooks/use-ref-loop';
+import { getTilePosition } from './tileset';
 
 interface IsometricCameraProps {
   className?: string;
@@ -28,15 +29,16 @@ export default function IsometricCamera({
   const worldRef = useRef<HTMLDivElement | null>(null);
 
   useRafLoop(() => {
-    if (!worldRef.current) return;
-
     const { x, y, layer } = getPlayerScreenPos();
+    const pos = getTilePosition(x, y, layer);
 
     // プレイヤーの画面座標を取得して、カメラを移動
-    // 移動は left と top に pxX, pxY を設定することで行う
-    // (transform だと中心がずれるため)
-    // worldRef.current.style.left = `${containerWidth / 2 + pxX}px`;
-    // worldRef.current.style.top = `${containerHeight / 2 + pxY}px`;
+    if (worldRef.current) {
+      // // posの中にpxX, pxYがあるのでtransformで移動
+      // const nextTransform = `translate(${-pos.pxX + containerWidth / 2}px, ${-pos.pxY + containerHeight / 2}px)`; // 画面中央にプレイヤーを配置
+      // worldRef.current.style.transform = nextTransform;
+      // console.info(`IsometricCamera: (${x}, ${y}, ${layer}) -> (${pos.pxX}, ${pos.pxY})`);
+    }
   });
 
   // transformの初期値はcontainerの中心に合わせる
@@ -46,8 +48,16 @@ export default function IsometricCamera({
   return (
     <div
       // "world" 要素。ワールド(背景+プレイヤー等)全体をこの中に入れる
+      id="world"
       ref={worldRef}
       className={className}
+      // style={{
+      //   position: 'absolute',
+      //   left: '50%',
+      //   top: '50%',
+      //   width: containerWidth * 1.5,
+      //   height: containerHeight * 2,
+      // }}
     >
       {children}
     </div>

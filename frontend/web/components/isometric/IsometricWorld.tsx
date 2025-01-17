@@ -39,12 +39,13 @@ export default function IsometricWorld() {
           // CSS側の .isometricGame width, height と一致させる
           containerWidth={800}
           containerHeight={600}
-          // プレイヤーの画面座標を取得するコールバック
+          // プレイヤーの画面座標を取得するコールバック TODO: 機能していない
           getPlayerScreenPos={() => ({
             x: playerPos.x,
             y: playerPos.y,
             layer: playerPos.layer,
           })}
+          className={styles.camera}
         >
           <IsometricBackground
             map={map}
