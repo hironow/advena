@@ -11,10 +11,10 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 800px; /* 800px is the width of the game */
-  height: 600px; /* 600px is the height of the game */
+  width: 100vw; 
+  height: 100vh;
   transform: translate(-50%, -50%);
-  background-color: red;
+  background-color: #dfdfdf;
 }
 
 .camera {

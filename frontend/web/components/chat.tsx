@@ -106,7 +106,7 @@ export function Chat({
           <LedVisualizer width={800} height={200} />
         </div>
         <div className="flex justify-center">
-          <div style={{ width: 750, height: 550 }}>
+          <div style={{ width: '70vw', height: '70vh' }}>
             <IsometricWorld />
           </div>
         </div>
