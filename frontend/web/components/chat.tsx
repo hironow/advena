@@ -99,7 +99,7 @@ export function Chat({
         </div>
 
         <div className="flex justify-center">
-          <BgmController src="/assets/bgm/bgm1.mp3" />
+          <BgmController src="/assets/bgm/bgm2.mp3" />
           <InitMicButton />
         </div>
         <div className="flex justify-center">
