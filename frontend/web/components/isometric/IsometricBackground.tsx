@@ -1,15 +1,20 @@
 'use client';
 
 import React from 'react';
-import {
-  WORLD_SIZE,
-  dummy_tile_map,
-  dummy_layer_map,
-  zero_layer_map,
-} from './tileset';
+import { WORLD_SIZE } from './tileset';
 import Tile from './Tile';
 
-export default function IsometricBackground() {
+interface IsometricBackgroundProps {
+  map: string[][];
+  layerMap: number[][];
+  className?: string;
+}
+
+export default function IsometricBackground({
+  map,
+  layerMap,
+  className,
+}: IsometricBackgroundProps) {
   // タイル要素をまとめて生成
   const tiles = [];
   for (let y = 0; y < WORLD_SIZE; y++) {
@@ -17,14 +22,14 @@ export default function IsometricBackground() {
       tiles.push(
         <Tile
           key={`tile-${x}-${y}`}
-          tile={dummy_tile_map[x][y]}
+          tile={map[x][y]}
           x={x}
           y={y}
-          layer={dummy_layer_map[x][y]}
+          layer={layerMap[x][y]}
         />,
       );
     }
   }
 
-  return <div>{tiles}</div>;
+  return <div className={className}>{tiles}</div>;
 }

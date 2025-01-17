@@ -3,6 +3,14 @@
 import React, { useRef } from 'react';
 import { useRafLoop } from '../../hooks/use-ref-loop';
 
+interface IsometricCameraProps {
+  className?: string;
+  containerWidth: number;
+  containerHeight: number;
+  getPlayerScreenPos: () => { x: number; y: number; layer: number };
+  children: React.ReactNode;
+}
+
 /**
  * 画面中央にプレイヤーを配置するための「カメラ」コンポーネント
  *
@@ -11,16 +19,12 @@ import { useRafLoop } from '../../hooks/use-ref-loop';
  * @param getPlayerScreenPos プレイヤーの画面上タイル座標を取得するコールバック
  */
 export default function IsometricCamera({
+  className,
   containerWidth = 1200,
   containerHeight = 600,
   getPlayerScreenPos,
   children,
-}: {
-  containerWidth: number;
-  containerHeight: number;
-  getPlayerScreenPos: () => { x: number; y: number; layer: number };
-  children: React.ReactNode;
-}) {
+}: IsometricCameraProps) {
   const worldRef = useRef<HTMLDivElement | null>(null);
 
   useRafLoop(() => {
@@ -42,17 +46,8 @@ export default function IsometricCamera({
   return (
     <div
       // "world" 要素。ワールド(背景+プレイヤー等)全体をこの中に入れる
-      id="world"
       ref={worldRef}
-      style={{
-        position: 'absolute',
-        left: '50%',
-        top: '50%',
-        // マップ全体より大きめに width, hight を確保
-        width: '1200px',
-        height: '1800px',
-        backgroundColor: 'rgba(230, 0, 0, 0.5)',
-      }}
+      className={className}
     >
       {children}
     </div>

@@ -6,7 +6,7 @@ import { initTouchListeners, getTouchVector } from './touchInput';
 import {
   bird1,
   clock1,
-  dummy_layer_map,
+  getLayerDiffY,
   getTilePosition,
   power1,
   WORLD_MAX_LAYER,
@@ -15,16 +15,24 @@ import {
 import { useRafLoop } from '../../hooks/use-ref-loop';
 import Tile from './Tile';
 import { consoleLogWithStyle } from './utils';
+import styles from './isometric.module.css';
 
 const tileSpeed = 2.5; // 1秒に2.5マス進む想定
 
 interface IsometricPlayerProps {
+  map: string[][];
+  layerMap: number[][];
+  className?: string;
   initialPos: { x: number; y: number; layer: number };
+  centerFixed?: boolean;
   // 毎フレーム計算した「タイル座標」を親に通知するコールバック
   onUpdatePos?: (x: number, y: number, layer: number) => void;
 }
 
 export default function IsometricPlayer({
+  map,
+  layerMap,
+  className,
   initialPos,
   onUpdatePos,
 }: IsometricPlayerProps) {
@@ -36,6 +44,7 @@ export default function IsometricPlayer({
 
   const maxXorY = WORLD_SIZE - 1;
   const maxLayer = WORLD_MAX_LAYER - 1;
+  const initialLayerDiffY = getLayerDiffY(initialPos.layer);
 
   useRafLoop((deltaMs) => {
     const dt = deltaMs / 1000;
@@ -66,7 +75,6 @@ export default function IsometricPlayer({
       vx /= len;
       vy /= len;
     }
-    const currentLayer = layerRef.current;
 
     // 4) タイル座標を更新 (0 - WORLD_SIZE-1 でクリップ)
     tileXRef.current = Math.max(
@@ -82,15 +90,15 @@ export default function IsometricPlayer({
     const xInt = Math.floor(tileXRef.current);
     const yInt = Math.floor(tileYRef.current);
     // レイヤーを更新 (0 - WORLD_MAX_LAYER-1 でクリップ)
-    const nextLayer = dummy_layer_map[xInt][yInt];
-    layerRef.current = Math.max(0, Math.min(maxLayer, nextLayer));
+    const layer = layerMap[xInt][yInt];
+    layerRef.current = Math.max(0, Math.min(maxLayer, layer));
 
     const fracX = tileXRef.current - xInt;
     const fracY = tileYRef.current - yInt;
 
-    const basePos = getTilePosition(xInt, yInt, currentLayer);
-    const plus1X = getTilePosition(xInt + 1, yInt, currentLayer);
-    const plus1Y = getTilePosition(xInt, yInt + 1, currentLayer);
+    const basePos = getTilePosition(xInt, yInt, layer);
+    const plus1X = getTilePosition(xInt + 1, yInt, layer);
+    const plus1Y = getTilePosition(xInt, yInt + 1, layer);
 
     const dxX = plus1X.pxX - basePos.pxX;
     const dxY = plus1X.pxY - basePos.pxY;
@@ -103,29 +111,16 @@ export default function IsometricPlayer({
     // 6) DOM スタイル反映
     if (playerDivRef.current) {
       // transform で移動 (カメラにこの移動を逆転して渡したい、Reactの再レンダリングは避けること)
-      playerDivRef.current.style.transform = `translate(${finalPxX}px, ${finalPxY}px)`;
-      console.info(
-        '[isometric] Player is moved from (',
-        xInt,
-        ',',
-        yInt,
-        ',',
-        nextLayer,
-        ') to (',
-        tileXRef.current,
-        ',',
-        tileYRef.current,
-        ',',
-        layerRef.current,
-        ')',
-      );
+      // 初回描画時に0以外のレイヤーだった場合を考慮する。レイヤー0以外はマイナスの影響を受ける
+      playerDivRef.current.style.transform = `translate(${finalPxX}px, ${finalPxY + initialLayerDiffY}px)`;
+
+      // consoleLogWithStyle(
+      //   `%cisometric%c Player is moved from (${xInt}, ${yInt}, ${layer}) to (${tileXRef.current}, ${tileYRef.current}, ${layerRef.current})`,
+      // );
     }
 
     // 親にタイル座標を通知
-    const nextXInt = Math.floor(tileXRef.current);
-    const nextYInt = Math.floor(tileYRef.current);
-    const nextLayerInt = dummy_layer_map[nextXInt][nextYInt];
-    onUpdatePos?.(nextXInt, nextYInt, nextLayerInt);
+    onUpdatePos?.(xInt, yInt, layer);
   });
 
   // 初回マウント時にイベント設定
@@ -142,7 +137,7 @@ export default function IsometricPlayer({
   }, []);
 
   return (
-    <div ref={playerDivRef}>
+    <div ref={playerDivRef} className={className}>
       <Tile
         tile={clock1}
         x={initialPos.x}

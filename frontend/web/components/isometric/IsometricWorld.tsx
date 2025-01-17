@@ -6,7 +6,8 @@ import IsometricBackground from './IsometricBackground';
 import IsometricPlayer from './IsometricPlayer';
 import IsometricCamera from './IsometricCamera';
 import { Label } from '../ui/label';
-import { dummy_layer_map } from './tileset';
+import { dummy_layer_map, dummy_tile_map, zero_layer_map } from './tileset';
+import { consoleLogWithStyle } from './utils';
 
 /**
  * 全体をまとめる "ワールド" コンポーネント
@@ -14,27 +15,25 @@ import { dummy_layer_map } from './tileset';
 export default function IsometricWorld() {
   // プレイヤーのタイル座標:
   // 頂上が (0, 0) で、真下が (WORLD_SIZE-1, WORLD_SIZE-1) となる
-  const initialPlayerPos = { x: 0, y: 0, layer: dummy_layer_map[0][0] };
+  const map = dummy_tile_map;
+  const layerMap = dummy_layer_map;
+
+  const initialPlayerPos = { x: 0, y: 0, layer: layerMap[0][0] };
   const [playerPos, setPlayerPos] =
     useState<typeof initialPlayerPos>(initialPlayerPos);
 
   // プレイヤーのタイル座標更新を受け取る (描画のpx座標ではない)
   const handlePlayerPosUpdate = (x: number, y: number, layer: number) => {
-    if (playerPos.x !== x || playerPos.y !== y || playerPos.layer !== layer) {
-      // 更新頻度を抑える
-      setPlayerPos({ x: x, y: y, layer: layer });
-    }
+    setPlayerPos({ x: x, y: y, layer: layer });
+    // consoleLogWithStyle(
+    //   `%cisometric%c Player position updated: (${x}, ${y}, ${layer})`,
+    // )
   };
 
   return (
     <div className={styles.isometricGame}>
       {/* overflowは .isometricGame が隠している */}
       <div className={styles.gameInner}>
-        {/* カメラ外は座標系が統一されていない前提 */}
-        <Label>
-          player = ({playerPos.x}, {playerPos.y}, {playerPos.layer})
-        </Label>
-
         {/* カメラ内は座標系が統一されている前提 */}
         <IsometricCamera
           // CSS側の .isometricGame width, height と一致させる
@@ -47,8 +46,15 @@ export default function IsometricWorld() {
             layer: playerPos.layer,
           })}
         >
-          <IsometricBackground />
+          <IsometricBackground
+            map={map}
+            layerMap={layerMap}
+            className={styles.background}
+          />
           <IsometricPlayer
+            map={map}
+            layerMap={layerMap}
+            className={styles.player}
             initialPos={initialPlayerPos}
             onUpdatePos={handlePlayerPosUpdate}
           />

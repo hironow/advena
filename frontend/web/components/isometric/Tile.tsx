@@ -7,7 +7,6 @@ import {
   TILE_IMG_HEIGHT,
   TILE_IMG_WIDTH,
   TILE_SCALE,
-  dummy_layer_map,
   type TileSetName,
 } from './tileset';
 

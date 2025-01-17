@@ -106,7 +106,9 @@ export function Chat({
           <LedVisualizer width={800} height={200} />
         </div>
         <div className="flex justify-center">
-          <IsometricWorld />
+          <div style={{ width: 750, height: 550 }}>
+            <IsometricWorld />
+          </div>
         </div>
 
         {false && (

@@ -13,6 +13,9 @@ export const WORLD_MAX_LAYER = 10;
 export const START_X = WORLD_SIZE - 2;
 export const START_Y = WORLD_SIZE - 2;
 
+const UNIT_X = 78;
+const UNIT_Y = 38;
+
 /**
  * isometricなpx座標を算出する (マス座標 -> px座標)
  * xIndex, yIndex: タイルのマス座標 (0 <= x, y < WORLD_SIZE) (0, 0) が頂上で、右下に行くほどx増加、左下に行くほどy増加
@@ -20,20 +23,15 @@ export const START_Y = WORLD_SIZE - 2;
  */
 export function getTilePosition(xIndex: number, yIndex: number, layer: number) {
   // 微調整: 斜めにはおよそ86pxのタイルでpx座標では xに78px、yに38pxずつずれるのがちょうどいい
-  const unitX = 78;
-  const unitY = 38;
 
-  const diffX = unitX * TILE_SCALE;
-  const diffY = unitY * TILE_SCALE;
+  const diffX = UNIT_X * TILE_SCALE;
+  const diffY = UNIT_Y * TILE_SCALE;
 
   const initialX = 0;
   const initialY = 0;
 
   // layerが上がる = pxYにマイナスがかかる
-  let layerDiffY = 0;
-  if (layer >= 0 && layer < WORLD_MAX_LAYER) {
-    layerDiffY = unitY * TILE_SCALE * layer;
-  }
+  const layerDiffY = getLayerDiffY(layer);
 
   // xIndex は右下方向
   // yIndex は左下方向
@@ -41,6 +39,14 @@ export function getTilePosition(xIndex: number, yIndex: number, layer: number) {
   const pxY = initialY + xIndex * diffY + yIndex * diffY - layerDiffY;
 
   return { pxX, pxY };
+}
+
+export function getLayerDiffY(layer: number) {
+  // 負数では返却しない
+  if (layer < 0 || layer >= WORLD_MAX_LAYER) {
+    return 0;
+  }
+  return UNIT_Y * TILE_SCALE * layer;
 }
 
 // tileset filename
