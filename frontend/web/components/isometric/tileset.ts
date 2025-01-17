@@ -7,6 +7,7 @@ export const TILE_SCALE = 0.4;
 
 // ワールド(マップ)のサイズで「マス」今回は 10x10 の正方形のマップ
 export const WORLD_SIZE = 10;
+export const WORLD_MAX_LAYER = 10;
 
 // 初期リスポーン地点: 真下の1つ上のマス
 export const START_X = WORLD_SIZE - 2;
@@ -30,7 +31,7 @@ export function getTilePosition(xIndex: number, yIndex: number, layer: number) {
 
   // layerが上がる = pxYにマイナスがかかる
   let layerDiffY = 0;
-  if (layer > 0 && layer < 10) {
+  if (layer >= 0 && layer < WORLD_MAX_LAYER) {
     layerDiffY = unitY * TILE_SCALE * layer;
   }
 

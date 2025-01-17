@@ -1,8 +1,19 @@
 {
 	"folders": [
 		{
-			"path": "."
+			"path": "./frontend/web",
+			"name": "web"
+		},
+		{
+			"path": "./frontend/genai",
+			"name": "genai"
+		},
+		{
+			"path": ".",
+			"name": "root"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"vsicons.presets.angular": true
+	}
 }

@@ -1,53 +1,57 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import styles from './isometric.module.css';
 import IsometricBackground from './IsometricBackground';
 import IsometricPlayer from './IsometricPlayer';
 import IsometricCamera from './IsometricCamera';
-import { initKeyListeners } from './keyInput';
-import { WORLD_SIZE } from './tileset';
 import { Label } from '../ui/label';
+import { dummy_layer_map } from './tileset';
 
 /**
  * 全体をまとめる "ワールド" コンポーネント
- * - 画面中央にプレイヤーを固定するために、IsometricCamera を利用
- * - カメラが毎フレーム「プレイヤー座標」を参照して動く
  */
 export default function IsometricWorld() {
-  // プレイヤーのスクリーン座標を state で保持
-  // (これをカメラに渡して、中心に持ってくる)
-  const [playerPos, setPlayerPos] = useState({ x: 0, y: 0 });
+  // プレイヤーのタイル座標:
+  // 頂上が (0, 0) で、真下が (WORLD_SIZE-1, WORLD_SIZE-1) となる
+  const initialPlayerPos = { x: 0, y: 0, layer: dummy_layer_map[0][0] };
+  const [playerPos, setPlayerPos] =
+    useState<typeof initialPlayerPos>(initialPlayerPos);
 
-  // プレイヤーの描画座標更新を受け取る
-  const handlePlayerPosUpdate = (x: number, y: number) => {
-    setPlayerPos({ x: x, y: y });
+  // プレイヤーのタイル座標更新を受け取る (描画のpx座標ではない)
+  const handlePlayerPosUpdate = (x: number, y: number, layer: number) => {
+    if (playerPos.x !== x || playerPos.y !== y || playerPos.layer !== layer) {
+      // 更新頻度を抑える
+      setPlayerPos({ x: x, y: y, layer: layer });
+    }
   };
 
   return (
     <div className={styles.isometricGame}>
-      {/* gameInner: カメラ含む全体。overflowを使い画面サイズを固定して表示 */}
+      {/* overflowは .isometricGame が隠している */}
       <div className={styles.gameInner}>
-        {/*
-          IsometricCamera にプレイヤー座標を渡す
-          children に 背景 + プレイヤー を入れる
-        */}
+        {/* カメラ外は座標系が統一されていない前提 */}
         <Label>
-          player = ({playerPos.x}, {playerPos.y})
+          player = ({playerPos.x}, {playerPos.y}, {playerPos.layer})
         </Label>
+
+        {/* カメラ内は座標系が統一されている前提 */}
         <IsometricCamera
-          containerWidth={800} // 同じ値をCSS側の .isometricGame width と合わせる
-          containerHeight={600} // 同じ値をCSS側の .isometricGame height と合わせる
+          // CSS側の .isometricGame width, height と一致させる
+          containerWidth={800}
+          containerHeight={600}
+          // プレイヤーの画面座標を取得するコールバック
           getPlayerScreenPos={() => ({
             x: playerPos.x,
             y: playerPos.y,
+            layer: playerPos.layer,
           })}
         >
-          {/* 背景 */}
           <IsometricBackground />
-
-          {/* プレイヤー */}
-          <IsometricPlayer onUpdatePos={handlePlayerPosUpdate} />
+          <IsometricPlayer
+            initialPos={initialPlayerPos}
+            onUpdatePos={handlePlayerPosUpdate}
+          />
         </IsometricCamera>
       </div>
     </div>
