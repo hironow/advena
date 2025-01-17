@@ -46,19 +46,7 @@ export default function IsometricCamera({
   // const initialTransform = `translate(${containerWidth / 2}px, ${containerHeight / 2}px)`;
 
   return (
-    <div
-      // "world" 要素。ワールド(背景+プレイヤー等)全体をこの中に入れる
-      id="world"
-      ref={worldRef}
-      className={className}
-      // style={{
-      //   position: 'absolute',
-      //   left: '50%',
-      //   top: '50%',
-      //   width: containerWidth * 1.5,
-      //   height: containerHeight * 2,
-      // }}
-    >
+    <div id="world" ref={worldRef} className={className}>
       {children}
     </div>
   );
