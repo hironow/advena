@@ -19,6 +19,7 @@ import IsometricWorld from './isometric/IsometricWorld';
 import { useAudioContextState } from '@/components/visualizer/audio-context-provider';
 import BgmController from '@/components/visualizer/BgmController';
 import { Button } from './ui/button';
+import { RotatingBookshelf } from './shelf/RotatingBookshelf';
 
 // SSRオフにしてD3を使う
 const LedVisualizer = dynamic(
@@ -92,6 +93,10 @@ export function Chat({
           selectedVisibilityType={selectedVisibilityType}
           isReadonly={isReadonly}
         />
+
+        <div className="flex justify-center">
+          <RotatingBookshelf />
+        </div>
 
         <div className="flex justify-center">
           <BgmController src="/assets/bgm/bgm1.mp3" />
