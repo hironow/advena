@@ -76,6 +76,19 @@ export default function IsometricPlayer({
       vy /= len;
     }
 
+    // 4方向のどこに行っているかをkindに保存
+    let kind = '';
+    if (vx === 0 && vy === -1) kind = 'up';
+    if (vx === 0 && vy === 1) kind = 'down';
+    if (vx === -1 && vy === 0) kind = 'left';
+    if (vx === 1 && vy === 0) kind = 'right';
+    // console.info(`Player is moving ${kind}`);
+    // 場合によってはflipさせる
+    let flip = false;
+    if (kind === 'left') flip = true;
+    if (kind === 'right') flip = false;
+    // TODO: tile assetによって方向が違う...画像を変えてもいいかも
+
     // 4) タイル座標を更新 (0 - WORLD_SIZE-1 でクリップ)
     tileXRef.current = Math.max(
       0,
@@ -113,6 +126,10 @@ export default function IsometricPlayer({
       // transform で移動 (カメラにこの移動を逆転して渡したい、Reactの再レンダリングは避けること)
       // 初回描画時に0以外のレイヤーだった場合を考慮する。レイヤー0以外はマイナスの影響を受ける
       playerDivRef.current.style.transform = `translate(${finalPxX}px, ${finalPxY + initialLayerDiffY}px)`;
+
+      if (flip) {
+        playerDivRef.current.style.transform += ' scaleX(-1)';
+      }
 
       // consoleLogWithStyle(
       //   `%cisometric%c Player is moved from (${xInt}, ${yInt}, ${layer}) to (${tileXRef.current}, ${tileYRef.current}, ${layerRef.current})`,

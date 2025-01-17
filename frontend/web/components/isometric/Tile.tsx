@@ -17,14 +17,14 @@ interface TileProps {
   x: number;
   y: number;
   layer: number;
-  reverse?: boolean;
+  flip?: boolean;
 }
 
-const Tile: React.FC<TileProps> = ({ tile, x, y, layer, reverse }) => {
+const Tile: React.FC<TileProps> = ({ tile, x, y, layer, flip }) => {
   const { pxX, pxY } = getTilePosition(x, y, layer);
 
   let img_style = {};
-  if (reverse) {
+  if (flip) {
     img_style = {
       transform: 'scaleX(-1)',
     };
