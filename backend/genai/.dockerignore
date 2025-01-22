@@ -1,0 +1,30 @@
+# DO NOT include .env.keys (private key) in the image
+.env.keys
+
+.git/
+.venv/
+venv/
+
+# other files
+.DS_Store
+Dockerfile
+README.md
+*.pyc
+*.pyo
+*.pyd
+
+# caches
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# IDE and virtual environment
+.idea/
+.vscode/
+
+# unused files
+tests/
+build/
+private/
+refs/

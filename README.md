@@ -1,7 +1,7 @@
 # advena
 
 <p align="center">
-    コードネーム: `advena` (アドヴェナ)
+    コードネーム: advena (アドヴェナ)
 </p>
 
 ## Preparing for development
@@ -51,6 +51,16 @@ mr be:format
 # test
 mr fe:test
 mr be:test
+```
+
+run tasks in parallel:
+
+```bash
+# frontend and backend
+mr fe:dev ::: be:dev
+
+# format and test
+mr fe:format ::: be:format ::: fe:test ::: be:test
 ```
 
 ### Add dependencies

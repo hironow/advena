@@ -1,8 +1,9 @@
 # web
 
-* [ ] isometric design: 原点がずれているバグあり...
-* [ ] audio visualizer: 未実装
+* [x] isometric design: 原点がずれているバグあり...
+* [x] audio visualizer: 未実装
 * [ ] mv scene: 未実装
+* [ ] deploy to cloud run
 
 ---
 

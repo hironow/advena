@@ -2,6 +2,13 @@
 node = "lts"
 python = "3.13"
 
+[vars]
+GOOGLE_CLOUD_LOCATION = "us-west1"
+GOOGLE_CLOUD_PROJECT = "advena-dev"
+ARTIFACT_REGISTRY_REPOSITORY = "advena"
+BACKEND_IMAGE_NAME = "backend-advena"
+FRONTEND_IMAGE_NAME = "frontend-advena"
+
 [tasks]
 c = "code vs.code-workspace"
 g = "gcloud config configurations activate advena-dev"
@@ -9,8 +16,19 @@ g = "gcloud config configurations activate advena-dev"
 
 # gcloud tasks
 [tasks."g:login"]
-run = "gcloud auth application-default login"
 description = "Login to gcloud as application default credentials"
+run = "gcloud auth application-default login"
+
+[tasks."g:create_repo"]
+description = "Create a repository in Google Cloud Artifact Registry (only once)"
+depends = ["g"]
+run = """
+gcloud artifacts repositories create {{vars.ARTIFACT_REGISTRY_REPOSITORY}} \
+    --repository-format=docker \
+    --location={{vars.GOOGLE_CLOUD_LOCATION}} \
+    --description="Docker repository for {{vars.ARTIFACT_REGISTRY_REPOSITORY}} images"
+"""
+hide = true
 
 
 # backend dir tasks
@@ -30,6 +48,43 @@ dir = "backend/genai/"
 run = "uv run pytest"
 dir = "backend/genai/"
 
+[tasks."be:build"]
+description = "Build a docker image"
+run = ["docker build --platform linux/amd64 -t {{vars.BACKEND_IMAGE_NAME}} ."]
+dir = "backend/genai/"
+
+[tasks."be:check_dockerignore"]
+description = "Check a docker image files (use tree command, exclude .venv and .uv)"
+run = """docker run --platform=linux/amd64 --rm {{vars.BACKEND_IMAGE_NAME}}:latest sh -c "\
+    apt-get update && apt-get install -y tree && tree -I \\\"\\.venv|\\.uv\\\" -a -f /app"
+"""
+
+[tasks."be:push"]
+description = "Push a docker image to Google Cloud Artifact Registry"
+depends = ["g"]
+run = """
+#!/usr/bin/env bash
+set -e
+
+# Get branch and commit information
+BRANCH=$(git symbolic-ref --short HEAD)
+COMMIT=$(git describe --tags --always)
+
+# Construct the image name
+# ex. <location>-docker.pkg.dev/<project-name>/<repo-name>/<image-name>:main-e257756
+NAME="{{vars.GOOGLE_CLOUD_LOCATION}}-docker.pkg.dev/{{vars.GOOGLE_CLOUD_PROJECT}}/{{vars.ARTIFACT_REGISTRY_REPOSITORY}}/{{vars.BACKEND_IMAGE_NAME}}:${BRANCH}-${COMMIT}"
+
+# Display and push the image
+echo "Deploying ${NAME}"
+docker tag {{vars.BACKEND_IMAGE_NAME}}:latest ${NAME}
+docker push ${NAME}
+
+# Generate Google Cloud Console URL
+# ex. https://console.cloud.google.com/artifacts/docker/<project-name>/<location>/<repo-name>/<image-name>?project=<project-name>
+CONSOLE_URL="https://console.cloud.google.com/artifacts/docker/{{vars.GOOGLE_CLOUD_PROJECT}}/{{vars.GOOGLE_CLOUD_LOCATION}}/{{vars.ARTIFACT_REGISTRY_REPOSITORY}}/{{vars.BACKEND_IMAGE_NAME}}?project={{vars.GOOGLE_CLOUD_PROJECT}}"
+echo "🔗 Access the repository here: ${CONSOLE_URL}"
+"""
+
 
 # frontend dir tasks
 [tasks."fe:dev"]
@@ -47,3 +102,40 @@ dir = "frontend/web/"
 [tasks."fe:test"]
 run = "pnpm run test"
 dir = "frontend/web/"
+
+[tasks."fe:build"]
+description = "Build a docker image"
+run = ["docker build --platform linux/amd64 -t {{vars.FRONTEND_IMAGE_NAME}} ."]
+dir = "frontend/web/"
+
+[tasks."fe:check_dockerignore"]
+description = "Check a docker image files (use tree command, exclude node_modules and .next)"
+run = """docker run --platform=linux/amd64 --rm {{vars.FRONTEND_IMAGE_NAME}}:latest sh -c "\
+    apk add --no-cache tree && tree -I \\\"node_modules|\\.next\\\" -a -f /app"
+"""
+
+[tasks."fe:push"]
+description = "Push a docker image to Google Cloud Artifact Registry"
+depends = ["g"]
+run = """
+#!/usr/bin/env bash
+set -e
+
+# Get branch and commit information
+BRANCH=$(git symbolic-ref --short HEAD)
+COMMIT=$(git describe --tags --always)
+
+# Construct the image name
+# ex. <location>-docker.pkg.dev/<project-name>/<repo-name>/<image-name>:main-e257756
+NAME="{{vars.GOOGLE_CLOUD_LOCATION}}-docker.pkg.dev/{{vars.GOOGLE_CLOUD_PROJECT}}/{{vars.ARTIFACT_REGISTRY_REPOSITORY}}/{{vars.FRONTEND_IMAGE_NAME}}:${BRANCH}-${COMMIT}"
+
+# Display and push the image
+echo "Deploying ${NAME}"
+docker tag {{vars.FRONTEND_IMAGE_NAME}}:latest ${NAME}
+docker push ${NAME}
+
+# Generate Google Cloud Console URL
+# ex. https://console.cloud.google.com/artifacts/docker/<project-name>/<location>/<repo-name>/<image-name>?project=<project-name>
+CONSOLE_URL="https://console.cloud.google.com/artifacts/docker/{{vars.GOOGLE_CLOUD_PROJECT}}/{{vars.GOOGLE_CLOUD_LOCATION}}/{{vars.ARTIFACT_REGISTRY_REPOSITORY}}/{{vars.FRONTEND_IMAGE_NAME}}?project={{vars.GOOGLE_CLOUD_PROJECT}}"
+echo "🔗 Access the repository here: ${CONSOLE_URL}"
+"""

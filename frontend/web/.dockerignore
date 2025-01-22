@@ -1,0 +1,19 @@
+# DO NOT include .env.keys (private key) in the image
+.env.keys
+
+.git/
+.next/
+node_modules/
+
+# other files
+.DS_Store
+Dockerfile
+README.md
+
+# IDE and virtual environment
+.idea/
+.vscode/
+
+# unused files
+private/
+refs/

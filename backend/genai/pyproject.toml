@@ -20,3 +20,37 @@ dev = [
     "pytest>=8.3.4",
     "ruff>=0.9.1",
 ]
+
+
+[tool.ruff]
+exclude = ["dist", ".venv"]
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501", # line too long, handled by black
+    "B008", # do not perform function calls in argument defaults
+    "C901", # too complex
+    "W191", # indentation contains tabs
+]
+
+[tool.ruff.lint.isort]
+known-third-party = []
+
+[tool.ruff.lint.pyupgrade]
+# Preserve types, even if a file imports `from __future__ import annotations`.
+keep-runtime-typing = true
+
+[tool.pytest]
+norecursedirs = [".venv", "src/swarm/examples/*"]
+
+[tool.pytest.ini_options]
+asyncio_default_fixture_loop_scope = "function"  # "class", "module", "package", "session"
