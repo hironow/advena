@@ -17,6 +17,12 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import { DotGothic16 } from '@next/font/google';
+
+const dotGothic16 = DotGothic16({
+  weight: '400',
+  subsets: ['latin'],
+});
 
 export function AppSidebar({ user }: { user: User | undefined }) {
   const router = useRouter();
@@ -34,8 +40,13 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               }}
               className="flex flex-row gap-3 items-center"
             >
-              <span className="text-lg font-semibold px-2 hover:bg-muted rounded-md cursor-pointer">
-                advena
+              <span
+                className="text-lg font-semibold px-2 hover:bg-muted rounded-md cursor-pointer"
+                style={{
+                  fontFamily: dotGothic16.style.fontFamily,
+                }}
+              >
+                ミ=ホ
               </span>
             </Link>
             <Tooltip>

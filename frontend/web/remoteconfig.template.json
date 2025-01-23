@@ -1,11 +1,11 @@
 {
-    "parameters": {
-      "maintenance": {
-        "defaultValue": {
-          "value": "false"
-        },
-        "description": "maintenance flag (true: maintenance mode, false: normal mode)",
-        "valueType": "BOOLEAN"
-      }
+  "parameters": {
+    "maintenance": {
+      "defaultValue": {
+        "value": "false"
+      },
+      "description": "maintenance flag (true: maintenance mode, false: normal mode)",
+      "valueType": "BOOLEAN"
     }
   }
+}
