@@ -8,10 +8,38 @@ GOOGLE_CLOUD_PROJECT = "advena-dev"
 ARTIFACT_REGISTRY_REPOSITORY = "advena"
 BACKEND_IMAGE_NAME = "backend-advena"
 FRONTEND_IMAGE_NAME = "frontend-advena"
+FIREBASE_BUCKET_NAME = "advena-dev.firebasestorage.app"
 
 [tasks]
 c = "code vs.code-workspace"
 g = "gcloud config configurations activate advena-dev"
+
+
+
+# firebase tasks
+[tasks."f"]
+description = "Use Firebase default project"
+run = "firebase use default"
+dir = "frontend/web/"
+hide = true
+
+[tasks."f:emulator"]
+description = "Start Firebase Emulator Suite"
+run = "firebase emulators:start --project=local"
+depends = ["f"]
+dir = "frontend/web/"
+
+[tasks."f:deploy"]
+description = "Deploy to Firebase Suite"
+run = "firebase deploy"
+depends = ["f"]
+dir = "frontend/web/"
+
+[tasks."f:deploy:cors"]
+description = "Deploy to Firebase Storage's CORS configuration"
+run = "gcloud storage buckets update gs://{{vars.FIREBASE_BUCKET_NAME}} --cors-file=./cors.json"
+depends = ["f"]
+dir = "frontend/web/"
 
 
 # gcloud tasks

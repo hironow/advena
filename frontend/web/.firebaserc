@@ -1,0 +1,6 @@
+{
+  "projects": {
+    "default": "advena-dev",
+    "production": "advena-prd"
+  }
+}
