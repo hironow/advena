@@ -39,6 +39,7 @@ description = "Deploy to Firebase Storage's CORS configuration"
 run = "gcloud storage buckets update gs://{{vars.FIREBASE_BUCKET_NAME}} --cors-file=./cors.json"
 depends = ["f"]
 dir = "frontend/web/"
+# see: https://cloud.google.com/storage/docs/cross-origin
 
 [tasks."f:check_cors"]
 description = "Check Firebase Storage's CORS configuration"
