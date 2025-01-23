@@ -15,7 +15,6 @@ c = "code vs.code-workspace"
 g = "gcloud config configurations activate advena-dev"
 
 
-
 # firebase tasks
 [tasks."f"]
 description = "Use Firebase default project"
@@ -35,9 +34,15 @@ run = "firebase deploy"
 depends = ["f"]
 dir = "frontend/web/"
 
-[tasks."f:deploy:cors"]
+[tasks."f:deploy_cors"]
 description = "Deploy to Firebase Storage's CORS configuration"
 run = "gcloud storage buckets update gs://{{vars.FIREBASE_BUCKET_NAME}} --cors-file=./cors.json"
+depends = ["f"]
+dir = "frontend/web/"
+
+[tasks."f:check_cors"]
+description = "Check Firebase Storage's CORS configuration"
+run = "gcloud storage buckets describe gs://{{vars.FIREBASE_BUCKET_NAME}} --format='default(cors_config)'"
 depends = ["f"]
 dir = "frontend/web/"
 
