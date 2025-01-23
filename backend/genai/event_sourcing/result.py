@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Generic, TypeVar
 
 TSuccess = TypeVar("TSuccess")
@@ -13,7 +14,7 @@ class Ok(Generic[TSuccess]):
         self.value = value
 
     def __repr__(self):
-        return f"Ok({self.value})"
+        return f"Ok({self.value!r})"
 
 
 class Error(Generic[TFailure]):
@@ -25,11 +26,11 @@ class Error(Generic[TFailure]):
         self.value = value
 
     def __repr__(self):
-        return f"Error({self.value})"
+        return f"Error({self.value!r})"
 
 
 # Result型:
-# 例外を型によって提供する Result型 と 発生する Error型 を提供する。これにより raise は禁止される
+# 例外を型によって提供する Result型 と Ok型とError型 を提供する。これにより raise は禁止される
 #
 # type Result<'Success,'Failure> =
 #   | Ok of 'Success
@@ -66,3 +67,21 @@ if __name__ == "__main__":
             print("Success:", value)
         case Error(value):
             print("Failure:", value)  # Cannot divide by zero.
+
+    @dataclass
+    class MultiValues:
+        message: str
+        product: int
+
+    def multi_return_dataclass(x: int, y: int) -> Result[MultiValues, str]:
+        if x < 0 or y < 0:
+            return Error("Negative input!")
+        return Ok(MultiValues(message=f"Value of x+y is {x + y}", product=x * y))
+
+    result = multi_return_dataclass(3, 4)
+    match result:
+        case Ok(values):
+            print("Success:", values.message)
+            print("Product:", values.product)
+        case Error(msg):
+            print("Failure:", msg)
