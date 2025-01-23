@@ -25,6 +25,12 @@ dotenvx --version
 1.26.0
 ```
 
+Install [firebase-tools](https://github.com/firebase/firebase-tools):
+
+```bash
+curl -sL firebase.tools | bash
+```
+
 ### Install dependencies
 
 ```bash
@@ -119,3 +125,13 @@ wip
 ## references
 
 * ...
+
+## trouble shooting
+
+### tips: re-login gcloud and firebase
+
+```bash
+gcloud auth login
+gcloud auth application-default login
+firebase login
+```
