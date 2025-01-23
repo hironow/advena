@@ -3,7 +3,7 @@ node = "lts"
 python = "3.13"
 
 [vars]
-GOOGLE_CLOUD_LOCATION = "us-west1"
+GOOGLE_CLOUD_LOCATION = "us-central1"
 GOOGLE_CLOUD_PROJECT = "advena-dev"
 ARTIFACT_REGISTRY_REPOSITORY = "advena"
 BACKEND_IMAGE_NAME = "backend-advena"
@@ -58,6 +58,15 @@ gcloud artifacts repositories create {{vars.ARTIFACT_REGISTRY_REPOSITORY}} \
 """
 hide = true
 
+[tasks."g:config_repo"]
+description = "Configure a repository in Google Cloud Artifact Registry (only once)"
+depends = ["g"]
+run = """
+gcloud auth configure-docker {{vars.GOOGLE_CLOUD_LOCATION}}-docker.pkg.dev
+"""
+# see: https://cloud.google.com/artifact-registry/docs/docker/store-docker-container-images#auth
+hide = true
+
 
 # backend dir tasks
 [tasks."be:dev"]
@@ -99,7 +108,7 @@ BRANCH=$(git symbolic-ref --short HEAD)
 COMMIT=$(git describe --tags --always)
 
 # Construct the image name
-# ex. <location>-docker.pkg.dev/<project-name>/<repo-name>/<image-name>:main-e257756
+# ex. <location>-docker.pkg.dev/<project-name>/<repo-name>/<image-name>:main-1234567
 NAME="{{vars.GOOGLE_CLOUD_LOCATION}}-docker.pkg.dev/{{vars.GOOGLE_CLOUD_PROJECT}}/{{vars.ARTIFACT_REGISTRY_REPOSITORY}}/{{vars.BACKEND_IMAGE_NAME}}:${BRANCH}-${COMMIT}"
 
 # Display and push the image
@@ -154,7 +163,7 @@ BRANCH=$(git symbolic-ref --short HEAD)
 COMMIT=$(git describe --tags --always)
 
 # Construct the image name
-# ex. <location>-docker.pkg.dev/<project-name>/<repo-name>/<image-name>:main-e257756
+# ex. <location>-docker.pkg.dev/<project-name>/<repo-name>/<image-name>:main-1234567
 NAME="{{vars.GOOGLE_CLOUD_LOCATION}}-docker.pkg.dev/{{vars.GOOGLE_CLOUD_PROJECT}}/{{vars.ARTIFACT_REGISTRY_REPOSITORY}}/{{vars.FRONTEND_IMAGE_NAME}}:${BRANCH}-${COMMIT}"
 
 # Display and push the image
