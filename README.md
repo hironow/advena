@@ -37,6 +37,9 @@ mr be:update
 ## Start development
 
 ```bash
+# start emulator (firebase auth, firestore, storage, etc)
+mr f:emulator
+
 # open vscode (as shorthand)
 mr c
 
