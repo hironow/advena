@@ -124,6 +124,8 @@ wip
 
 ## references
 
+* [firestore practices](https://cloud.google.com/firestore/docs/best-practices)
+* [Laminar LLM Tracing](https://docs.lmnr.ai/overview)
 * ...
 
 ## trouble shooting
