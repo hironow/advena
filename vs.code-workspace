@@ -11,6 +11,10 @@
 		{
 			"path": ".",
 			"name": "root"
+		},
+		{
+			"path": "./private/next-tokyo-assets/2024/genai-app-patterns",
+			"name": "tutorial"
 		}
 	],
 	"settings": {

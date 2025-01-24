@@ -76,7 +76,8 @@ hide = true
 
 # backend dir tasks
 [tasks."be:dev"]
-run = "dotenvx run -- uv run python -m uvicorn src.index:app --reload"
+# run = "dotenvx run -- uv run python -m uvicorn src.index:app --reload"
+run = "dotenvx run -- uv run python -m event_sourcing.utils --reload"
 dir = "backend/genai/"
 
 [tasks."be:update"]
