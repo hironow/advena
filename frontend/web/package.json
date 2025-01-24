@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbo",
-    "build": "tsx lib/db/migrate && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint && biome lint --write --unsafe",
     "lint:fix": "next lint --fix && biome lint --write --unsafe",
@@ -83,8 +83,9 @@
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "@tailwindcss/typography": "^0.5.16",
+    "@types/d3": "^7.4.3",
     "@types/d3-scale": "^4.0.8",
-    "@types/node": "^22.10.9",
+    "@types/node": "^22.10.10",
     "@types/pdf-parse": "^1.1.4",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",

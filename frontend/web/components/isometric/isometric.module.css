@@ -30,7 +30,7 @@
   width: 100%;
   height: 100%;
 
-  img {
+  img .tile {
     -webkit-user-drag: none; /* Chrome, Safari */
     -webkit-user-select: none; /* Safari, Chrome */
     -moz-user-select: none;    /* Firefox */
@@ -45,7 +45,7 @@
   left: 50%;
   transform: translate(-50%, -50%);
 
-  img {
+  img .tile {
     -webkit-user-drag: none; /* Chrome, Safari */
     -webkit-user-select: none; /* Safari, Chrome */
     -moz-user-select: none;    /* Firefox */

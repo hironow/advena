@@ -45,7 +45,7 @@ const Tile: React.FC<TileProps> = ({ tile, x, y, layer, flip }) => {
       }}
     >
       <Image
-        className="object-contain"
+        className="tile object-contain"
         src={`/assets/city_game_tileset/${tile}`}
         alt={`${tile} tile: (${x}, ${y}) = (${pxX}, ${pxY})`}
         width={TILE_IMG_WIDTH}

@@ -5,6 +5,7 @@ import { customMiddleware } from './custom-middleware';
 
 export const customModel = (apiIdentifier: string) => {
   return wrapLanguageModel({
+    // TODO: build failure
     model: vertex(apiIdentifier),
     middleware: customMiddleware,
   });
