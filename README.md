@@ -126,6 +126,9 @@ wip
 
 * [firestore practices](https://cloud.google.com/firestore/docs/best-practices)
 * [Laminar LLM Tracing](https://docs.lmnr.ai/overview)
+  * [projects](https://www.lmnr.ai/projects)
+* [W&B Weave Tracking](https://weave-docs.wandb.ai/)
+  * [projects](https://wandb.ai/home)
 * ...
 
 ## trouble shooting
