@@ -78,7 +78,6 @@ function PureBlock({
   setMessages,
   reload,
   votes,
-  isReadonly,
 }: {
   chatId: string;
   input: string;
@@ -103,7 +102,6 @@ function PureBlock({
   reload: (
     chatRequestOptions?: ChatRequestOptions,
   ) => Promise<string | null | undefined>;
-  isReadonly: boolean;
 }) {
   const { block, setBlock } = useBlock();
 
@@ -333,7 +331,6 @@ function PureBlock({
                   messages={messages}
                   setMessages={setMessages}
                   reload={reload}
-                  isReadonly={isReadonly}
                   blockStatus={block.status}
                 />
 

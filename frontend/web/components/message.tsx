@@ -27,7 +27,6 @@ const PurePreviewMessage = ({
   isLoading,
   setMessages,
   reload,
-  isReadonly,
 }: {
   chatId: string;
   message: Message;
@@ -39,7 +38,6 @@ const PurePreviewMessage = ({
   reload: (
     chatRequestOptions?: ChatRequestOptions,
   ) => Promise<string | null | undefined>;
-  isReadonly: boolean;
 }) => {
   const [mode, setMode] = useState<'view' | 'edit'>('view');
 
@@ -82,7 +80,7 @@ const PurePreviewMessage = ({
 
             {message.content && mode === 'view' && (
               <div className="flex flex-row gap-2 items-start">
-                {message.role === 'user' && !isReadonly && (
+                {message.role === 'user' && (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
@@ -135,23 +133,21 @@ const PurePreviewMessage = ({
                     return (
                       <div key={toolCallId}>
                         {toolName === 'getWeather' ? (
+                          // NOTE: 専用のコンポーネントを作成している
                           <Weather weatherAtLocation={result} />
                         ) : toolName === 'createDocument' ? (
-                          <DocumentPreview
-                            isReadonly={isReadonly}
-                            result={result}
-                          />
+                          <DocumentPreview isReadonly={false} result={result} />
                         ) : toolName === 'updateDocument' ? (
                           <DocumentToolResult
                             type="update"
                             result={result}
-                            isReadonly={isReadonly}
+                            isReadonly={false}
                           />
                         ) : toolName === 'requestSuggestions' ? (
                           <DocumentToolResult
                             type="request-suggestions"
                             result={result}
-                            isReadonly={isReadonly}
+                            isReadonly={false}
                           />
                         ) : (
                           <pre>{JSON.stringify(result, null, 2)}</pre>
@@ -167,20 +163,21 @@ const PurePreviewMessage = ({
                       })}
                     >
                       {toolName === 'getWeather' ? (
+                        // NOTE: 専用のコンポーネントを作成している
                         <Weather />
                       ) : toolName === 'createDocument' ? (
-                        <DocumentPreview isReadonly={isReadonly} args={args} />
+                        <DocumentPreview isReadonly={false} args={args} />
                       ) : toolName === 'updateDocument' ? (
                         <DocumentToolCall
                           type="update"
                           args={args}
-                          isReadonly={isReadonly}
+                          isReadonly={false}
                         />
                       ) : toolName === 'requestSuggestions' ? (
                         <DocumentToolCall
                           type="request-suggestions"
                           args={args}
-                          isReadonly={isReadonly}
+                          isReadonly={false}
                         />
                       ) : null}
                     </div>
@@ -189,15 +186,13 @@ const PurePreviewMessage = ({
               </div>
             )}
 
-            {!isReadonly && (
-              <MessageActions
-                key={`action-${message.id}`}
-                chatId={chatId}
-                message={message}
-                vote={vote}
-                isLoading={isLoading}
-              />
-            )}
+            <MessageActions
+              key={`action-${message.id}`}
+              chatId={chatId}
+              message={message}
+              vote={vote}
+              isLoading={isLoading}
+            />
           </div>
         </div>
       </motion.div>

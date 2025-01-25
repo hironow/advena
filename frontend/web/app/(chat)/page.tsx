@@ -22,7 +22,6 @@ export default async function Page() {
         id={id}
         initialMessages={[]}
         selectedModelId={selectedModelId}
-        selectedVisibilityType="private"
         isReadonly={false}
       />
       <DataStreamHandler id={id} />
