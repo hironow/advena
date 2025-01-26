@@ -5,9 +5,7 @@ import styles from './isometric.module.css';
 import IsometricBackground from './IsometricBackground';
 import IsometricPlayer from './IsometricPlayer';
 import IsometricCamera from './IsometricCamera';
-import { Label } from '../ui/label';
-import { dummy_layer_map, dummy_tile_map, zero_layer_map } from './tileset';
-import { consoleLogWithStyle } from './utils';
+import { dummy_layer_map, dummy_tile_map } from './tileset';
 
 /**
  * 全体をまとめる "ワールド" コンポーネント

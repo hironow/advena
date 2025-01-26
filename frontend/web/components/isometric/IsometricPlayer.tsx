@@ -4,18 +4,15 @@ import React, { useEffect, useRef } from 'react';
 import { initKeyListeners, keysDown } from './keyInput';
 import { initTouchListeners, getTouchVector } from './touchInput';
 import {
-  bird1,
   clock1,
   getLayerDiffY,
   getTilePosition,
-  power1,
   WORLD_MAX_LAYER,
   WORLD_SIZE,
 } from './tileset';
 import { useRafLoop } from '../../hooks/use-ref-loop';
 import Tile from './Tile';
 import { consoleLogWithStyle } from './utils';
-import styles from './isometric.module.css';
 
 const tileSpeed = 2.5; // 1秒に2.5マス進む想定
 

@@ -10,10 +10,7 @@ import { useSidebar } from './ui/sidebar';
 import { memo } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
-function PureChatHeader({}: {
-  chatId: string;
-  selectedModelId: string;
-}) {
+function PureChatHeader() {
   const router = useRouter();
   const { open } = useSidebar();
 
@@ -46,5 +43,5 @@ function PureChatHeader({}: {
 }
 
 export const ChatHeader = memo(PureChatHeader, (prevProps, nextProps) => {
-  return prevProps.selectedModelId === nextProps.selectedModelId;
+  return true;
 });

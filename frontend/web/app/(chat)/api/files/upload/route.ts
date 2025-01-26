@@ -1,4 +1,3 @@
-import { put } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
@@ -51,11 +50,12 @@ export async function POST(request: Request) {
     const fileBuffer = await file.arrayBuffer();
 
     try {
-      const data = await put(`${filename}`, fileBuffer, {
-        access: 'public',
-      });
-
-      return NextResponse.json(data);
+      // TODO: replace GCS
+      // const data = await put(`${filename}`, fileBuffer, {
+      //   access: 'public',
+      // });
+      return NextResponse.json({ success: true }); // dummy
+      // return NextResponse.json(data);
     } catch (error) {
       return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
     }

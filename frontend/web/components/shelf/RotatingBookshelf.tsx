@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Book, generateBooks } from './book';
+import { type Book, generateBooks } from './book';
 import { BookCover } from './BookCover';
 import styles from './shelf.module.css';
 

@@ -92,6 +92,10 @@ dir = "backend/genai/"
 run = "uv run pytest"
 dir = "backend/genai/"
 
+[tasks."be:lint"]
+run = "echo 'TODO'"
+dir = "backend/genai/"
+
 [tasks."be:build"]
 description = "Build a docker image"
 run = ["docker build --platform linux/amd64 -t {{vars.BACKEND_IMAGE_NAME}} ."]
@@ -145,6 +149,10 @@ dir = "frontend/web/"
 
 [tasks."fe:test"]
 run = "pnpm run test"
+dir = "frontend/web/"
+
+[tasks."fe:lint"]
+run = "pnpm run lint"
 dir = "frontend/web/"
 
 [tasks."fe:build"]

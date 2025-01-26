@@ -5,9 +5,7 @@ import dynamic from 'next/dynamic';
 import IsometricWorld from '@/components/isometric/IsometricWorld';
 
 import { useAudioContextState } from '@/components/visualizer/audio-context-provider';
-import BgmController from '@/components/visualizer/BgmController';
 import { Button } from '@/components/ui/button';
-import { RotatingBookshelf } from '@/components/shelf/RotatingBookshelf';
 import { ChatHeader } from '@/components/chat-header';
 
 // SSRオフにしてD3を使う
@@ -34,7 +32,7 @@ export default function Page() {
   return (
     <>
       <div className="flex flex-col min-w-0 h-dvh bg-background">
-        <ChatHeader chatId={''} selectedModelId={''} />
+        <ChatHeader />
         <IsometricWorld />
       </div>
     </>

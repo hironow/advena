@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { Book } from './book';
+import type { Book } from './book';
 import Image from 'next/image';
 
 interface BookCoverProps {
@@ -31,35 +31,38 @@ function BookCoverComponent({
   const rotateYAngle = index < centerIndex ? rotationY : -rotationY;
 
   return (
-    <div
-      className="relative cursor-pointer will-change-transform"
-      style={{
-        // 中心からの x 座標移動 (1冊あたり 120px 間隔前提)
-        transform: `
+    <>
+      {/* biome-ignore lint/nursery/noStaticElementInteractions: <explanation> TODO: fixme */}
+      <div
+        className="relative cursor-pointer will-change-transform"
+        style={{
+          // 中心からの x 座標移動 (1冊あたり 120px 間隔前提)
+          transform: `
           translateX(${(index - centerIndex) * 120}px)
           translateZ(${translateZ}px)
           rotateY(${rotateYAngle}deg)
           rotateX(${rotationX}deg)
           scale(${scale})
         `,
-        zIndex,
-        transition: 'transform 0.3s ease-out',
-        // backfaceVisibility: 'hidden',
-      }}
-      onClick={() => onSelect(index)} // クリックしたら中央へ
-    >
-      <Image
-        src={book.coverUrl}
-        alt={book.title}
-        className="object-contain transform-gpu"
-        width={32 * 4}
-        height={48 * 4}
-      />
-      <div className="absolute bottom-0 left-0 right-0 bg-gray-800 bg-opacity-50 text-white p-2 text-center">
-        <p className="text-sm font-bold truncate">{book.title}</p>
-        <p className="text-xs truncate">{book.author}</p>
+          zIndex,
+          transition: 'transform 0.3s ease-out',
+          // backfaceVisibility: 'hidden',
+        }}
+        onClick={() => onSelect(index)} // クリックしたら中央へ
+      >
+        <Image
+          src={book.coverUrl}
+          alt={book.title}
+          className="object-contain transform-gpu"
+          width={32 * 4}
+          height={48 * 4}
+        />
+        <div className="absolute bottom-0 left-0 right-0 bg-gray-800 bg-opacity-50 text-white p-2 text-center">
+          <p className="text-sm font-bold truncate">{book.title}</p>
+          <p className="text-xs truncate">{book.author}</p>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

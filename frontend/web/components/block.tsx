@@ -29,7 +29,6 @@ import { VersionFooter } from './version-footer';
 import { BlockActions } from './block-actions';
 import { BlockCloseButton } from './block-close-button';
 import { BlockMessages } from './block-messages';
-import { CodeEditor } from './code-editor';
 import { Console } from './console';
 import { useSidebar } from './ui/sidebar';
 import { useBlock } from '@/hooks/use-block';
@@ -475,19 +474,6 @@ function PureBlock({
               >
                 {isDocumentsFetching && !block.content ? (
                   <DocumentSkeleton />
-                ) : block.kind === 'code' ? (
-                  <CodeEditor
-                    content={
-                      isCurrentVersion
-                        ? block.content
-                        : getDocumentContentById(currentVersionIndex)
-                    }
-                    isCurrentVersion={isCurrentVersion}
-                    currentVersionIndex={currentVersionIndex}
-                    suggestions={suggestions ?? []}
-                    status={block.status}
-                    saveContent={saveContent}
-                  />
                 ) : block.kind === 'text' ? (
                   mode === 'edit' ? (
                     <Editor
