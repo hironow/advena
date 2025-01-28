@@ -1,4 +1,4 @@
-'use server';  // TODO: replace to backend/genai/ impl
+'use server'; // TODO: replace to backend/genai/ impl
 
 import { type CoreUserMessage, generateText } from 'ai';
 import { cookies } from 'next/headers';

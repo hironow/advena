@@ -1,7 +1,6 @@
 import 'server-only';
 
 import { genSaltSync, hashSync } from 'bcrypt-ts';
-import { and, asc, desc, eq, gt, gte } from 'drizzle-orm';
 // import postgres from 'postgres'; // TODO: replace firebase firestore
 
 import {
