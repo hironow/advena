@@ -2862,7 +2862,7 @@ wheels = [
 
 [[package]]
 name = "weave"
-version = "0.51.31"
+version = "0.51.32"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "emoji" },
@@ -2876,9 +2876,9 @@ dependencies = [
     { name = "uuid-utils" },
     { name = "wandb" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/99/fd/d0619572abe6997e26290f331f41c081da778fb866f5b8526887999a81b7/weave-0.51.31.tar.gz", hash = "sha256:66df71c5865a631986c346d24c7f9b1d22126bd266ad59d1610f26aa7487b025", size = 271795 }
+sdist = { url = "https://files.pythonhosted.org/packages/20/6a/3db56ae0e48e24e0133d0525e3ca20fe2420abc0bb7c7c962f23484c32f6/weave-0.51.32.tar.gz", hash = "sha256:1ba34a2ea9743b3611ef7ddb73721e84a31eef43c9d811e81960ca2f4b68d67c", size = 272827 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fe/fe/c9379113af5c6d7a9791de2fc37999119416765c45e4534dc9f7be1aa0ac/weave-0.51.31-py3-none-any.whl", hash = "sha256:6d08aefc40088e35bd81846eddf8ddeae6f83c2b429f7c6974978a0251e537e1", size = 353242 },
+    { url = "https://files.pythonhosted.org/packages/5f/5c/1bb745731e53a2cfaf9878c5ba0d384fe6f29e7d10d79b869b10767dfc7a/weave-0.51.32-py3-none-any.whl", hash = "sha256:3a8dd2e969d9b1cf76b871a711f7be7a12f48efd78b31b0a3c7dbfc0fe3d3261", size = 354356 },
 ]
 
 [[package]]
