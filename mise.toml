@@ -88,6 +88,8 @@ run = "uv run ruff check --select I --fix && ruff format"
 dir = "backend/genai/"
 
 [tasks."be:test"]
+env.GOOGLE_CLOUD_PROJECT = "test-project"
+env.GOOGLE_CLOUD_LOCATION = "us-central1"
 run = "uv run pytest"
 dir = "backend/genai/"
 

@@ -28,6 +28,8 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "mock-firestore",
+    "pydantic-to-typescript",
     "pytest>=8.3.4",
     "pytest-asyncio>=0.25.2",
     "ruff>=0.9.1",
@@ -67,3 +69,7 @@ norecursedirs = [".venv", "src/swarm/examples/*"]
 
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "function"  # "class", "module", "package", "session"
+
+[tool.uv.sources]
+pydantic-to-typescript = { git = "https://github.com/hironow/pydantic-to-typescript" }
+mock-firestore = { git = "https://github.com/hironow/python-mock-firestore.git" }
