@@ -7,6 +7,7 @@ requires-python = ">=3.13"
 dependencies = [
     "cloudevents>=1.11.0",
     "fastapi>=0.115.6",
+    "feedparser>=6.0.11",
     "google-auth>=2.38.0",
     "google-cloud-aiplatform>=1.76.0",
     "google-cloud-firestore>=2.20.0",
