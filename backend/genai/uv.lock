@@ -417,6 +417,7 @@ dependencies = [
     { name = "livekit-plugins-turn-detector" },
     { name = "lmnr", extra = ["all"] },
     { name = "pydantic" },
+    { name = "sickle" },
     { name = "smolagents" },
     { name = "tenacity" },
     { name = "uvicorn" },
@@ -451,6 +452,7 @@ requires-dist = [
     { name = "livekit-plugins-turn-detector", specifier = ">=0.3.6" },
     { name = "lmnr", extras = ["all"], specifier = ">=0.4.55" },
     { name = "pydantic", specifier = ">=2.10.5" },
+    { name = "sickle", specifier = ">=0.7.0" },
     { name = "smolagents", specifier = ">=1.5.0" },
     { name = "tenacity", specifier = ">=9.0.0" },
     { name = "uvicorn", specifier = ">=0.34.0" },
@@ -2599,6 +2601,19 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/f5/8a/2545cc2a30afc63fc6176c1da3b76af28ef9c7358ed4f68f7c6a9d86cf5b/shapely-2.0.7-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:adeddfb1e22c20548e840403e5e0b3d9dc3daf66f05fa59f1fcf5b5f664f0e98", size = 2514128 },
     { url = "https://files.pythonhosted.org/packages/87/54/2344ce7da39676adec94e84fbaba92a8f1664e4ae2d33bd404dafcbe607f/shapely-2.0.7-cp313-cp313-win32.whl", hash = "sha256:a7f04691ce1c7ed974c2f8b34a1fe4c3c5dfe33128eae886aa32d730f1ec1913", size = 1295783 },
     { url = "https://files.pythonhosted.org/packages/d7/1e/6461e5cfc8e73ae165b8cff6eb26a4d65274fad0e1435137c5ba34fe4e88/shapely-2.0.7-cp313-cp313-win_amd64.whl", hash = "sha256:aaaf5f7e6cc234c1793f2a2760da464b604584fb58c6b6d7d94144fd2692d67e", size = 1442300 },
+]
+
+[[package]]
+name = "sickle"
+version = "0.7.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "lxml" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a3/78/8fe5fc3d7379593abf0b42b97e7ad9981437afd5cf5ae2032536def9d411/Sickle-0.7.0.tar.gz", hash = "sha256:8944bcda3db0109a361248ef71fef476dd1f11109cdd1a41135527b7992b958b", size = 106804 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/59/c4/e98ed4dfc15f51245e17626dab983ffde53f9f03ef5100938bcb4996427f/Sickle-0.7.0-py3-none-any.whl", hash = "sha256:6ace7b1d1fc76571fe0dbfefc2c49e5e6c026e2d0dcaae521f4da21e98d4bc85", size = 12575 },
 ]
 
 [[package]]

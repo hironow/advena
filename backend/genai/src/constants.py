@@ -8,8 +8,9 @@ RSS_URL_BASE = "https://ndlsearch.ndl.go.jp/rss/ndls/bib.xml"
 THUMBNAIL_URL_BASE = "https://ndlsearch.ndl.go.jp/thumbnail/"
 
 # OAI-PMH
-# 詳細データを取る用
-# 例: https://ndlsearch.ndl.go.jp/api/oaipmh?verb=GetRecord&metadataPrefix=oai_dc&identifier=oai:ndlsearch.ndl.go.jp:R100000002-I000001287827
+# 詳細データを取る用 metadataPrefix は dcndl (DC-NDL(RDF)) の方が詳細情報が多い
+# 例: https://ndlsearch.ndl.go.jp/api/oaipmh?verb=GetRecord&metadataPrefix=oai_dc&identifier=oai:ndlsearch.ndl.go.jp:R100000137-I9784621310328
+# 例: https://ndlsearch.ndl.go.jp/api/oaipmh?verb=GetRecord&metadataPrefix=dcndl&identifier=oai:ndlsearch.ndl.go.jp:R100000137-I9784621310328
 # see: https://ndlsearch.ndl.go.jp/help/api/oai_pmh
 OAI_PMH_URL_BASE = "https://ndlsearch.ndl.go.jp/api/oaipmh"
 

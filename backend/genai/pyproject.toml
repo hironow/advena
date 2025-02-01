@@ -21,6 +21,7 @@ dependencies = [
     "livekit-plugins-turn-detector>=0.3.6",
     "lmnr[all]>=0.4.55",
     "pydantic>=2.10.5",
+    "sickle>=0.7.0",
     "smolagents>=1.5.0",
     "tenacity>=9.0.0",
     "uvicorn>=0.34.0",

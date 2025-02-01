@@ -25,11 +25,6 @@ def parse_rss(url: str):
         print("-" * 40)
 
 
-def parse_oai_pmh(url: str):
-    """OAI-PMHをパース"""
-    pass
-
-
 if __name__ == "__main__":
     rss_url = "https://ndlsearch.ndl.go.jp/rss/ndls/bib.xml?cs=bib&display=panel&from=0&size=10&sort=published:desc&f-ht=ndl&f-ht=library&f-repository=R100000137&f-doc_style=digital&f-doc_style=paper&f-mt=dtbook&f-mt=dbook"
     parse_rss(rss_url)
