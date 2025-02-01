@@ -406,6 +406,7 @@ dependencies = [
     { name = "pydantic" },
     { name = "smolagents" },
     { name = "tenacity" },
+    { name = "uvicorn" },
     { name = "weave" },
 ]
 
@@ -436,6 +437,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.10.5" },
     { name = "smolagents", specifier = ">=1.5.0" },
     { name = "tenacity", specifier = ">=9.0.0" },
+    { name = "uvicorn", specifier = ">=0.34.0" },
     { name = "weave", specifier = ">=0.51.31" },
 ]
 
@@ -1413,7 +1415,7 @@ wheels = [
 
 [[package]]
 name = "openai"
-version = "1.60.2"
+version = "1.61.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
@@ -1425,9 +1427,9 @@ dependencies = [
     { name = "tqdm" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/08/ae/8d9706b8ff2363287b4a8807de2dd29cdbdad5424e9d05d345df724320f5/openai-1.60.2.tar.gz", hash = "sha256:a8f843e10f2855713007f491d96afb2694b11b5e02cb97c7d01a0be60bc5bb51", size = 348185 }
+sdist = { url = "https://files.pythonhosted.org/packages/32/2a/b3fa8790be17d632f59d4f50257b909a3f669036e5195c1ae55737274620/openai-1.61.0.tar.gz", hash = "sha256:216f325a24ed8578e929b0f1b3fb2052165f3b04b0461818adaa51aa29c71f8a", size = 350174 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e5/5a/d5474ca67a547dde9b87b5bc8a8f90eadf29f523d410f2ba23d63c9b82ec/openai-1.60.2-py3-none-any.whl", hash = "sha256:993bd11b96900b9098179c728026f016b4982ded7ee30dfcf4555eab1171fff9", size = 456107 },
+    { url = "https://files.pythonhosted.org/packages/93/76/70c5ad6612b3e4c89fa520266bbf2430a89cae8bd87c1e2284698af5927e/openai-1.61.0-py3-none-any.whl", hash = "sha256:e8c512c0743accbdbe77f3429a1490d862f8352045de8dc81969301eb4a4f666", size = 460623 },
 ]
 
 [[package]]
@@ -2582,7 +2584,7 @@ wheels = [
 
 [[package]]
 name = "smolagents"
-version = "1.6.0"
+version = "1.7.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "duckduckgo-search" },
@@ -2591,12 +2593,13 @@ dependencies = [
     { name = "markdownify" },
     { name = "pandas" },
     { name = "pillow" },
+    { name = "python-dotenv" },
     { name = "requests" },
     { name = "rich" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b6/e2/0f82477c775b996f4ad72ef25ad32dc7d6bdc1bfb11bf8032f9914315ea0/smolagents-1.6.0.tar.gz", hash = "sha256:15c1b47bae91c8f6277e4535fbbc1736847ad970254daed8c343b9882c59c75f", size = 99296 }
+sdist = { url = "https://files.pythonhosted.org/packages/30/db/3ac5bbff6ad4a5ff3a669446fe8cd5862d7cd1bc13054199c0c6f055e76a/smolagents-1.7.0.tar.gz", hash = "sha256:e48a0550734190a752288c408b0b8788aa7553e30d6c50dab7382657e4693a61", size = 108547 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/02/06/a061c54d5441bb5b37c47fed833a5bbc90e358ab326ef78563685f1c1d46/smolagents-1.6.0-py3-none-any.whl", hash = "sha256:b551b15fa631fe3c3f879a8781d2c917e4723be2db2d7005083944797628805a", size = 82143 },
+    { url = "https://files.pythonhosted.org/packages/06/ab/7a5e1bb38daa3200db57b8592cd9f4692f5e96016fbd9b1813f36edb49cd/smolagents-1.7.0-py3-none-any.whl", hash = "sha256:246096f61177f45d3efd88a28270564f595f905031a19843f5234c1e94b93c01", size = 90544 },
 ]
 
 [[package]]
@@ -2803,6 +2806,19 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/23/f8/34e0c00f5f188604d336713e6a020fcf53b10998e8ab24735a39ab076740/uuid_utils-0.10.0-cp39-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:76d8d660f18ff6b767e319b1b5f927350cd92eafa4831d7ef5b57fdd1d91f974", size = 494111 },
     { url = "https://files.pythonhosted.org/packages/1a/52/b7f0066cc90a7a9c28d54061ed195cd617fde822e5d6ac3ccc88509c3c44/uuid_utils-0.10.0-cp39-abi3-win32.whl", hash = "sha256:6c11a71489338837db0b902b75e1ba7618d5d29f05fde4f68b3f909177dbc226", size = 173520 },
     { url = "https://files.pythonhosted.org/packages/8b/15/f04f58094674d333974243fb45d2c740cf4b79186fb707168e57943c84a3/uuid_utils-0.10.0-cp39-abi3-win_amd64.whl", hash = "sha256:11c55ae64f6c0a7a0c741deae8ca2a4eaa11e9c09dbb7bec2099635696034cf7", size = 182965 },
+]
+
+[[package]]
+name = "uvicorn"
+version = "0.34.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "click" },
+    { name = "h11" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/4b/4d/938bd85e5bf2edeec766267a5015ad969730bb91e31b44021dfe8b22df6c/uvicorn-0.34.0.tar.gz", hash = "sha256:404051050cd7e905de2c9a7e61790943440b3416f49cb409f965d9dcd0fa73e9", size = 76568 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/61/14/33a3a1352cfa71812a3a21e8c9bfb83f60b0011f5e36f2b1399d51928209/uvicorn-0.34.0-py3-none-any.whl", hash = "sha256:023dc038422502fa28a09c7a30bf2b6991512da7dcdb8fd35fe57cfc154126f4", size = 62315 },
 ]
 
 [[package]]
