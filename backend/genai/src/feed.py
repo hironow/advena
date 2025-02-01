@@ -1,3 +1,6 @@
+from datetime import datetime
+from typing import Any, Callable
+
 import feedparser
 
 
@@ -23,6 +26,30 @@ def parse_rss(url: str):
         print(f"Description: {description}")
         print(f"Published: {published}")
         print("-" * 40)
+
+
+# TODO: feed item の型をpydanticで定義後に対応する
+def split_by_date(
+    feed_items: list[dict[str, Any]], date_picker: Callable[[dict[str, Any]], str]
+):
+    """日付でフィードアイテムを分割する。過去のもの、今日のもの、未来のものの3つにする
+    date_pickerは、feed_itemの1つであるdictを受け取り内部のdateの対象となる文字列を返す関数
+    """
+    today = date_picker({})
+    past_items = []
+    today_items = []
+    future_items = []
+
+    for item in feed_items:
+        date = date_picker(item)
+        if date < today:
+            past_items.append(item)
+        elif date == today:
+            today_items.append(item)
+        else:
+            future_items.append(item)
+
+    return past_items, today_items, future_items
 
 
 if __name__ == "__main__":
