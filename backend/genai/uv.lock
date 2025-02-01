@@ -1322,8 +1322,8 @@ wheels = [
 
 [[package]]
 name = "mock-firestore"
-version = "0.11.0"
-source = { git = "https://github.com/hironow/python-mock-firestore.git#669924848093c29617e411d16d435db220d8b8ca" }
+version = "0.12.0"
+source = { git = "https://github.com/hironow/python-mock-firestore.git#3b4b74dc5e19e2c4375e4fc58e15629e564ac497" }
 
 [[package]]
 name = "mpmath"
