@@ -1193,12 +1193,11 @@ wheels = [
 
 [[package]]
 name = "lmnr"
-version = "0.4.56"
+version = "0.4.57"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
     { name = "argparse" },
-    { name = "deprecated" },
     { name = "grpcio" },
     { name = "opentelemetry-api" },
     { name = "opentelemetry-exporter-otlp-proto-grpc" },
@@ -1215,9 +1214,9 @@ dependencies = [
     { name = "tenacity" },
     { name = "tqdm" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3c/c8/925934843bde2571b5ecf040d550d5a1751506fae4716e6da4bb788c0db5/lmnr-0.4.56.tar.gz", hash = "sha256:8025be5980463873850332a3f1ee8fa2b9b0198a4f52ccdc720551adde763af0", size = 38109 }
+sdist = { url = "https://files.pythonhosted.org/packages/8c/b0/bb7201b9cd83fa39b6db1fe548fbd9f2538efced894fe15fd5ee213a543d/lmnr-0.4.57.tar.gz", hash = "sha256:ee1f8c9228b082f1303887adbe4e90cbec85504ef5f5d34484cb4962107d068a", size = 39256 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f4/0e/ddb70464d80bf77ad2455556b236b4d1183eec71fc54832ac00537060de6/lmnr-0.4.56-py3-none-any.whl", hash = "sha256:23409e0a27585efb94356558c8af3a2e0208f19745a7a92612defb3c6193ac48", size = 44241 },
+    { url = "https://files.pythonhosted.org/packages/70/f9/a534cef75bffd196dedcfb1c016131f13ce49b571fb242bf693ac956aa04/lmnr-0.4.57-py3-none-any.whl", hash = "sha256:ab029e4134dc53cd9c2ba05611c6df8817eff7b0697f447c593dcd12afbd7164", size = 45445 },
 ]
 
 [package.optional-dependencies]
