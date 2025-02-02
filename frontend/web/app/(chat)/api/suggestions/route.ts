@@ -18,16 +18,17 @@ export async function GET(request: Request) {
   const suggestions = await getSuggestionsByDocumentId({
     documentId,
   });
+  console.log('not implemented');
 
-  const [suggestion] = suggestions;
+  // const [suggestion] = suggestions;
 
-  if (!suggestion) {
-    return Response.json([], { status: 200 });
-  }
+  // if (!suggestion) {
+  //   return Response.json([], { status: 200 });
+  // }
 
-  if (suggestion.userId !== session.user.id) {
-    return new Response('Unauthorized', { status: 401 });
-  }
+  // if (suggestion.userId !== session.user.id) {
+  //   return new Response('Unauthorized', { status: 401 });
+  // }
 
   return Response.json(suggestions, { status: 200 });
 }

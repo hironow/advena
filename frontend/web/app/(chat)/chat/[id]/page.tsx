@@ -11,7 +11,9 @@ import { DataStreamHandler } from '@/components/data-stream-handler';
 export default async function Page(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const { id } = params;
-  const chat = await getChatById({ id });
+  // const chat = await getChatById({ id });
+  console.log('not implemented');
+  const chat = { id: '1', userId: '1', title: 'test', visibility: 'public' };
 
   if (!chat) {
     notFound();
@@ -30,9 +32,10 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
     }
   }
 
-  const messagesFromDb = await getMessagesByChatId({
-    id,
-  });
+  // const messagesFromDb = await getMessagesByChatId({
+  //   id,
+  // });
+  console.log('not implemented');
 
   const cookieStore = await cookies();
   const modelIdFromCookie = cookieStore.get('model-id')?.value;
@@ -44,7 +47,8 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
     <>
       <Chat
         id={chat.id}
-        initialMessages={convertToUIMessages(messagesFromDb)}
+        initialMessages={[]}
+        // initialMessages={convertToUIMessages(messagesFromDb)}
         selectedModelId={selectedModelId}
       />
       <DataStreamHandler id={id} />

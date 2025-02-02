@@ -84,13 +84,13 @@ run = "uv lock --upgrade && uv sync"
 dir = "backend/genai/"
 
 [tasks."be:format"]
-run = "uv run ruff check --select I --fix && ruff format"
+run = "uv run ruff check --select I --fix && uv run ruff format"
 dir = "backend/genai/"
 
 [tasks."be:test"]
 env.GOOGLE_CLOUD_PROJECT = "test-project"
 env.GOOGLE_CLOUD_LOCATION = "us-central1"
-run = "uv run pytest"
+run = "uv run pytest --log-cli-level=INFO"
 dir = "backend/genai/"
 
 [tasks."be:lint"]
@@ -141,7 +141,7 @@ run = "dotenvx run -- pnpm run dev"
 dir = "frontend/web/"
 
 [tasks."fe:update"]
-run = "pnpm update"
+run = "pnpm update && pnpm install"
 dir = "frontend/web/"
 
 [tasks."fe:format"]

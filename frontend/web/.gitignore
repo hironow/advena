@@ -23,23 +23,15 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# local env files
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# dotenvx
+.env.keys
 
 # turbo
 .turbo
 
-.env
 .vercel
 .vscode
-.env*.local
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-# dotenvx
-.env.keys
