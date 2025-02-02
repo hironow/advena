@@ -49,3 +49,5 @@ PROVIDER_ID=$(
 )
 echo "PROVIDER_ID: ${PROVIDER_ID}"
 # ex: projects/123456789/locations/global/workloadIdentityPools/github/providers/my-repo
+
+echo "⭐️ All done!"
