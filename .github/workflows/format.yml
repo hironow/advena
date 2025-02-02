@@ -10,6 +10,7 @@ concurrency:
 jobs:
   frontend:
     runs-on: ubuntu-22.04
+    timeout-minutes: 10
     steps:
     - uses: actions/checkout@v4
     - name: Use mise
@@ -25,7 +26,7 @@ jobs:
     - name: Set up Node
       uses: actions/setup-node@v4
       with:
-        node-version: 'lts/*'
+        node-version: '22.x'
         cache: 'pnpm'
         cache-dependency-path: ./frontend/web/pnpm-lock.yaml
 
@@ -38,9 +39,14 @@ jobs:
         # フォーマット後の差分を確認
         git diff --exit-code
       working-directory: ./frontend/web
+    - name: Show formatting diff on failure
+      if: failure()
+      run: git diff
+      working-directory: ./frontend/web
 
   backend:
     runs-on: ubuntu-22.04
+    timeout-minutes: 10
     steps:
     - uses: actions/checkout@v4
     - name: Use mise
@@ -68,4 +74,8 @@ jobs:
         mise run be:format
         # フォーマット後の差分を確認
         git diff --exit-code
+      working-directory: ./backend/genai
+    - name: Show formatting diff on failure
+      if: failure()
+      run: git diff
       working-directory: ./backend/genai
