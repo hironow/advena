@@ -13,7 +13,9 @@ def pytest_configure(config):
 @pytest.fixture(scope="session", autouse=True)
 def disable_wandb_and_weave():
     os.environ["WANDB_DISABLED"] = "true"
-    logger.info("WANDB_DISABLED set to 'true'")
+    os.environ["WANDB_SILENT"] = "true"
+    os.environ["WANDB_MODE"] = "offline"
+    logger.info("Wandb is disabled")
 
     import weave
 
