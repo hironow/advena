@@ -16,8 +16,12 @@ from vertexai.preview.generative_models import GenerativeModel, Tool
 
 from src.logger import logger
 
-weave.init(project_name=os.getenv("WEAVE_PROJECT_NAME", ""))
-L.initialize(project_api_key=os.getenv("LMNR_PROJECT_API_KEY"))
+if os.getenv("CI") == "true":
+    # CI 環境では weave と Laminar を初期化しない
+    pass
+else:
+    weave.init(project_name=os.getenv("WEAVE_PROJECT_NAME", ""))
+    L.initialize(project_api_key=os.getenv("LMNR_PROJECT_API_KEY"))
 
 
 # see: https://docs.livekit.io/agents/integrations/google/#gemini-llm

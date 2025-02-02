@@ -73,3 +73,5 @@ jobs:
           set -eo pipefail
           mise run be:test
         working-directory: ./backend/genai
+        env:
+          CI: "true"
