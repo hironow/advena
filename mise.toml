@@ -133,7 +133,7 @@ docker push ${NAME}
 # ex. https://console.cloud.google.com/artifacts/docker/<project-name>/<location>/<repo-name>/<image-name>?project=<project-name>
 CONSOLE_URL="https://console.cloud.google.com/artifacts/docker/{{vars.GOOGLE_CLOUD_PROJECT}}/{{vars.GOOGLE_CLOUD_LOCATION}}/{{vars.ARTIFACT_REGISTRY_REPOSITORY}}/{{vars.BACKEND_IMAGE_NAME}}?project={{vars.GOOGLE_CLOUD_PROJECT}}"
 echo "🔗 Access the repository here: ${CONSOLE_URL}"
-echo "🏷️ ${TAG}"
+echo "🏷️  ${TAG}"
 """
 
 
@@ -194,5 +194,5 @@ docker push ${NAME}
 # ex. https://console.cloud.google.com/artifacts/docker/<project-name>/<location>/<repo-name>/<image-name>?project=<project-name>
 CONSOLE_URL="https://console.cloud.google.com/artifacts/docker/{{vars.GOOGLE_CLOUD_PROJECT}}/{{vars.GOOGLE_CLOUD_LOCATION}}/{{vars.ARTIFACT_REGISTRY_REPOSITORY}}/{{vars.FRONTEND_IMAGE_NAME}}?project={{vars.GOOGLE_CLOUD_PROJECT}}"
 echo "🔗 Access the repository here: ${CONSOLE_URL}"
-echo "🏷️ ${TAG}"
+echo "🏷️  ${TAG}"
 """
