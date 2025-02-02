@@ -2,6 +2,7 @@
 set -euo pipefail
 
 # Workload Identity Federation
+# see: https://github.com/google-github-actions/auth?tab=readme-ov-file#preferred-direct-workload-identity-federation
 export REPO="hironow/advena"   # リポジトリ名 (owner/repo 形式)
 export PROJECT_ID="advena-dev" # GCPプロジェクトID
 
