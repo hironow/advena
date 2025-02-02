@@ -190,10 +190,10 @@ importers:
         specifier: ^1.1.4
         version: 1.1.4
       '@types/react':
-        specifier: ^19.0.0
+        specifier: ^19.0.8
         version: 19.0.8
       '@types/react-dom':
-        specifier: ^19.0.0
+        specifier: ^19.0.3
         version: 19.0.3(@types/react@19.0.8)
       jsdom:
         specifier: ^26.0.0
@@ -6246,7 +6246,7 @@ snapshots:
       isstream: 0.1.2
       jsonwebtoken: 9.0.2
       mime-types: 2.1.35
-      retry-axios: 2.6.0(axios@1.7.9)
+      retry-axios: 2.6.0(axios@1.7.9(debug@4.4.0))
       tough-cookie: 4.1.4
     transitivePeerDependencies:
       - supports-color
@@ -7383,7 +7383,7 @@ snapshots:
       path-parse: 1.0.7
       supports-preserve-symlinks-flag: 1.0.0
 
-  retry-axios@2.6.0(axios@1.7.9):
+  retry-axios@2.6.0(axios@1.7.9(debug@4.4.0)):
     dependencies:
       axios: 1.7.9(debug@4.4.0)
 
