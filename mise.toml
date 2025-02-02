@@ -90,7 +90,7 @@ dir = "backend/genai/"
 [tasks."be:test"]
 env.GOOGLE_CLOUD_PROJECT = "test-project"
 env.GOOGLE_CLOUD_LOCATION = "us-central1"
-run = "uv run pytest"
+run = "uv run pytest --log-cli-level=INFO"
 dir = "backend/genai/"
 
 [tasks."be:lint"]
