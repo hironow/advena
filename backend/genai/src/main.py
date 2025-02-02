@@ -287,14 +287,22 @@ async def question(request: Request):
         logger.info(f"{event_id}: finished generating content")
 
         answer_ref.update(
-            {"content": response_model.text, "loading": False, "status": "success"}
+            {
+                "content": response_model.text,
+                "loading": False,
+                "status": "success",
+            }
         )
         message_ref.update({"loading": False, "status": "success"})
         logger.info(f"{event_id}: finished generating an answer: {messageId}")
     except Exception as err:
         message_ref.update({"loading": False, "status": "failed"})
         answer_ref.update(
-            {"content": QUESTION_FAILED_MESSAGE, "loading": False, "status": "failed"}
+            {
+                "content": QUESTION_FAILED_MESSAGE,
+                "loading": False,
+                "status": "failed",
+            }
         )
         logger.info(
             f"{event_id}: failed generating an answer: err={err}, type(err)={type(err)}"
@@ -363,6 +371,12 @@ Surround the keypoint sentence or words by **.
         )
 
     return Response(content="finished", status_code=204)
+
+
+@app.post("/hcheck")
+async def hcheck():
+    """ヘルスチェック用エンドポイント"""
+    return Response(content="finished", status_code=200)
 
 
 if __name__ == "__main__":
