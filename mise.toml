@@ -84,7 +84,7 @@ run = "uv lock --upgrade && uv sync"
 dir = "backend/genai/"
 
 [tasks."be:format"]
-run = "uv run ruff check --select I --fix && ruff format"
+run = "uv run ruff check --select I --fix && uv run ruff format"
 dir = "backend/genai/"
 
 [tasks."be:test"]
