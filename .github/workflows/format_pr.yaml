@@ -1,12 +1,12 @@
 name: Format PR
 
-on:
-  pull_request:
-    branches: [main]
+on: 
+    pull_request:
+      branches: [main]
 
 jobs:
-  format:
-    uses: ./.github/workflows/format.yml
+  format_pr:
+    uses: ./.github/workflows/format.yaml
     with:
       frontend-directory: './frontend/web'
       backend-directory: './backend/genai'
