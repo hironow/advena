@@ -46,7 +46,7 @@ type ToolProps = {
     | 'add-comments'
     | 'add-logs';
   description: string;
-  icon: JSX.Element;
+  icon: React.ReactElement;
   selectedTool: string | null;
   setSelectedTool: Dispatch<SetStateAction<string | null>>;
   isToolbarVisible?: boolean;
@@ -294,7 +294,7 @@ const toolsByBlockKind: Record<
       | 'add-comments'
       | 'add-logs';
     description: string;
-    icon: JSX.Element;
+    icon: React.ReactElement;
   }>
 > = {
   text: [
