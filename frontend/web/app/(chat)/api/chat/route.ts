@@ -79,7 +79,9 @@ export async function POST(request: Request) {
     return new Response('No user message found', { status: 400 });
   }
 
-  const chat = await getChatById({ id });
+  // const chat = await getChatById({ id });
+  console.log('not implemented');
+  const chat = { id: '1', userId: '1', title: 'test' };
 
   if (!chat) {
     const title = await generateTitleFromUserMessage({ message: userMessage });
@@ -241,7 +243,15 @@ export async function POST(request: Request) {
                 .describe('The description of changes that need to be made'),
             }),
             execute: async ({ id, description }) => {
-              const document = await getDocumentById({ id });
+              // const document = await getDocumentById({ id });
+              console.log('not implemented');
+              const document = {
+                id: '1',
+                title: 'test',
+                kind: 'text',
+                content: 'test',
+                createdAt: new Date(),
+              };
 
               if (!document) {
                 return {
@@ -339,13 +349,14 @@ export async function POST(request: Request) {
               }
 
               if (session.user?.id) {
-                await saveDocument({
-                  id,
-                  title: document.title,
-                  content: draftText,
-                  kind: document.kind,
-                  userId: session.user.id,
-                });
+                console.log('not implemented');
+                // await saveDocument({
+                //   id,
+                //   title: document.title,
+                //   content: draftText,
+                //   kind: document.kind,
+                //   userId: session.user.id,
+                // });
               }
 
               return {
@@ -364,7 +375,15 @@ export async function POST(request: Request) {
                 .describe('The ID of the document to request edits'),
             }),
             execute: async ({ documentId }) => {
-              const document = await getDocumentById({ id: documentId });
+              // const document = await getDocumentById({ id: documentId });
+              console.log('not implemented');
+              const document = {
+                id: '1',
+                title: 'test',
+                kind: 'text',
+                content: 'test',
+                createdAt: new Date(),
+              };
 
               if (!document || !document.content) {
                 return {
@@ -493,7 +512,9 @@ export async function DELETE(request: Request) {
   }
 
   try {
-    const chat = await getChatById({ id });
+    // const chat = await getChatById({ id });
+    console.log('not implemented');
+    const chat = { id: '1', userId: '1', title: 'test' };
 
     if (chat.userId !== session.user.id) {
       return new Response('Unauthorized', { status: 401 });
