@@ -141,7 +141,7 @@ run = "dotenvx run -- pnpm run dev"
 dir = "frontend/web/"
 
 [tasks."fe:update"]
-run = "pnpm update"
+run = "pnpm update && pnpm install"
 dir = "frontend/web/"
 
 [tasks."fe:format"]

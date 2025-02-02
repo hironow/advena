@@ -70,6 +70,11 @@ export type Message = {
 // );
 
 // export type Vote = InferSelectModel<typeof vote>;
+export type Vote = {
+  chatId: string;
+  messageId: string;
+  isUpvoted: boolean;
+};
 
 // export const document = pgTable(
 //   'Document',
@@ -93,6 +98,14 @@ export type Message = {
 // );
 
 // export type Document = InferSelectModel<typeof document>;
+export type Document = {
+  id: string;
+  createdAt: Date;
+  title: string;
+  content: string;
+  kind: 'text' | 'code';
+  userId: string;
+};
 
 // export const suggestion = pgTable(
 //   'Suggestion',
