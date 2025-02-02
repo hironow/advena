@@ -23,7 +23,10 @@ WORKDIR /app
 
 # Install dotenvx
 RUN apk add --no-cache curl
-RUN curl -sfS https://dotenvx.sh > install.sh && chmod +x install.sh && ./install.sh --directory=. && rm install.sh
+RUN curl -sfS https://dotenvx.sh > install.sh \
+    && chmod +x install.sh \
+    && ./install.sh --directory=. \
+    && rm install.sh
 
 ENV NODE_ENV=production
 COPY --from=builder /app/.env ./
