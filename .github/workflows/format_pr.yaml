@@ -1,0 +1,12 @@
+name: Format PR
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  format:
+    uses: ./.github/workflows/format.yml
+    with:
+      frontend-directory: './frontend/web'
+      backend-directory: './backend/genai'
