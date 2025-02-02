@@ -20,6 +20,7 @@ JPRO_REPOSITORY = "R100000137"
 
 # memo: I9784621310328 の I のあとが 13桁 であれば ISBN 、20桁であれば JP-eコード とみなせる？
 
+
 def thumbnail(isbn_or_jpecode: str) -> str:
     """書影画像を取得するための URL を生成する
     例: https://ndlsearch.ndl.go.jp/thumbnail/9784422311074.jpg
