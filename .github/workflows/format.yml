@@ -1,81 +1,94 @@
 name: Format
-on: 
-  pull_request:
-    branches: [main]
+
+on:
+  workflow_call:
+    inputs:
+      frontend-directory:
+        description: 'Path to the frontend web directory'
+        required: false
+        default: './frontend/web'
+      backend-directory:
+        description: 'Path to the backend genai directory'
+        required: false
+        default: './backend/genai'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+# 共通の mise インストールステップ
+x-steps-mise: &steps-mise
+  - uses: actions/checkout@v4
+  - name: Use mise
+    run: |
+      curl https://mise.run | sh
+      echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
+      echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
 
 jobs:
   frontend:
     runs-on: ubuntu-22.04
     timeout-minutes: 10
     steps:
-    - uses: actions/checkout@v4
-    - name: Use mise
-      run: |
-        curl https://mise.run | sh
-        echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
-        echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
+      - <<: *steps-mise
 
-    - name: Install pnpm
-      uses: pnpm/action-setup@v4
-      with:
-        version: 9
-    - name: Set up Node
-      uses: actions/setup-node@v4
-      with:
-        node-version: '22.x'
-        cache: 'pnpm'
-        cache-dependency-path: ./frontend/web/pnpm-lock.yaml
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
 
-    - name: Install dependencies
-      run: mise exec -- pnpm install
-      working-directory: ./frontend/web
-    - name: Run format
-      run: |
-        mise run fe:format
-        # フォーマット後の差分を確認
-        git diff --exit-code
-      working-directory: ./frontend/web
-    - name: Show formatting diff on failure
-      if: failure()
-      run: git diff
-      working-directory: ./frontend/web
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'pnpm'
+          cache-dependency-path: ${{ inputs.frontend-directory }}/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: mise exec -- pnpm install
+        working-directory: ${{ inputs.frontend-directory }}
+
+      - name: Run format
+        run: |
+          mise run fe:format
+          # フォーマット後の差分を確認
+          git diff --exit-code
+        working-directory: ${{ inputs.frontend-directory }}
+
+      - name: Show formatting diff on failure
+        if: failure()
+        run: git diff
+        working-directory: ${{ inputs.frontend-directory }}
 
   backend:
     runs-on: ubuntu-22.04
     timeout-minutes: 10
     steps:
-    - uses: actions/checkout@v4
-    - name: Use mise
-      run: |
-        curl https://mise.run | sh
-        echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
-        echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
+      - <<: *steps-mise
 
-    - name: Install uv
-      uses: astral-sh/setup-uv@v4
-      with:
-        enable-cache: true
-        cache-dependency-glob: "./backend/genai/uv.lock"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: "${{ inputs.backend-directory }}/uv.lock"
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.13'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
 
-    - name: Install dependencies
-      run: mise exec -- uv sync --all-extras --dev
-      working-directory: ./backend/genai
-    - name: Run format
-      run: | 
-        mise run be:format
-        # フォーマット後の差分を確認
-        git diff --exit-code
-      working-directory: ./backend/genai
-    - name: Show formatting diff on failure
-      if: failure()
-      run: git diff
-      working-directory: ./backend/genai
+      - name: Install dependencies
+        run: mise exec -- uv sync --frozen
+        working-directory: ${{ inputs.backend-directory }}
+
+      - name: Run format
+        run: |
+          mise run be:format
+          # フォーマット後の差分を確認
+          git diff --exit-code
+        working-directory: ${{ inputs.backend-directory }}
+
+      - name: Show formatting diff on failure
+        if: failure()
+        run: git diff
+        working-directory: ${{ inputs.backend-directory }}
