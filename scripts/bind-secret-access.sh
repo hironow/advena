@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-# Secret Manager Access for Cloud Run
+# Secret Manager Access for Cloud Run dotenvx
 export PROJECT_ID="advena-dev"
 export USER_SA_OF_SECRET_MANAGER="cloud-run-secret-access"
 export USER_SA_OF_SECRET_MANAGER_EMAIL="${USER_SA_OF_SECRET_MANAGER}@${PROJECT_ID}.iam.gserviceaccount.com"
