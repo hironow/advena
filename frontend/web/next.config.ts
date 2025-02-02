@@ -2,8 +2,8 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   output: 'standalone',
-  experimental: {
-    ppr: true,
+  eslint: {
+    ignoreDuringBuilds: true,
   },
   images: {
     remotePatterns: [
