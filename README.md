@@ -4,11 +4,14 @@
     コードネーム: advena (アドヴェナ)
 </p>
 
+[![Build](https://github.com/hironow/advena/actions/workflows/build.yaml/badge.svg)](https://github.com/hironow/advena/actions/workflows/build.yaml) | [![Test](https://github.com/hironow/advena/actions/workflows/test.yaml/badge.svg)](https://github.com/hironow/advena/actions/workflows/test.yaml)
+
 ## Preparing for development
 
 Install [mise](https://github.com/jdx/mise), and add aliases:
 
 ```bash
+# ~/.zshrc or ~/.bashrc etc.
 alias mx="mise exec --"
 alias mr="mise run"
 ```
