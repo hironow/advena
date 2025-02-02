@@ -1,8 +1,14 @@
 name: Build
 
-on: 
+on:
+  push:
+    branches:
+      - main
+      - develop
   pull_request:
-    branches: [main]
+    branches:
+      - main
+      - develop
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-build

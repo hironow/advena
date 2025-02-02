@@ -1,8 +1,14 @@
 name: Test
 
-on: 
+on:
+  push:
+    branches:
+      - main
+      - develop
   pull_request:
-    branches: [main]
+    branches:
+      - main
+      - develop
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-test
