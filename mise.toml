@@ -118,10 +118,11 @@ set -e
 # Get branch and commit information
 BRANCH=$(git symbolic-ref --short HEAD)
 COMMIT=$(git describe --tags --always)
+TAG="${BRANCH}-${COMMIT}"
 
 # Construct the image name
 # ex. <location>-docker.pkg.dev/<project-name>/<repo-name>/<image-name>:main-1234567
-NAME="{{vars.GOOGLE_CLOUD_LOCATION}}-docker.pkg.dev/{{vars.GOOGLE_CLOUD_PROJECT}}/{{vars.ARTIFACT_REGISTRY_REPOSITORY}}/{{vars.BACKEND_IMAGE_NAME}}:${BRANCH}-${COMMIT}"
+NAME="{{vars.GOOGLE_CLOUD_LOCATION}}-docker.pkg.dev/{{vars.GOOGLE_CLOUD_PROJECT}}/{{vars.ARTIFACT_REGISTRY_REPOSITORY}}/{{vars.BACKEND_IMAGE_NAME}}:${TAG}"
 
 # Display and push the image
 echo "Deploying ${NAME}"
@@ -132,6 +133,7 @@ docker push ${NAME}
 # ex. https://console.cloud.google.com/artifacts/docker/<project-name>/<location>/<repo-name>/<image-name>?project=<project-name>
 CONSOLE_URL="https://console.cloud.google.com/artifacts/docker/{{vars.GOOGLE_CLOUD_PROJECT}}/{{vars.GOOGLE_CLOUD_LOCATION}}/{{vars.ARTIFACT_REGISTRY_REPOSITORY}}/{{vars.BACKEND_IMAGE_NAME}}?project={{vars.GOOGLE_CLOUD_PROJECT}}"
 echo "🔗 Access the repository here: ${CONSOLE_URL}"
+echo "🏷️ ${TAG}"
 """
 
 
@@ -177,10 +179,11 @@ set -e
 # Get branch and commit information
 BRANCH=$(git symbolic-ref --short HEAD)
 COMMIT=$(git describe --tags --always)
+TAG="${BRANCH}-${COMMIT}"
 
 # Construct the image name
 # ex. <location>-docker.pkg.dev/<project-name>/<repo-name>/<image-name>:main-1234567
-NAME="{{vars.GOOGLE_CLOUD_LOCATION}}-docker.pkg.dev/{{vars.GOOGLE_CLOUD_PROJECT}}/{{vars.ARTIFACT_REGISTRY_REPOSITORY}}/{{vars.FRONTEND_IMAGE_NAME}}:${BRANCH}-${COMMIT}"
+NAME="{{vars.GOOGLE_CLOUD_LOCATION}}-docker.pkg.dev/{{vars.GOOGLE_CLOUD_PROJECT}}/{{vars.ARTIFACT_REGISTRY_REPOSITORY}}/{{vars.FRONTEND_IMAGE_NAME}}:${TAG}"
 
 # Display and push the image
 echo "Deploying ${NAME}"
@@ -191,4 +194,5 @@ docker push ${NAME}
 # ex. https://console.cloud.google.com/artifacts/docker/<project-name>/<location>/<repo-name>/<image-name>?project=<project-name>
 CONSOLE_URL="https://console.cloud.google.com/artifacts/docker/{{vars.GOOGLE_CLOUD_PROJECT}}/{{vars.GOOGLE_CLOUD_LOCATION}}/{{vars.ARTIFACT_REGISTRY_REPOSITORY}}/{{vars.FRONTEND_IMAGE_NAME}}?project={{vars.GOOGLE_CLOUD_PROJECT}}"
 echo "🔗 Access the repository here: ${CONSOLE_URL}"
+echo "🏷️ ${TAG}"
 """
