@@ -18,18 +18,19 @@ OAI_PMH_URL_BASE = "https://ndlsearch.ndl.go.jp/api/oaipmh"
 # see: https://ndlsearch.ndl.go.jp/help/api/provider
 JPRO_REPOSITORY = "R100000137"
 
+# memo: I9784621310328 の I のあとが 13桁 であれば ISBN 、20桁であれば JP-eコード とみなせる？
 
-def thumbnail(isbn: str) -> str:
+def thumbnail(isbn_or_jpecode: str) -> str:
     """書影画像を取得するための URL を生成する
     例: https://ndlsearch.ndl.go.jp/thumbnail/9784422311074.jpg
     """
     # ハイフンがあれば取り除く
-    isbn = isbn.replace("-", "")
-    # ISBN は 13 桁でハイフン区切りなし。NOTE: JP-eコードは 20 桁で区切りなしだが、ここでは ISBN のみを想定する
-    if len(isbn) != 13:
-        raise ValueError("ISBN should be 13 digits")
+    isbn_or_jpecode = isbn_or_jpecode.replace("-", "")
+    # ISBN は 13 桁でハイフン区切りなし。JP-eコードは 20 桁で区切りなし
+    if len(isbn_or_jpecode) not in (13, 20):
+        raise ValueError("ISBN or JP-eCode should be 13 or 20 digits")
 
-    return f"{THUMBNAIL_URL_BASE}{isbn}.jpg"
+    return f"{THUMBNAIL_URL_BASE}{isbn_or_jpecode}.jpg"
 
 
 def latest_all(size: int = 1000) -> str:

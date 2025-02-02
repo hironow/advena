@@ -20,6 +20,7 @@ def get_metadata_by_isbn(
     if len(isbn) != 13:
         raise ValueError("ISBN should be 13 digits")
 
+    # TODO: identifierを引数にする
     identifier = f"oai:ndlsearch.ndl.go.jp:{repository}-I{isbn}"
     # dcndl が情報が多いのでそちらを利用
     record = sickle_client.GetRecord(metadataPrefix="dcndl", identifier=identifier)
