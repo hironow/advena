@@ -5,7 +5,7 @@ on:
     branches: [main]
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-test
   cancel-in-progress: true
 
 jobs:
@@ -58,6 +58,7 @@ jobs:
 
       - uses: 'google-github-actions/auth@v2'
         with:
+          # use permissions above
           project_id: 'advena-dev'
           workload_identity_provider: 'projects/38358387786/locations/global/workloadIdentityPools/github/providers/my-repo'
 
