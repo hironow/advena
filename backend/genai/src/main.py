@@ -367,5 +367,6 @@ Surround the keypoint sentence or words by **.
 
 if __name__ == "__main__":
     # see: https://github.com/googleapis/google-auth-library-python/blob/main/google/auth/_default.py#L577-L595
-    _, project_id = gauth.default()
-    logger.info("project_id: %s", project_id)
+    # _, project_id = gauth.default()
+    # logger.info("project_id: %s", project_id)
+    pass
