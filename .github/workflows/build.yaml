@@ -57,7 +57,7 @@ jobs:
         uses: astral-sh/setup-uv@v4
         with:
           enable-cache: true
-          cache-dependency-glob: "./backend/genai/uv.lock"
+          cache-dependency-glob: ./backend/genai/uv.lock
 
       - name: Set up Python
         uses: actions/setup-python@v5
