@@ -1,4 +1,3 @@
 import os
 
-# テスト実行時は wandb を無効にする
-os.environ["WANDB_MODE"] = "disabled"
+os.environ["WANDB_DISABLED"] = "true"  # wandb を完全無効化
