@@ -8,6 +8,7 @@ dependencies = [
     "cloudevents>=1.11.0",
     "fastapi>=0.115.6",
     "feedparser>=6.0.11",
+    "firebase-admin>=6.6.0",
     "google-auth>=2.38.0",
     "google-cloud-aiplatform>=1.76.0",
     "google-cloud-firestore>=2.20.0",

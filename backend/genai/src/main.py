@@ -1,10 +1,15 @@
 import os
+from contextlib import asynccontextmanager
 
+import firebase_admin
 import google.auth as gauth
 import vertexai
 import weave
 from cloudevents.http import from_http
 from fastapi import FastAPI, Request, Response
+from firebase_admin import auth
+from firebase_admin import firestore_async as fb_async_firestore
+from firebase_admin import storage as fb_storage
 from google.cloud import firestore, storage
 from livekit.plugins import google as livekit_google
 from lmnr import Laminar as L
@@ -44,9 +49,6 @@ tts = livekit_google.TTS(
     speaking_rate=1.0,
 )
 
-# FastAPI アプリ作成
-app = FastAPI()
-
 # グローバル変数（Google Cloud SDK 用）
 # Flask の app.config で環境変数を読み込んでいた部分は os.environ を利用
 PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT")
@@ -69,11 +71,54 @@ MAX_TOTAL_COMMON_QUESTIONS_LENGTH = 1024
 SUMMARIZATION_FAILED_MESSAGE = "申し訳ございません。要約の生成に失敗しました。"
 MEANINGFUL_MINIMUM_QUESTION_LENGTH = 7
 
-bucket_name = f"{PROJECT_ID}.firebasestorage.app"
-
 vertexai.init(project=PROJECT_ID, location=VERTEX_AI_LOCATION)
-db = firestore.Client()
-storage_client = storage.Client()
+
+if os.getenv("USE_FIREBASE_EMULATOR") == "true":
+    emulator_project = "local"
+    bucket_name = f"{emulator_project}.appspot.com"
+    firebase_admin.initialize_app(
+        options={"projectId": emulator_project, "storageBucket": bucket_name}
+    )
+
+    os.environ["GOOGLE_CLOUD_PROJECT"] = emulator_project  # override
+    db = firestore.Client(project=emulator_project)
+    # storage_client = storage.Client(project=emulator_project)
+    # storage_client = fb_storage
+
+else:
+    db = firestore.Client()
+    storage_client = storage.Client()
+    bucket_name = f"{PROJECT_ID}.firebasestorage.app"
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("Starting server...")
+
+    # Firebase AuthのIdTokenのJWTを検証することが必要なのでFirebase Admin SDKを利用する
+    options = {}
+    if os.getenv("USE_FIREBASE_EMULATOR") == "true":
+        logger.warning("Using Firebase Emulator")
+        emulator_project = "local"
+        options = {
+            "projectId": emulator_project,
+            "storageBucket": f"{emulator_project}.appspot.com",
+        }
+
+    firebase_admin.initialize_app(options=options)
+    logger.info("Initialized Firebase Admin SDK")
+
+    yield
+
+    # リソースを解放する
+
+    logger.info("Stopping server...")
+
+
+# FastAPI アプリ作成
+app = FastAPI(
+    lifespan=lifespan,
+)
 
 
 # 複数ファイルの import は 1 ファイルずつしか実行できないため、指数バックオフ付きでリトライ
@@ -359,3 +404,11 @@ if __name__ == "__main__":
     # see: https://github.com/googleapis/google-auth-library-python/blob/main/google/auth/_default.py#L577-L595
     _, project_id = gauth.default()
     logger.info("project_id: %s", project_id)
+
+    # db で何が入っているか確認するので、countとかを使ってみる
+    users = db.collection("users").stream()
+    print("users count: ", len(list(users)))
+
+    # storageも何が入っているか確認する
+    bucket = fb_storage.bucket()
+    print("bucket: ", bucket.name)
