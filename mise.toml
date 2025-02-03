@@ -78,7 +78,7 @@ hide = true
 
 # backend dir tasks
 [tasks."be:debug"]
-env.CI = "true"
+env.CI = "false"
 run = "dotenvx run -- uv run python -m src.main"
 dir = "backend/genai/"
 
