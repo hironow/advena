@@ -14,16 +14,13 @@ dependencies = [
     "google-cloud-firestore>=2.20.0",
     "google-cloud-storage>=2.19.0",
     "google-generativeai>=0.8.3",
-    "livekit-agents>=0.12.10",
-    "livekit-plugins-google>=0.10.1",
-    "livekit-plugins-nltk>=0.7.3",
-    "livekit-plugins-openai>=0.10.16",
-    "livekit-plugins-rag>=0.2.3",
-    "livekit-plugins-turn-detector>=0.3.6",
+    "helium>=5.1.0",
+    "litellm>=1.60.0",
     "lmnr[all]>=0.4.55",
+    "pillow>=11.1.0",
     "pydantic>=2.10.5",
     "sickle>=0.7.0",
-    "smolagents>=1.5.0",
+    "smolagents[litellm]>=1.7.0",
     "tenacity>=9.0.0",
     "uvicorn>=0.34.0",
     "weave>=0.51.31",
@@ -75,3 +72,4 @@ asyncio_default_fixture_loop_scope = "function"  # "class", "module", "package",
 
 [tool.uv.sources]
 mock-firestore = { git = "https://github.com/hironow/python-mock-firestore.git" }
+litellm = { git = "https://github.com/BerriAI/litellm.git", rev = "main" }

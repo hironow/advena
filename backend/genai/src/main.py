@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 
 import firebase_admin
 import google.auth as gauth
+import litellm
 import vertexai
 import weave
 from cloudevents.http import from_http
@@ -11,9 +12,9 @@ from firebase_admin import auth
 from firebase_admin import firestore_async as fb_async_firestore
 from firebase_admin import storage as fb_storage
 from google.cloud import firestore, storage
-from livekit.plugins import google as livekit_google
 from lmnr import Laminar as L
 from lmnr import observe
+from smolagents import LiteLLMModel, ToolCallingAgent
 from tenacity import retry, wait_exponential
 from vertexai.generative_models import Content, GenerationConfig, Part
 from vertexai.preview import rag
@@ -28,26 +29,6 @@ else:
     weave.init(project_name=os.getenv("WEAVE_PROJECT_NAME", ""))
     L.initialize(project_api_key=os.getenv("LMNR_PROJECT_API_KEY"))
 
-# agents
-# see: https://docs.livekit.io/agents/integrations/google/#gemini-llm
-llm = livekit_google.LLM(
-    model="gemini-2.0-flash-exp",
-    candidate_count=1,
-    temperature=0.08,
-    vertexai=True,
-    tool_choice="auto",  # NOTE: 動的に変えたい required, none
-)
-
-tts = livekit_google.TTS(
-    language="ja-JP",
-    gender="female",
-    voice_name="ja-JP-Neural2-B",  # use Neural2 voice type: ja-JP-Neural2-C, ja-JP-Neural2-D see: https://cloud.google.com/text-to-speech/docs/voices
-    encoding="linear16",
-    effects_profile_id="large-automotive-class-device",
-    sample_rate=24000,
-    pitch=0,
-    speaking_rate=1.0,
-)
 
 # グローバル変数（Google Cloud SDK 用）
 # Flask の app.config で環境変数を読み込んでいた部分は os.environ を利用
@@ -72,16 +53,18 @@ SUMMARIZATION_FAILED_MESSAGE = "申し訳ございません。要約の生成に
 MEANINGFUL_MINIMUM_QUESTION_LENGTH = 7
 
 vertexai.init(project=PROJECT_ID, location=VERTEX_AI_LOCATION)
+litellm._turn_on_debug()
 
 if os.getenv("USE_FIREBASE_EMULATOR") == "true":
-    emulator_project = "local"
+    emulator_project = PROJECT_ID
     bucket_name = f"{emulator_project}.appspot.com"
     firebase_admin.initialize_app(
         options={"projectId": emulator_project, "storageBucket": bucket_name}
     )
 
-    os.environ["GOOGLE_CLOUD_PROJECT"] = emulator_project  # override
+    # os.environ["GOOGLE_CLOUD_PROJECT"] = emulator_project  # override if needed
     db = firestore.Client(project=emulator_project)
+
     # storage_client = storage.Client(project=emulator_project)
     # storage_client = fb_storage
 
@@ -412,3 +395,16 @@ if __name__ == "__main__":
     # storageも何が入っているか確認する
     bucket = fb_storage.bucket()
     print("bucket: ", bucket.name)
+
+    model_id = "vertex_ai/gemini-1.5-flash"
+    model = LiteLLMModel(
+        model_id,
+        temperature=0.08,
+    )
+
+    agent = ToolCallingAgent(
+        tools=[],
+        model=model,
+    )
+
+    print(agent.run("Hello"))

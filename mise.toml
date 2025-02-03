@@ -24,9 +24,11 @@ hide = true
 
 [tasks."f:emulator"]
 description = "Start Firebase Emulator Suite"
-run = "firebase emulators:start --project=local"
+run = "firebase emulators:start --project={{vars.GOOGLE_CLOUD_PROJECT}}"
 depends = ["f"]
 dir = "frontend/web/"
+# NOTE: Emulators must be started with the same project name
+# Emulatorを利用する部分とGoogle Cloud環境を利用する部分があるため
 
 [tasks."f:deploy"]
 description = "Deploy to Firebase Suite"
