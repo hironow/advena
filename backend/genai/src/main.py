@@ -32,11 +32,11 @@ else:
 
 # グローバル変数（Google Cloud SDK 用）
 # Flask の app.config で環境変数を読み込んでいた部分は os.environ を利用
-PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT")
-if not PROJECT_ID:
-    raise Exception("Set GOOGLE_CLOUD_PROJECT environment variable.")
+# PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT")
+# if not PROJECT_ID:
+#     raise Exception("Set GOOGLE_CLOUD_PROJECT environment variable.")
 
-VERTEX_AI_LOCATION = os.getenv("VERTEX_AI_LOCATION", "us-central1")
+# VERTEX_AI_LOCATION = os.getenv("VERTEX_AI_LOCATION", "us-central1")
 PUBLISHER_MODEL = "publishers/google/models/text-multilingual-embedding-002"
 GENERATIVE_MODEL_NAME = "gemini-1.5-flash-001"
 RAG_CHUNK_SIZE = 512
@@ -52,16 +52,16 @@ MAX_TOTAL_COMMON_QUESTIONS_LENGTH = 1024
 SUMMARIZATION_FAILED_MESSAGE = "申し訳ございません。要約の生成に失敗しました。"
 MEANINGFUL_MINIMUM_QUESTION_LENGTH = 7
 
-vertexai.init(project=PROJECT_ID, location=VERTEX_AI_LOCATION)
-litellm._turn_on_debug()
+# vertexai.init(project=PROJECT_ID, location=VERTEX_AI_LOCATION)
+# litellm._turn_on_debug()
 
 if os.getenv("USE_FIREBASE_EMULATOR") == "true":
-    emulator_project = PROJECT_ID
+    emulator_project = os.getenv("GOOGLE_CLOUD_PROJECT")
     bucket_name = f"{emulator_project}.appspot.com"
+
     firebase_admin.initialize_app(
         options={"projectId": emulator_project, "storageBucket": bucket_name}
     )
-
     # os.environ["GOOGLE_CLOUD_PROJECT"] = emulator_project  # override if needed
     db = firestore.Client(project=emulator_project)
 
@@ -69,9 +69,10 @@ if os.getenv("USE_FIREBASE_EMULATOR") == "true":
     # storage_client = fb_storage
 
 else:
+    project = os.getenv("GOOGLE_CLOUD_PROJECT")
     db = firestore.Client()
     storage_client = storage.Client()
-    bucket_name = f"{PROJECT_ID}.firebasestorage.app"
+    bucket_name = f"{project}.firebasestorage.app"
 
 
 @asynccontextmanager
