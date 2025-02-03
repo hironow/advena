@@ -23,8 +23,8 @@ dir = "frontend/web/"
 hide = true
 
 [tasks."f:emulator"]
-description = "Start Firebase Emulator Suite"
-run = "firebase emulators:start --project={{vars.GOOGLE_CLOUD_PROJECT}}"
+description = "Start Firebase Emulator Suite with ./data"
+run = "firebase emulators:start --project={{vars.GOOGLE_CLOUD_PROJECT}} --import=./data --export-on-exit" 
 depends = ["f"]
 dir = "frontend/web/"
 # NOTE: Emulators must be started with the same project name

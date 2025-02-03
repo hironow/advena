@@ -9,7 +9,7 @@ import weave
 from cloudevents.http import from_http
 from fastapi import FastAPI, Request, Response
 from firebase_admin import auth
-from firebase_admin import firestore_async as fb_async_firestore
+from firebase_admin import firestore_async as fb_firestore_async
 from firebase_admin import storage as fb_storage
 from google.cloud import firestore, storage
 from lmnr import Laminar as L
@@ -30,13 +30,6 @@ else:
     L.initialize(project_api_key=os.getenv("LMNR_PROJECT_API_KEY"))
 
 
-# グローバル変数（Google Cloud SDK 用）
-# Flask の app.config で環境変数を読み込んでいた部分は os.environ を利用
-# PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT")
-# if not PROJECT_ID:
-#     raise Exception("Set GOOGLE_CLOUD_PROJECT environment variable.")
-
-# VERTEX_AI_LOCATION = os.getenv("VERTEX_AI_LOCATION", "us-central1")
 PUBLISHER_MODEL = "publishers/google/models/text-multilingual-embedding-002"
 GENERATIVE_MODEL_NAME = "gemini-1.5-flash-001"
 RAG_CHUNK_SIZE = 512
@@ -57,12 +50,12 @@ MEANINGFUL_MINIMUM_QUESTION_LENGTH = 7
 
 if os.getenv("USE_FIREBASE_EMULATOR") == "true":
     emulator_project = os.getenv("GOOGLE_CLOUD_PROJECT")
-    bucket_name = f"{emulator_project}.appspot.com"
+    # local.appspot.com は Firebase Emulator のデフォルトのバケット名だが、使わない
+    bucket_name = f"{emulator_project}.firebasestorage.app"
 
     firebase_admin.initialize_app(
         options={"projectId": emulator_project, "storageBucket": bucket_name}
     )
-    # os.environ["GOOGLE_CLOUD_PROJECT"] = emulator_project  # override if needed
     db = firestore.Client(project=emulator_project)
 
     # storage_client = storage.Client(project=emulator_project)
@@ -396,16 +389,19 @@ if __name__ == "__main__":
     # storageも何が入っているか確認する
     bucket = fb_storage.bucket()
     print("bucket: ", bucket.name)
+    blobs = bucket.list_blobs()
+    print("blobs count: ", len(list(blobs)))
 
+    # llm agent
     model_id = "vertex_ai/gemini-1.5-flash"
     model = LiteLLMModel(
         model_id,
         temperature=0.08,
     )
-
     agent = ToolCallingAgent(
         tools=[],
         model=model,
     )
-
-    print(agent.run("Hello"))
+    print(agent)
+    print(type(agent))
+    # print(agent.run("Hello"))
