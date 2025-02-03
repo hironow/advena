@@ -8,7 +8,7 @@ FROM base AS deps
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 RUN corepack enable && \
-    corepack prepare pnpm@9.0.6 --activate && \
+    corepack prepare pnpm@9.15.5 --activate && \
     pnpm install --frozen-lockfile
 
 # Stage 2: Build the application
@@ -17,7 +17,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN corepack enable && \
-    corepack prepare pnpm@9.0.6 --activate && \
+    corepack prepare pnpm@9.15.5 --activate && \
     pnpm run build
 
 # Stage 3: Production server
