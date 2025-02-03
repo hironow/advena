@@ -7,14 +7,14 @@ FROM node:lts-alpine AS base
 FROM base AS deps
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
-RUN corepack enable pnpm && pnpm install --frozen-lockfile
+RUN npm install -g corepack@latest && corepack enable pnpm && pnpm install --frozen-lockfile
 
 # Stage 2: Build the application
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN corepack enable pnpm && pnpm install --frozen-lockfile
+RUN npm install -g corepack@latest && corepack enable pnpm && pnpm install --frozen-lockfile
 
 # Stage 3: Production server
 FROM base AS runner
