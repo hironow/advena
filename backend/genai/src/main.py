@@ -44,31 +44,6 @@ tts = livekit_google.TTS(
     speaking_rate=1.0,
 )
 
-stt = livekit_google.STT(
-    languages="ja-JP",
-    detect_language=True,
-    interim_results=True,
-    punctuate=True,
-    spoken_punctuation=True,
-    model="chirp_2",
-    sample_rate=16000,
-    keywords=[
-        ("mi-ho", 24.0),  # 仮設定
-    ],
-)
-
-model = livekit_google.beta.realtime.RealtimeModel(
-    model="gemini-2.0-flash-exp",
-    voice="Charon",
-    modalities=["TEXT", "AUDIO"],
-    enable_user_audio_transcription=True,
-    enable_agent_audio_transcription=True,
-    vertexai=True,
-    candidate_count=1,
-    temperature=0.08,
-    instructions="You are a helpful assistant",
-)
-
 # FastAPI アプリ作成
 app = FastAPI()
 
@@ -98,6 +73,7 @@ bucket_name = f"{PROJECT_ID}.firebasestorage.app"
 
 vertexai.init(project=PROJECT_ID, location=VERTEX_AI_LOCATION)
 db = firestore.Client()
+storage_client = storage.Client()
 
 
 # 複数ファイルの import は 1 ファイルずつしか実行できないため、指数バックオフ付きでリトライ
