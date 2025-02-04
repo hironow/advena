@@ -2,44 +2,31 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useActionState, useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { toast } from 'sonner';
 
-import { AuthForm } from '@/components/auth-form';
-import { SubmitButton } from '@/components/submit-button';
-
-import { register, type RegisterActionState } from '../actions';
+import { signIn, useSession } from 'next-auth/react';
+import { Button } from '@/components/ui/button';
 
 export default function Page() {
   const router = useRouter();
-
-  const [email, setEmail] = useState('');
-  const [isSuccessful, setIsSuccessful] = useState(false);
-
-  const [state, formAction] = useActionState<RegisterActionState, FormData>(
-    register,
-    {
-      status: 'idle',
-    },
-  );
+  const { data: session, status } = useSession();
 
   useEffect(() => {
-    if (state.status === 'user_exists') {
-      toast.error('Account already exists');
-    } else if (state.status === 'failed') {
-      toast.error('Failed to create account');
-    } else if (state.status === 'invalid_data') {
-      toast.error('Failed validating your submission!');
-    } else if (state.status === 'success') {
-      toast.success('Account created successfully');
-      setIsSuccessful(true);
+    if (status === 'authenticated') {
       router.refresh();
     }
-  }, [state, router]);
+  }, [status, router]);
 
-  const handleSubmit = (formData: FormData) => {
-    setEmail(formData.get('email') as string);
-    formAction(formData);
+  const handleSubmit = async () => {
+    const result = await signIn('google', {
+      redirect: false,
+      callbackUrl: '/',
+    });
+
+    if (result?.error) {
+      toast.error('Failed to sign up with Google');
+    }
   };
 
   return (
@@ -48,11 +35,11 @@ export default function Page() {
         <div className="flex flex-col items-center justify-center gap-2 px-4 text-center sm:px-16">
           <h3 className="text-xl font-semibold dark:text-zinc-50">Sign Up</h3>
           <p className="text-sm text-gray-500 dark:text-zinc-400">
-            Create an account with your email and password
+            Create an account with your Google account
           </p>
         </div>
-        <AuthForm action={handleSubmit} defaultEmail={email}>
-          <SubmitButton isSuccessful={isSuccessful}>Sign Up</SubmitButton>
+        <div className="flex flex-col gap-4 px-4 sm:px-16">
+          <Button onClick={handleSubmit}>Sign Up with Google</Button>
           <p className="text-center text-sm text-gray-600 mt-4 dark:text-zinc-400">
             {'Already have an account? '}
             <Link
@@ -63,7 +50,7 @@ export default function Page() {
             </Link>
             {' instead.'}
           </p>
-        </AuthForm>
+        </div>
       </div>
     </div>
   );
