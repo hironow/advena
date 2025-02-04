@@ -2,10 +2,8 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 import { toast } from 'sonner';
-import { useSession } from 'next-auth/react';
-import { signIn as nextAuthSignIn } from 'next-auth/react';
+import { signIn as nextAuthSignIn, useSession } from 'next-auth/react';
 
 import { useGoogleAuth } from '@/hooks/use-google-auth';
 import { Button } from '@/components/ui/button';
@@ -13,37 +11,19 @@ import { Button } from '@/components/ui/button';
 export default function Page() {
   const router = useRouter();
   const { data: session, status } = useSession();
-  const { signInWithPopup, loading } = useGoogleAuth();
 
-  // 認証状態が変化したら、必要に応じてリダイレクトする
-  useEffect(() => {
-    if (status === 'authenticated') {
-      // router.refresh() でも良いですが、明示的にトップページへ遷移する例です
-      router.push('/');
-    }
-  }, [status, router]);
+  const { signInWithPopup } = useGoogleAuth();
 
-  const handleSignInWithPopup = async () => {
-    try {
-      // Google のポップアップ認証を実行し、credential を取得
-      const credential = await signInWithPopup();
-      // Firebase から ID トークンを取得（true を渡して最新のトークンを取得）
-      const idToken = await credential.user.getIdToken(true);
-
-      // next-auth の credentials プロバイダでサインインを試行
-      const result = await nextAuthSignIn('credentials', {
-        idToken,
-        redirectTo: '/',
-      });
-
-      // サインインに失敗していた場合の処理（result の内容に応じてカスタマイズ可能）
-      if (result?.error) {
+  const handleSignInWithPopup = () => {
+    signInWithPopup()
+      .then((credential) => credential.user.getIdToken(true))
+      .then((idToken) =>
+        nextAuthSignIn('credentials', { idToken, redirectTo: '/' }),
+      )
+      .catch((err) => {
+        console.error('Google sign in error:', err);
         toast.error('Failed to sign in with Google');
-      }
-    } catch (err) {
-      console.error('Google sign in error:', err);
-      toast.error('Failed to sign in with Google');
-    }
+      });
   };
 
   return (
@@ -56,9 +36,7 @@ export default function Page() {
           </p>
         </div>
         <div className="flex flex-col gap-4 px-4 sm:px-16">
-          <Button onClick={handleSignInWithPopup} disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign In with Google'}
-          </Button>
+          <Button onClick={handleSignInWithPopup}>Sign In with Google</Button>
           <p className="text-center text-sm text-gray-600 mt-4 dark:text-zinc-400">
             {"Don't have an account? "}
             <Link
