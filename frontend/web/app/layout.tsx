@@ -62,7 +62,7 @@ export default async function RootLayout({
         />
       </head>
       <body className="antialiased">
-        <SessionProvider basePath="/" session={session}>
+        <SessionProvider session={session}>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"

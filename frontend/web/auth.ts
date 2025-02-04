@@ -8,6 +8,7 @@ interface ExtendedSession extends Session {}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
+  debug: true,
   providers: [
     // Google,
     // NOTE: Google Providerを使うとfirebase auth emulatorで動作しない。カスタム認証を使う
