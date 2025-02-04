@@ -4,7 +4,6 @@ from contextlib import asynccontextmanager
 import firebase_admin
 import google.auth as gauth
 import litellm
-import vertexai
 import weave
 from cloudevents.http import from_http
 from fastapi import FastAPI, Request, Response
@@ -45,41 +44,19 @@ MAX_TOTAL_COMMON_QUESTIONS_LENGTH = 1024
 SUMMARIZATION_FAILED_MESSAGE = "申し訳ございません。要約の生成に失敗しました。"
 MEANINGFUL_MINIMUM_QUESTION_LENGTH = 7
 
-# vertexai.init(project=PROJECT_ID, location=VERTEX_AI_LOCATION)
-# litellm._turn_on_debug()
-
-if os.getenv("USE_FIREBASE_EMULATOR") == "true":
-    emulator_project = os.getenv("GOOGLE_CLOUD_PROJECT")
-    # local.appspot.com は Firebase Emulator のデフォルトのバケット名だが、使わない
-    bucket_name = f"{emulator_project}.firebasestorage.app"
-
-    firebase_admin.initialize_app(
-        options={"projectId": emulator_project, "storageBucket": bucket_name}
-    )
-    db = firestore.Client(project=emulator_project)
-
-    # storage_client = storage.Client(project=emulator_project)
-    # storage_client = fb_storage
-
-else:
-    project = os.getenv("GOOGLE_CLOUD_PROJECT")
-    db = firestore.Client()
-    storage_client = storage.Client()
-    bucket_name = f"{project}.firebasestorage.app"
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting server...")
 
+    gcp_project = os.getenv("GOOGLE_CLOUD_PROJECT")
     # Firebase AuthのIdTokenのJWTを検証することが必要なのでFirebase Admin SDKを利用する
     options = {}
     if os.getenv("USE_FIREBASE_EMULATOR") == "true":
         logger.warning("Using Firebase Emulator")
-        emulator_project = "local"
         options = {
-            "projectId": emulator_project,
-            "storageBucket": f"{emulator_project}.appspot.com",
+            "projectId": gcp_project,
+            "storageBucket": f"{gcp_project}.appspot.com",
         }
 
     firebase_admin.initialize_app(options=options)

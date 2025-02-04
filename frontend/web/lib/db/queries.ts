@@ -10,7 +10,6 @@ import type { BlockKind } from '@/components/block';
 // use the Drizzle adapter for Auth.js / NextAuth
 // https://authjs.dev/reference/adapter/drizzle
 
-// const client = postgres(process.env.POSTGRES_URL!);
 // const db = drizzle(client);
 
 export async function getUser(email: string): Promise<Array<User>> {
