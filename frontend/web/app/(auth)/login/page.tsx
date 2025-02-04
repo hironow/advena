@@ -34,6 +34,7 @@ export default function Page() {
       // next-auth の credentials プロバイダでサインインを試行
       const result = await nextAuthSignIn('credentials', {
         idToken,
+        redirectTo: '/',
       });
 
       // サインインに失敗していた場合の処理（result の内容に応じてカスタマイズ可能）
