@@ -6,6 +6,10 @@ import { getAuth, connectAuthEmulator } from 'firebase/auth';
 import type { Auth } from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import type { Firestore } from 'firebase/firestore';
+import { getAnalytics } from 'firebase/analytics';
+import { getStorage, connectStorageEmulator } from 'firebase/storage';
+
+// see: https://firebase.google.com/docs/web/setup#available-libraries
 
 /**
  * Firebase のクライアントアプリ (singleton)
@@ -51,4 +55,18 @@ if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === 'true') {
   console.info('[Firebase] Using Auth emulator');
 }
 
+/**
+ * Storage
+ */
+export const storage = getStorage(app);
+if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === 'true') {
+  connectStorageEmulator(storage, '127.0.0.1', 9199);
+  console.info('[Firebase] Using Storage emulator');
+}
+
 // TODO: RemoteConfig
+
+/**
+ * Analytics
+ */
+export const analytics = getAnalytics(app);
