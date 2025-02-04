@@ -7,6 +7,7 @@ import IsometricWorld from '@/components/isometric/IsometricWorld';
 import { useAudioContextState } from '@/components/visualizer/audio-context-provider';
 import { Button } from '@/components/ui/button';
 import { ChatHeader } from '@/components/chat-header';
+import { useSession } from 'next-auth/react';
 
 // SSRオフにしてD3を使う
 const LedVisualizer = dynamic(
@@ -15,6 +16,8 @@ const LedVisualizer = dynamic(
 );
 
 const InitMicButton: React.FC = () => {
+  const { data: session } = useSession();
+  console.info('client component session: ', session);
   const { initAudio, micAllowed } = useAudioContextState();
 
   if (micAllowed) {

@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button';
 export default function Page() {
   const router = useRouter();
   const { data: session, status } = useSession();
+  console.info('client component session: ', session);
+  console.info('client component status: ', status);
 
   const { signInWithPopup } = useGoogleAuth();
 
