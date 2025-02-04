@@ -127,6 +127,7 @@ wip
 
 ## references
 
+* [chose AI on Google Cloud](https://cloud.google.com/docs/generative-ai/choose-models-infra-for-ai)
 * [firestore practices](https://cloud.google.com/firestore/docs/best-practices)
 * [Laminar LLM Tracing](https://docs.lmnr.ai/overview)
   * [projects](https://www.lmnr.ai/projects)
