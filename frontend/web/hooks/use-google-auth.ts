@@ -5,7 +5,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup as firebaseSignInWithPopup,
 } from 'firebase/auth';
-import { signOut as appSignOut } from '@/app/(auth)/auth';
+import { signOut as nextAuthSignOut } from 'next-auth/react';
 // import { signOut as firebaseSignOut } from 'firebase/auth';
 import { useCallback, useMemo, useState } from 'react';
 
@@ -43,7 +43,7 @@ export function useGoogleAuth() {
     try {
       // Firebase Authもサインアウトさせたい場合は、以下を有効にする
       // await firebaseSignOut(auth);
-      await appSignOut({ redirectTo: '/' });
+      await nextAuthSignOut({ redirectTo: '/' });
     } catch (err) {
       setError(err as Error);
       console.error('Error during sign out:', err);
