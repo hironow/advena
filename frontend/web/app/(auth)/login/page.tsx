@@ -14,6 +14,8 @@ export default function Page() {
   console.info('client component session: ', session);
   console.info('client component status: ', status);
 
+  const isLoggedIn = status === 'authenticated';
+
   const { signInWithPopup } = useGoogleAuth();
 
   const handleSignInWithPopup = () => {

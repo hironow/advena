@@ -20,7 +20,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       authorize: async (credentials) => {
         try {
           const { idToken } = await signInSchema.parseAsync(credentials);
-          console.info('got idToken: ', idToken);
+          // console.info('got idToken: ', idToken);
           const decoded = adminAuth.verifyIdToken(idToken);
           console.info('decoded: ', decoded);
           return {
