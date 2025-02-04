@@ -6,12 +6,7 @@ import type { Session } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 interface ExtendedSession extends Session {}
 
-export const {
-  handlers: { GET, POST },
-  auth,
-  signIn,
-  signOut,
-} = NextAuth({
+export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   providers: [
     // Google,
