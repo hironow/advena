@@ -2,7 +2,7 @@ import NextAuth from 'next-auth';
 import { authConfig } from './auth.config';
 import { adminAuth } from '@/lib/firebase/admin';
 import { signInSchema } from '@/lib/zod';
-import type { Session } from 'next-auth';
+import type { Session, User } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 interface ExtendedSession extends Session {}
 
@@ -20,13 +20,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       authorize: async (credentials) => {
         try {
           const { idToken } = await signInSchema.parseAsync(credentials);
-          // console.info('got idToken: ', idToken);
-          const decoded = adminAuth.verifyIdToken(idToken);
+          console.info('got idToken: ', idToken);
+          const decoded = await adminAuth.verifyIdToken(idToken);
           console.info('decoded: ', decoded);
+
+          // NOTE: ここでfirebaseのauthを使ってユーザーを取得/作成する
+
           return {
             ...decoded,
-            id: '1',
-            // uid: decoded.uid,
+            id: '42',
+            uid: decoded.uid,
           };
         } catch (error) {
           console.error('Error during authorization:', error);
@@ -52,6 +55,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }) {
       if (session.user) {
         session.user.id = token.id as string;
+        session.user.uid = token.uid as string;
       }
       return session;
     },
@@ -60,6 +64,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
 declare module 'next-auth' {
   interface Session {
-    idToken?: string;
+    user: User & { uid: string };
   }
 }
+
+// TODO: uid をわたるようにしないといけない

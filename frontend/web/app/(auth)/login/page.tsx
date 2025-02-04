@@ -16,7 +16,7 @@ export default function Page() {
 
   const isLoggedIn = status === 'authenticated';
 
-  const { signInWithPopup } = useGoogleAuth();
+  const { signInWithPopup, signOut } = useGoogleAuth();
 
   const handleSignInWithPopup = () => {
     signInWithPopup()
@@ -26,6 +26,10 @@ export default function Page() {
         console.error('Google sign in error:', err);
         toast.error('Failed to sign in with Google');
       });
+  };
+
+  const handleSignOut = () => {
+    signOut().catch(console.error);
   };
 
   return (
@@ -38,7 +42,9 @@ export default function Page() {
           </p>
         </div>
         <div className="flex flex-col gap-4 px-4 sm:px-16">
-          <Button onClick={handleSignInWithPopup}>Sign In with Google</Button>
+          <Button onClick={handleSignInWithPopup} disabled={isLoggedIn}>
+            Sign In with Google
+          </Button>
           <p className="text-center text-sm text-gray-600 mt-4 dark:text-zinc-400">
             {"Don't have an account? "}
             <Link
@@ -50,6 +56,12 @@ export default function Page() {
             {' for free.'}
           </p>
         </div>
+
+        {isLoggedIn && (
+          <div className="flex flex-col gap-4 px-4 sm:px-16">
+            <Button onClick={handleSignOut}>Sign Out</Button>
+          </div>
+        )}
       </div>
     </div>
   );

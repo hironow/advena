@@ -4,7 +4,7 @@ import { authConfig } from '@/auth.config';
 const authMiddleware = NextAuth(authConfig).auth;
 
 const customMiddleware = (req: any) => {
-  console.log("customMiddleware", req.auth); //  { session: { user: { ... } } }
+  console.log('customMiddleware', req.auth); //  { session: { user: { ... } } }
 };
 
 const publicPaths = ['/login', '/terms', '/privacy'];
