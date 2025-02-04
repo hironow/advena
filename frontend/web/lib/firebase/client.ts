@@ -6,7 +6,6 @@ import { getAuth, connectAuthEmulator } from 'firebase/auth';
 import type { Auth } from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import type { Firestore } from 'firebase/firestore';
-import { getAnalytics } from 'firebase/analytics';
 import { getStorage, connectStorageEmulator } from 'firebase/storage';
 
 // see: https://firebase.google.com/docs/web/setup#available-libraries
@@ -65,8 +64,3 @@ if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === 'true') {
 }
 
 // TODO: RemoteConfig
-
-/**
- * Analytics
- */
-export const analytics = getAnalytics(app);
