@@ -5,18 +5,15 @@ import {
   GoogleAuthProvider,
   signInWithPopup as firebaseSignInWithPopup,
 } from 'firebase/auth';
-// next-auth の signOut を利用
-import { signOut as nextAuthSignOut } from 'next-auth/react';
-// Firebase Auth の signOut を利用する場合はこちらを使用
+import { signOut as appSignOut } from '@/app/(auth)/auth';
 // import { signOut as firebaseSignOut } from 'firebase/auth';
 import { useCallback, useMemo, useState } from 'react';
 
 export function useGoogleAuth() {
-  // プロバイダは一度だけ生成する
   const provider = useMemo(() => {
     const prov = new GoogleAuthProvider();
     // 例: ユーザーに毎回アカウント選択を促す
-    prov.setCustomParameters({ prompt: 'select_account' });
+    // prov.setCustomParameters({ prompt: 'select_account' });
     return prov;
   }, []);
 
@@ -44,10 +41,9 @@ export function useGoogleAuth() {
     setLoading(true);
     setError(null);
     try {
-      // Firebase 側もサインアウトさせたい場合は、以下を有効にする
+      // Firebase Authもサインアウトさせたい場合は、以下を有効にする
       // await firebaseSignOut(auth);
-      // next-auth の signOut を利用（オプションでリダイレクトの有無なども指定可能）
-      await nextAuthSignOut({ redirect: false });
+      await appSignOut({ redirectTo: '/' });
     } catch (err) {
       setError(err as Error);
       console.error('Error during sign out:', err);

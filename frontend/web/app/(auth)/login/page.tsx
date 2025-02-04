@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
-import { signIn as nextAuthSignIn, useSession } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
+import { signIn as appSignIn } from '@/app/(auth)/auth';
 
 import { useGoogleAuth } from '@/hooks/use-google-auth';
 import { Button } from '@/components/ui/button';
@@ -18,9 +19,7 @@ export default function Page() {
   useEffect(() => {
     if (status === 'authenticated') {
       // router.refresh() でも良いですが、明示的にトップページへ遷移する例です
-      // router.push('/');
-      console.log('status:', status);
-      console.info('success');
+      router.push('/');
     }
   }, [status, router]);
 
@@ -32,7 +31,7 @@ export default function Page() {
       const idToken = await credential.user.getIdToken(true);
 
       // next-auth の credentials プロバイダでサインインを試行
-      const result = await nextAuthSignIn('credentials', {
+      const result = await appSignIn('credentials', {
         idToken,
         redirectTo: '/',
       });
