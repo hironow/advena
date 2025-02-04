@@ -5,7 +5,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 
 import './globals.css';
 import { SessionProvider } from 'next-auth/react';
-import { auth } from './(auth)/auth';
+import { auth } from '@/auth';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://chat.vercel.ai'),
@@ -64,7 +64,7 @@ export default async function RootLayout({
         />
       </head>
       <body className="antialiased">
-        <SessionProvider basePath="/auth" session={session}>
+        <SessionProvider basePath="/" session={session}>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { useSession } from 'next-auth/react';
-import { signIn as appSignIn } from '@/app/(auth)/auth';
+import { signIn as nextAuthSignIn } from 'next-auth/react';
 
 import { useGoogleAuth } from '@/hooks/use-google-auth';
 import { Button } from '@/components/ui/button';
@@ -31,7 +31,7 @@ export default function Page() {
       const idToken = await credential.user.getIdToken(true);
 
       // next-auth の credentials プロバイダでサインインを試行
-      const result = await appSignIn('credentials', {
+      const result = await nextAuthSignIn('credentials', {
         idToken,
         redirectTo: '/',
       });
