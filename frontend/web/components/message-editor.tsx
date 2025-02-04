@@ -10,7 +10,6 @@ import {
   useState,
 } from 'react';
 import { Textarea } from './ui/textarea';
-import { deleteTrailingMessages } from '@/app/(chat)/actions';
 import { toast } from 'sonner';
 import { useUserMessageId } from '@/hooks/use-user-message-id';
 
@@ -88,9 +87,9 @@ export function MessageEditor({
               return;
             }
 
-            await deleteTrailingMessages({
-              id: messageId,
-            });
+            // await deleteTrailingMessages({
+            //   id: messageId,
+            // });
 
             setMessages((messages) => {
               const index = messages.findIndex((m) => m.id === message.id);
