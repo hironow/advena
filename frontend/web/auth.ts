@@ -2,9 +2,15 @@ import NextAuth from 'next-auth';
 import { authConfig } from './auth.config';
 import { adminAuth } from '@/lib/firebase/admin';
 import { signInSchema } from '@/lib/zod';
-import type { Session, User } from 'next-auth';
+import type { DefaultSession, Session, User } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
-interface ExtendedSession extends Session {}
+
+interface ExtendedSession extends Session {
+  user: {
+    id: string; // firestore user uuid
+    uid?: string; // firebase auth uid (not uuid)
+  } & DefaultSession['user'];
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -41,18 +47,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: 'jwt' },
   callbacks: {
     async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-      }
-      return token;
+      return { ...token, ...user };
     },
     async session({
       session,
       token,
-    }: {
-      session: ExtendedSession;
-      token: any;
-    }) {
+    }: { session: ExtendedSession; token: any }) {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.uid = token.uid as string;
@@ -61,11 +61,3 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
 });
-
-declare module 'next-auth' {
-  interface Session {
-    user: User & { uid: string };
-  }
-}
-
-// TODO: uid をわたるようにしないといけない
