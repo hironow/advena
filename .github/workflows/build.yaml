@@ -1,4 +1,4 @@
-name: Build
+name: Build and Push
 
 on:
   push:
@@ -17,6 +17,9 @@ concurrency:
 jobs:
   frontend:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: 'read'
+      id-token: 'write'
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
@@ -25,6 +28,23 @@ jobs:
           curl https://mise.run | sh
           echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
           echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
+
+      - uses: 'google-github-actions/auth@v2'
+        with:
+          # use permissions above
+          project_id: 'advena-dev'
+          workload_identity_provider: 'projects/38358387786/locations/global/workloadIdentityPools/github/providers/my-repo'
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+        with:
+          version: '>= 363.0.0'
+
+      - name: 'Use gcloud CLI'
+        run: 'gcloud info'
+
+      - name: 'Authorize Docker push'
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -46,10 +66,16 @@ jobs:
         run: |
           set -eo pipefail
           mise run fe:build
+          mise run fe:push
         working-directory: ./frontend/web
+        env:
+          NEXT_PUBLIC_USE_FIREBASE_EMULATOR: "true"
 
   backend:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: 'read'
+      id-token: 'write'
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
@@ -58,6 +84,23 @@ jobs:
           curl https://mise.run | sh
           echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
           echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
+
+      - uses: 'google-github-actions/auth@v2'
+        with:
+          # use permissions above
+          project_id: 'advena-dev'
+          workload_identity_provider: 'projects/38358387786/locations/global/workloadIdentityPools/github/providers/my-repo'
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+        with:
+          version: '>= 363.0.0'
+  
+      - name: 'Use gcloud CLI'
+        run: 'gcloud info'
+  
+      - name: 'Authorize Docker push'
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
@@ -78,6 +121,5 @@ jobs:
         run: |
           set -eo pipefail
           mise run be:build
+          mise run be:push
         working-directory: ./backend/genai
-        env:
-          NEXT_PUBLIC_USE_FIREBASE_EMULATOR: "true"

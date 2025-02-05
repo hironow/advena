@@ -117,7 +117,6 @@ run = """docker run --platform=linux/amd64 --rm {{vars.BACKEND_IMAGE_NAME}}:late
 
 [tasks."be:push"]
 description = "Push a docker image to Google Cloud Artifact Registry"
-depends = ["g"]
 run = """
 #!/usr/bin/env bash
 set -e
@@ -178,7 +177,6 @@ run = """docker run --platform=linux/amd64 --rm {{vars.FRONTEND_IMAGE_NAME}}:lat
 
 [tasks."fe:push"]
 description = "Push a docker image to Google Cloud Artifact Registry"
-depends = ["g"]
 run = """
 #!/usr/bin/env bash
 set -e
