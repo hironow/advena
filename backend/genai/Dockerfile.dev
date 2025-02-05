@@ -36,9 +36,11 @@ RUN curl -sfS https://dotenvx.sh > install.sh \
 
 # Copy the application from the builder
 COPY --from=builder --chown=app:app /app /app
+# use .env.dev as .env.production
+RUN mv .env.dev .env.production
 
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
 
 # see: https://dotenvx.com/docs/platforms/docker
-CMD ["./dotenvx", "run", "-f .env.dev", "--", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["./dotenvx", "run", "--env-file=.env.production", "--strict", "--", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8080"]

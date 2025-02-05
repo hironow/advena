@@ -10,6 +10,7 @@ node_modules/
 # other files
 .DS_Store
 Dockerfile
+Dockerfile.*
 README.md
 
 # IDE and virtual environment
