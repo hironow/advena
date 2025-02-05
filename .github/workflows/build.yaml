@@ -67,10 +67,16 @@ jobs:
         run: |
           set -eo pipefail
           mise run fe:build
-          mise run fe:push
         working-directory: ./frontend/web
         env:
           NEXT_PUBLIC_USE_FIREBASE_EMULATOR: "true"
+
+      - name: Run push
+        run: |
+          set -eo pipefail
+          mise run fe:push
+        working-directory: ./frontend/web
+  
 
   backend:
     runs-on: ubuntu-24.04
@@ -122,5 +128,10 @@ jobs:
         run: |
           set -eo pipefail
           mise run be:build
+        working-directory: ./backend/genai
+
+      - name: Run push
+        run: |
+          set -eo pipefail
           mise run be:push
         working-directory: ./backend/genai
