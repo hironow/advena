@@ -133,6 +133,7 @@ wip
   * [projects](https://www.lmnr.ai/projects)
 * [W&B Weave Tracking](https://weave-docs.wandb.ai/)
   * [projects](https://wandb.ai/home)
+* [Next.js convention with dotenvx](https://dotenvx.com/docs/advanced/run-convention)
 * ...
 
 ## trouble shooting
