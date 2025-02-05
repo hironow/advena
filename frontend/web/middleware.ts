@@ -7,7 +7,7 @@ const customMiddleware = (req: any) => {
   console.log('customMiddleware', req.auth); //  { session: { user: { ... } } }
 };
 
-const publicPaths = ['/login', '/terms', '/privacy'];
+const publicPaths = ['/login', '/terms'];
 const publicPathsRegex = RegExp(`^(${publicPaths.join('|')})?/?$`, 'i');
 
 export async function middleware(req: any) {

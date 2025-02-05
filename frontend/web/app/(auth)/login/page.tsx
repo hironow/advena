@@ -21,7 +21,9 @@ export default function Page() {
   const handleSignInWithPopup = () => {
     signInWithPopup()
       .then((credential) => credential.user.getIdToken(true))
-      .then((idToken) => nextAuthSignIn('credentials', { idToken }))
+      .then((idToken) =>
+        nextAuthSignIn('credentials', { idToken, redirect: true }),
+      )
       .catch((err) => {
         console.error('Google sign in error:', err);
         toast.error('Failed to sign in with Google');
