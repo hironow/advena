@@ -68,12 +68,16 @@ jobs:
           set -eo pipefail
           mise run fe:build:dev
         working-directory: ./frontend/web
+        env: # use dotenvx .env.keys for Next.js build
+          DOTENV_PRIVATE_KEY_DEVELOPMENT: ${{ secrets.FRONTEND_WEB_DOTENV_PRIVATE_KEY_DEVELOPMENT }}
 
       - name: Run build production
         run: |
           set -eo pipefail
           mise run fe:build:prd
         working-directory: ./frontend/web
+        env: # use dotenvx .env.keys for Next.js build
+          DOTENV_PRIVATE_KEY_PRODUCTION: ${{ secrets.FRONTEND_WEB_DOTENV_PRIVATE_KEY_PRODUCTION }}
   
       - name: Run push development
         if: github.ref == 'refs/heads/develop'
@@ -142,6 +146,7 @@ jobs:
           set -eo pipefail
           mise run be:build:dev
         working-directory: ./backend/genai 
+        # not use dotenvx .env.keys for build
  
       - name: Run build production
         if: github.ref == 'refs/heads/main'
@@ -149,6 +154,7 @@ jobs:
           set -eo pipefail
           mise run be:build:prd
         working-directory: ./backend/genai
+        # not use dotenvx .env.keys for build
 
       - name: Run push development
         if: github.ref == 'refs/heads/develop'
