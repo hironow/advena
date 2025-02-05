@@ -29,7 +29,8 @@ RUN curl -sfS https://dotenvx.sh > install.sh \
     && rm install.sh
 
 ENV NODE_ENV=production
-COPY --from=builder /app/.env ./
+COPY --from=builder /app/.env.development ./
+COPY --from=builder /app/.env.production ./
 
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static

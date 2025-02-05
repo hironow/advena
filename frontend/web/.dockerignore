@@ -1,5 +1,7 @@
 # DO NOT include .env.keys (private key) in the image
 .env.keys
+# ignore local only
+.env
 
 .git/
 .next/
