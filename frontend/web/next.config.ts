@@ -28,6 +28,4 @@ console.info(
     .map((key) => `${key} = ${process.env[key]}`),
 );
 
-
-
 export default nextConfig;
