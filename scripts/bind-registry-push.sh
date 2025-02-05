@@ -50,4 +50,8 @@ gcloud artifacts repositories add-iam-policy-binding "${ARTIFACT_REGISTRY_REPOSI
   --role="roles/artifactregistry.writer" \
   --member="principalSet://iam.googleapis.com/${WORKLOAD_IDENTITY_POOL_ID}/attribute.repository/${REPO}"
 
+# Check result
+gcloud artifacts repositories get-iam-policy "${ARTIFACT_REGISTRY_REPOSITORY}" --location="${ARTIFACT_REGISTRY_LOCATION}" --format=json --project="${PROJECT_ID}" | jq -r '.bindings[] | select(.role == "roles/artifactregistry.writer")'
+
+
 echo "⭐️ All done!"
