@@ -39,4 +39,4 @@ COPY --from=builder --chown=app:app /app /app
 ENV PATH="/app/.venv/bin:$PATH"
 
 # see: https://dotenvx.com/docs/platforms/docker
-CMD ["./dotenvx", "run", "--env-file=.env", "--", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["./dotenvx", "run", "--", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8080"]

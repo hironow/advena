@@ -37,4 +37,4 @@ COPY --from=builder /app/.next/static ./.next/static
 EXPOSE 3000
 
 # see: https://dotenvx.com/docs/platforms/docker
-CMD ["./dotenvx", "run", "--env-file=.env", "--", "node", "server.js"]
+CMD ["./dotenvx", "run", "--", "node", "server.js"]
