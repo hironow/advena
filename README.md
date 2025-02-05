@@ -1,6 +1,6 @@
 # advena
 
-[![Build](https://github.com/hironow/advena/actions/workflows/build.yaml/badge.svg)](https://github.com/hironow/advena/actions/workflows/build.yaml) [![Test](https://github.com/hironow/advena/actions/workflows/test.yaml/badge.svg)](https://github.com/hironow/advena/actions/workflows/test.yaml)
+[![Build and Push](https://github.com/hironow/advena/actions/workflows/build_and_push.yaml/badge.svg)](https://github.com/hironow/advena/actions/workflows/build_and_push.yaml) [![Test](https://github.com/hironow/advena/actions/workflows/test.yaml/badge.svg)](https://github.com/hironow/advena/actions/workflows/test.yaml)
 
 <p align="center">
     コードネーム: advena アドヴェナ
