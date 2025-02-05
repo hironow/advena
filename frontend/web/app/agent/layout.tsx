@@ -1,11 +1,9 @@
-import { cookies } from 'next/headers';
-
 import { AppSidebar } from '@/components/app-sidebar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 
-import { auth } from '../(auth)/auth';
 import Script from 'next/script';
 import { AudioProvider } from '@/components/visualizer/audio-context-provider';
+import { auth } from '@/auth';
 
 export const experimental_ppr = true;
 
@@ -14,8 +12,12 @@ export default async function Layout({
 }: {
   children: React.ReactNode;
 }) {
-  const [session, cookieStore] = await Promise.all([auth(), cookies()]);
-  const isCollapsed = cookieStore.get('sidebar:state')?.value !== 'true';
+  const session = await auth();
+  console.info('agent layout session: ', session);
+
+  // TODO: use session.user
+  const user = undefined;
+  const isCollapsed = false; // cookieStore.get('sidebar:state')?.value !== 'true';
 
   return (
     <>
@@ -25,7 +27,7 @@ export default async function Layout({
       />
       <AudioProvider>
         <SidebarProvider defaultOpen={!isCollapsed}>
-          <AppSidebar user={session?.user} />
+          <AppSidebar user={user} />
           <SidebarInset>{children}</SidebarInset>
         </SidebarProvider>
       </AudioProvider>

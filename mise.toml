@@ -23,10 +23,12 @@ dir = "frontend/web/"
 hide = true
 
 [tasks."f:emulator"]
-description = "Start Firebase Emulator Suite"
-run = "firebase emulators:start --project=local"
+description = "Start Firebase Emulator Suite with ./data"
+run = "firebase emulators:start --project={{vars.GOOGLE_CLOUD_PROJECT}} --import=./data --export-on-exit" 
 depends = ["f"]
 dir = "frontend/web/"
+# NOTE: Emulators must be started with the same project name
+# Emulatorを利用する部分とGoogle Cloud環境を利用する部分があるため
 
 [tasks."f:deploy"]
 description = "Deploy to Firebase Suite"
@@ -75,6 +77,11 @@ hide = true
 
 
 # backend dir tasks
+[tasks."be:debug"]
+env.CI = "false"
+run = "dotenvx run -- uv run python -m src.main"
+dir = "backend/genai/"
+
 [tasks."be:dev"]
 run = "dotenvx run -- uv run python -m uvicorn src.main:app --reload"
 dir = "backend/genai/"
@@ -110,7 +117,6 @@ run = """docker run --platform=linux/amd64 --rm {{vars.BACKEND_IMAGE_NAME}}:late
 
 [tasks."be:push"]
 description = "Push a docker image to Google Cloud Artifact Registry"
-depends = ["g"]
 run = """
 #!/usr/bin/env bash
 set -e
@@ -171,7 +177,6 @@ run = """docker run --platform=linux/amd64 --rm {{vars.FRONTEND_IMAGE_NAME}}:lat
 
 [tasks."fe:push"]
 description = "Push a docker image to Google Cloud Artifact Registry"
-depends = ["g"]
 run = """
 #!/usr/bin/env bash
 set -e

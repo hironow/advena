@@ -1,14 +1,19 @@
 import os
+from contextlib import asynccontextmanager
 
+import firebase_admin
 import google.auth as gauth
-import vertexai
+import litellm
 import weave
 from cloudevents.http import from_http
 from fastapi import FastAPI, Request, Response
+from firebase_admin import auth
+from firebase_admin import firestore_async as fb_firestore_async
+from firebase_admin import storage as fb_storage
 from google.cloud import firestore, storage
-from livekit.plugins import google as livekit_google
 from lmnr import Laminar as L
 from lmnr import observe
+from smolagents import LiteLLMModel, ToolCallingAgent
 from tenacity import retry, wait_exponential
 from vertexai.generative_models import Content, GenerationConfig, Part
 from vertexai.preview import rag
@@ -23,62 +28,7 @@ else:
     weave.init(project_name=os.getenv("WEAVE_PROJECT_NAME", ""))
     L.initialize(project_api_key=os.getenv("LMNR_PROJECT_API_KEY"))
 
-# agents
-# see: https://docs.livekit.io/agents/integrations/google/#gemini-llm
-llm = livekit_google.LLM(
-    model="gemini-2.0-flash-exp",
-    candidate_count=1,
-    temperature=0.08,
-    vertexai=True,
-    tool_choice="auto",  # NOTE: 動的に変えたい required, none
-)
 
-tts = livekit_google.TTS(
-    language="ja-JP",
-    gender="female",
-    voice_name="ja-JP-Neural2-B",  # use Neural2 voice type: ja-JP-Neural2-C, ja-JP-Neural2-D see: https://cloud.google.com/text-to-speech/docs/voices
-    encoding="linear16",
-    effects_profile_id="large-automotive-class-device",
-    sample_rate=24000,
-    pitch=0,
-    speaking_rate=1.0,
-)
-
-stt = livekit_google.STT(
-    languages="ja-JP",
-    detect_language=True,
-    interim_results=True,
-    punctuate=True,
-    spoken_punctuation=True,
-    model="chirp_2",
-    sample_rate=16000,
-    keywords=[
-        ("mi-ho", 24.0),  # 仮設定
-    ],
-)
-
-model = livekit_google.beta.realtime.RealtimeModel(
-    model="gemini-2.0-flash-exp",
-    voice="Charon",
-    modalities=["TEXT", "AUDIO"],
-    enable_user_audio_transcription=True,
-    enable_agent_audio_transcription=True,
-    vertexai=True,
-    candidate_count=1,
-    temperature=0.08,
-    instructions="You are a helpful assistant",
-)
-
-# FastAPI アプリ作成
-app = FastAPI()
-
-# グローバル変数（Google Cloud SDK 用）
-# Flask の app.config で環境変数を読み込んでいた部分は os.environ を利用
-PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT")
-if not PROJECT_ID:
-    raise Exception("Set GOOGLE_CLOUD_PROJECT environment variable.")
-
-VERTEX_AI_LOCATION = os.getenv("VERTEX_AI_LOCATION", "us-central1")
 PUBLISHER_MODEL = "publishers/google/models/text-multilingual-embedding-002"
 GENERATIVE_MODEL_NAME = "gemini-1.5-flash-001"
 RAG_CHUNK_SIZE = 512
@@ -94,10 +44,41 @@ MAX_TOTAL_COMMON_QUESTIONS_LENGTH = 1024
 SUMMARIZATION_FAILED_MESSAGE = "申し訳ございません。要約の生成に失敗しました。"
 MEANINGFUL_MINIMUM_QUESTION_LENGTH = 7
 
-bucket_name = f"{PROJECT_ID}.firebasestorage.app"
+gcp_project = None
+firebase_app = None
+db = None
 
-vertexai.init(project=PROJECT_ID, location=VERTEX_AI_LOCATION)
-db = firestore.Client()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("Starting server...")
+
+    gcp_project = os.getenv("GOOGLE_CLOUD_PROJECT")
+    # Firebase AuthのIdTokenのJWTを検証することが必要なのでFirebase Admin SDKを利用する
+    options = {}
+    if os.getenv("USE_FIREBASE_EMULATOR") == "true":
+        logger.warning("Using Firebase Emulator")
+        options = {
+            "projectId": gcp_project,
+            "storageBucket": f"{gcp_project}.appspot.com",
+        }
+
+    firebase_app = firebase_admin.initialize_app(options=options)
+    logger.info("Initialized Firebase Admin SDK")
+
+    db = fb_firestore_async.client(firebase_app)
+
+    yield
+
+    # リソースを解放する
+
+    logger.info("Stopping server...")
+
+
+# FastAPI アプリ作成
+app = FastAPI(
+    lifespan=lifespan,
+)
 
 
 # 複数ファイルの import は 1 ファイルずつしか実行できないため、指数バックオフ付きでリトライ
@@ -169,7 +150,7 @@ async def add_source(request: Request):
     name = doc.get("name")
     storagePath = doc.get("storagePath")
 
-    gcs_path = f"gs://{PROJECT_ID}.firebasestorage.app{storagePath}"
+    gcs_path = f"gs://{gcp_project}.firebasestorage.app{storagePath}"
 
     logger.info(f"{event_id}: start importing a source file: {name}")
     response_import = import_files(corpus_name, gcs_path)
@@ -334,7 +315,7 @@ async def summarize(request: Request):
 
     file_type = doc.get("type")
     storagePath = doc.get("storagePath")
-    gcs_path = f"gs://{PROJECT_ID}.firebasestorage.app{storagePath}"
+    gcs_path = f"gs://{gcp_project}.firebasestorage.app{storagePath}"
 
     model = GenerativeModel(model_name=GENERATIVE_MODEL_NAME)
     doc_part = Part.from_uri(gcs_path, file_type)
@@ -383,3 +364,27 @@ if __name__ == "__main__":
     # see: https://github.com/googleapis/google-auth-library-python/blob/main/google/auth/_default.py#L577-L595
     _, project_id = gauth.default()
     logger.info("project_id: %s", project_id)
+
+    # db で何が入っているか確認するので、countとかを使ってみる
+    users = db.collection("users").stream()
+    print("users count: ", len(list(users)))
+
+    # storageも何が入っているか確認する
+    bucket = fb_storage.bucket()
+    print("bucket: ", bucket.name)
+    blobs = bucket.list_blobs()
+    print("blobs count: ", len(list(blobs)))
+
+    # llm agent
+    model_id = "vertex_ai/gemini-1.5-flash"
+    model = LiteLLMModel(
+        model_id,
+        temperature=0.08,
+    )
+    agent = ToolCallingAgent(
+        tools=[],
+        model=model,
+    )
+    print(agent)
+    print(type(agent))
+    # print(agent.run("Hello"))
