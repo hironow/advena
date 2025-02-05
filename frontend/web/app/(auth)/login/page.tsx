@@ -22,7 +22,7 @@ export default function Page() {
     signInWithPopup()
       .then((credential) => credential.user.getIdToken(true))
       .then((idToken) =>
-        nextAuthSignIn('credentials', { idToken, redirect: true }),
+        nextAuthSignIn('credentials', { idToken, redirect: false }),
       )
       .catch((err) => {
         console.error('Google sign in error:', err);
