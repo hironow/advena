@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "biome lint --write --unsafe",
     "format": "biome format --write",
-    "test": "vitest"
+    "test": "vitest run",
+    "test:watch": "vitest watch"
   },
   "dependencies": {
     "@ai-sdk/google-vertex": "^2.1.8",

@@ -1,8 +1,8 @@
 import NextAuth from 'next-auth';
 import { authConfig } from './auth.config';
-import { adminAuth } from '@/lib/firebase/admin';
+import { getAdminAuth } from '@/lib/firebase/admin';
 import { signInSchema } from '@/lib/zod';
-import type { DefaultSession, Session, User } from 'next-auth';
+import type { DefaultSession, Session } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 
 interface ExtendedSession extends Session {
@@ -25,6 +25,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
       authorize: async (credentials) => {
         try {
+          const adminAuth = getAdminAuth();
+
           const { idToken } = await signInSchema.parseAsync(credentials);
           console.info('got idToken: ', idToken);
           const decoded = await adminAuth.verifyIdToken(idToken);
