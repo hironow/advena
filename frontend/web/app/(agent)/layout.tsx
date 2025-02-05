@@ -15,8 +15,9 @@ export default async function Layout({
   const session = await auth();
   console.info('agent layout session: ', session);
 
-  // TODO: use session.user
-  const user = undefined;
+  const user = session?.user;
+
+  // TODO: Implement cookieStore
   const isCollapsed = false; // cookieStore.get('sidebar:state')?.value !== 'true';
 
   return (

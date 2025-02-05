@@ -8,9 +8,9 @@ import { SessionProvider } from 'next-auth/react';
 import { auth } from '@/auth';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://chat.vercel.ai'),
+  metadataBase: new URL('https://m1h0.com'),
   title: 'advena',
-  description: 'advena description',
+  description: 'advena is ...',
 };
 
 export const viewport = {
