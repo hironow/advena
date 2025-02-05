@@ -63,19 +63,36 @@ jobs:
         run: mise exec -- pnpm install
         working-directory: ./frontend/web
 
-      - name: Run build
+      - name: Run build dev
+        if: github.ref == 'refs/heads/develop'
         run: |
           set -eo pipefail
-          mise run fe:build
+          mise run fe:build:dev
         working-directory: ./frontend/web
-        env:
-          NEXT_PUBLIC_USE_FIREBASE_EMULATOR: "true"
+        env: # use dotenvx .env.keys for Next.js build
+          DOTENV_PRIVATE_KEY_DEV: ${{ secrets.FRONTEND_WEB_DOTENV_PRIVATE_KEY_DEV }}
 
-      - name: Run push
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+      - name: Run build prd
+        if: github.ref == 'refs/heads/main'
         run: |
           set -eo pipefail
-          mise run fe:push
+          mise run fe:build:prd
+        working-directory: ./frontend/web
+        env: # use dotenvx .env.keys for Next.js build
+          DOTENV_PRIVATE_KEY_PRD: ${{ secrets.FRONTEND_WEB_DOTENV_PRIVATE_KEY_PRD }}
+  
+      - name: Run push dev
+        if: github.ref == 'refs/heads/develop'
+        run: |
+          set -eo pipefail
+          mise run fe:push:dev
+        working-directory: ./frontend/web
+  
+      - name: Run push prd
+        if: github.ref == 'refs/heads/main'
+        run: |
+          set -eo pipefail
+          mise run fe:push:prd
         working-directory: ./frontend/web
   
 
@@ -125,15 +142,32 @@ jobs:
         run: mise exec -- uv sync --frozen
         working-directory: ./backend/genai
 
-      - name: Run build
+      - name: Run build dev
+        if: github.ref == 'refs/heads/develop'
         run: |
           set -eo pipefail
-          mise run be:build
+          mise run be:build:dev
+        working-directory: ./backend/genai 
+        # not use dotenvx .env.keys for build
+ 
+      - name: Run build prd
+        if: github.ref == 'refs/heads/main'
+        run: |
+          set -eo pipefail
+          mise run be:build:prd
+        working-directory: ./backend/genai
+        # not use dotenvx .env.keys for build
+
+      - name: Run push dev
+        if: github.ref == 'refs/heads/develop'
+        run: |
+          set -eo pipefail
+          mise run be:push:dev
         working-directory: ./backend/genai
 
-      - name: Run push
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+      - name: Run push prd
+        if: github.ref == 'refs/heads/main'
         run: |
           set -eo pipefail
-          mise run be:push
+          mise run be:push:prd
         working-directory: ./backend/genai

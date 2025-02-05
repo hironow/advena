@@ -29,8 +29,8 @@ fi
 
 # 対象の Secret 名の配列
 secrets=(
-  "advena-dev-backend-DOTENV_PRIVATE_KEY"
-  "advena-dev-frontend-DOTENV_PRIVATE_KEY"
+  "backend-advena-DOTENV_PRIVATE_KEY_DEVELOPMENT"
+  "frontend-advena-DOTENV_PRIVATE_KEY_DEVELOPMENT"
 )
 
 # 各 Secret に対して、サービスアカウントに Secret Accessor ロールを付与

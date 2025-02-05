@@ -10,6 +10,7 @@ venv/
 # other files
 .DS_Store
 Dockerfile
+Dockerfile.*
 README.md
 *.pyc
 *.pyo

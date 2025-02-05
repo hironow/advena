@@ -1,12 +1,12 @@
 # advena
 
-[![Build](https://github.com/hironow/advena/actions/workflows/build.yaml/badge.svg)](https://github.com/hironow/advena/actions/workflows/build.yaml) [![Test](https://github.com/hironow/advena/actions/workflows/test.yaml/badge.svg)](https://github.com/hironow/advena/actions/workflows/test.yaml)
+[![Build and Push](https://github.com/hironow/advena/actions/workflows/build_and_push.yaml/badge.svg)](https://github.com/hironow/advena/actions/workflows/build_and_push.yaml) [![Test](https://github.com/hironow/advena/actions/workflows/test.yaml/badge.svg)](https://github.com/hironow/advena/actions/workflows/test.yaml)
 
 <p align="center">
     コードネーム: advena アドヴェナ
 </p>
 
-## Preparing for development
+## Preparing for develop
 
 Install [mise](https://github.com/jdx/mise), and add aliases:
 
@@ -43,7 +43,7 @@ mr fe:update
 mr be:update
 ```
 
-## Start development
+## Start developing
 
 ```bash
 # start emulator (firebase auth, firestore, storage, etc)
@@ -133,6 +133,7 @@ wip
   * [projects](https://www.lmnr.ai/projects)
 * [W&B Weave Tracking](https://weave-docs.wandb.ai/)
   * [projects](https://wandb.ai/home)
+* [Next.js convention with dotenvx](https://dotenvx.com/docs/advanced/run-convention)
 * ...
 
 ## trouble shooting
