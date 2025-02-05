@@ -14,11 +14,11 @@ const nextConfig: NextConfig = {
   },
 };
 
-// Next.jsのビルド時に環境変数を確認する
-console.info(
-  Object.keys(process.env)
-    .filter((key) => key.includes('NEXT_PUBLIC'))
-    .map((key) => `${key} = ${process.env[key]}`),
-);
+// next public 環境変数を確認する
+// console.info(
+//   Object.keys(process.env)
+//     .filter((key) => key.includes('NEXT_PUBLIC'))
+//     .map((key) => `${key} = ${process.env[key]}`),
+// );
 
 export default nextConfig;
