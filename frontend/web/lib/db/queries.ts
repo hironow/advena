@@ -1,6 +1,5 @@
 import 'server-only';
 
-
 // TODO: replace firebase firestore
 
 import type { User, Suggestion, Message } from './schema';

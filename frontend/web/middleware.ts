@@ -4,10 +4,17 @@ import { authConfig } from '@/auth.config';
 const authMiddleware = NextAuth(authConfig).auth;
 
 const customMiddleware = (req: any) => {
+  // Custom middleware logic
+  // req.auth is the session object
+  if (!req.auth) {
+    // Redirect to login page
+    console.warn('NOT LOGGED IN!');
+  }
+
   console.log('customMiddleware auth: ', req.auth); //  { session: { user: { ... } } }
 };
 
-const publicPaths = ['/login', '/terms'];
+const publicPaths = ['/', '/login', '/terms'];
 const publicPathsRegex = RegExp(`^(${publicPaths.join('|')})?/?$`, 'i');
 
 export async function middleware(req: any) {
