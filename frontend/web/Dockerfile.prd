@@ -14,7 +14,7 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npm install -g corepack@latest && corepack enable pnpm && pnpm run build:dev
+RUN npm install -g corepack@latest && corepack enable pnpm && pnpm run build:prd
 
 # Stage 3: Production server
 FROM base AS runner
@@ -29,7 +29,7 @@ RUN curl -sfS https://dotenvx.sh > install.sh \
     && rm install.sh
 
 ENV NODE_ENV=production
-COPY --from=builder /app/.env.development ./
+COPY --from=builder /app/.env.prd ./
 
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
@@ -37,4 +37,4 @@ COPY --from=builder /app/.next/static ./.next/static
 EXPOSE 3000
 
 # see: https://dotenvx.com/docs/platforms/docker
-CMD ["./dotenvx", "run", "-f .env.development", "--", "node", "server.js"]
+CMD ["./dotenvx", "run", "-f .env.production", "--", "node", "server.js"]

@@ -6,7 +6,7 @@
     コードネーム: advena アドヴェナ
 </p>
 
-## Preparing for development
+## Preparing for develop
 
 Install [mise](https://github.com/jdx/mise), and add aliases:
 
@@ -43,7 +43,7 @@ mr fe:update
 mr be:update
 ```
 
-## Start development
+## Start developing
 
 ```bash
 # start emulator (firebase auth, firestore, storage, etc)

@@ -63,7 +63,7 @@ jobs:
         run: mise exec -- pnpm install
         working-directory: ./frontend/web
 
-      - name: Run build development
+      - name: Run build dev
         if: github.ref == 'refs/heads/develop'
         run: |
           set -eo pipefail
@@ -72,7 +72,7 @@ jobs:
         env: # use dotenvx .env.keys for Next.js build
           DOTENV_PRIVATE_KEY_DEVELOPMENT: ${{ secrets.FRONTEND_WEB_DOTENV_PRIVATE_KEY_DEVELOPMENT }}
 
-      - name: Run build production
+      - name: Run build prd
         if: github.ref == 'refs/heads/main'
         run: |
           set -eo pipefail
@@ -81,14 +81,14 @@ jobs:
         env: # use dotenvx .env.keys for Next.js build
           DOTENV_PRIVATE_KEY_PRODUCTION: ${{ secrets.FRONTEND_WEB_DOTENV_PRIVATE_KEY_PRODUCTION }}
   
-      - name: Run push development
+      - name: Run push dev
         if: github.ref == 'refs/heads/develop'
         run: |
           set -eo pipefail
           mise run fe:push:dev
         working-directory: ./frontend/web
   
-      - name: Run push production
+      - name: Run push prd
         if: github.ref == 'refs/heads/main'
         run: |
           set -eo pipefail
@@ -142,7 +142,7 @@ jobs:
         run: mise exec -- uv sync --frozen
         working-directory: ./backend/genai
 
-      - name: Run build development
+      - name: Run build dev
         if: github.ref == 'refs/heads/develop'
         run: |
           set -eo pipefail
@@ -150,7 +150,7 @@ jobs:
         working-directory: ./backend/genai 
         # not use dotenvx .env.keys for build
  
-      - name: Run build production
+      - name: Run build prd
         if: github.ref == 'refs/heads/main'
         run: |
           set -eo pipefail
@@ -158,14 +158,14 @@ jobs:
         working-directory: ./backend/genai
         # not use dotenvx .env.keys for build
 
-      - name: Run push development
+      - name: Run push dev
         if: github.ref == 'refs/heads/develop'
         run: |
           set -eo pipefail
           mise run be:push:dev
         working-directory: ./backend/genai
 
-      - name: Run push production
+      - name: Run push prd
         if: github.ref == 'refs/heads/main'
         run: |
           set -eo pipefail

@@ -5,8 +5,8 @@
   "scripts": {
     "dotenvx": "dotenvx",
     "dev": "dotenvx run -- next dev --turbo",
-    "build:dev": "dotenvx run -f .env.development -- next build",
-    "build:prd": "dotenvx run -f .env.production -- next build",
+    "build:dev": "dotenvx run -f .env.dev -- next build",
+    "build:prd": "dotenvx run -f .env.prd -- next build",
     "start": "dotenvx run -- next start",
     "lint": "biome lint --write --unsafe",
     "format": "biome format --write",
