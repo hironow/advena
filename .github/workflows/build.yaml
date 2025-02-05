@@ -79,3 +79,5 @@ jobs:
           set -eo pipefail
           mise run be:build
         working-directory: ./backend/genai
+        env:
+          NEXT_PUBLIC_USE_FIREBASE_EMULATOR: "true"
