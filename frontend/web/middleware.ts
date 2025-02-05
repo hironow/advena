@@ -4,7 +4,7 @@ import { authConfig } from '@/auth.config';
 const authMiddleware = NextAuth(authConfig).auth;
 
 const customMiddleware = (req: any) => {
-  console.log('customMiddleware', req.auth); //  { session: { user: { ... } } }
+  console.log('customMiddleware auth: ', req.auth); //  { session: { user: { ... } } }
 };
 
 const publicPaths = ['/login', '/terms'];
@@ -24,7 +24,7 @@ export const config = {
    * Match all routes except for the following:
    * - api/* (API routes)
    * - _next/static/* (static files)
-   * - _next/image* (image optimization files)
+   * - _next/image/* (image optimization files)
    * - assets/* (static files)
    * - images/* (static files)
    * - fonts/* (static files)
