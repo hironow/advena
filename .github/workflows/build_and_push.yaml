@@ -70,7 +70,7 @@ jobs:
           mise run fe:build:dev
         working-directory: ./frontend/web
         env: # use dotenvx .env.keys for Next.js build
-          DOTENV_PRIVATE_KEY_DEVELOPMENT: ${{ secrets.FRONTEND_WEB_DOTENV_PRIVATE_KEY_DEVELOPMENT }}
+          DOTENV_PRIVATE_KEY_DEV: ${{ secrets.FRONTEND_WEB_DOTENV_PRIVATE_KEY_DEV }}
 
       - name: Run build prd
         if: github.ref == 'refs/heads/main'
@@ -79,7 +79,7 @@ jobs:
           mise run fe:build:prd
         working-directory: ./frontend/web
         env: # use dotenvx .env.keys for Next.js build
-          DOTENV_PRIVATE_KEY_PRODUCTION: ${{ secrets.FRONTEND_WEB_DOTENV_PRIVATE_KEY_PRODUCTION }}
+          DOTENV_PRIVATE_KEY_PRD: ${{ secrets.FRONTEND_WEB_DOTENV_PRIVATE_KEY_PRD }}
   
       - name: Run push dev
         if: github.ref == 'refs/heads/develop'
