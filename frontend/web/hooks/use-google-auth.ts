@@ -20,12 +20,22 @@ export function useGoogleAuth() {
   }, []);
 
   const handleSignInWithPopup = useCallback(() => {
-    // WithRedirectは後続のnext-authと競合するので注意
-    return firebaseSignInWithRedirect(auth, provider);
+    try {
+      // WithRedirectは後続のnext-authと競合するので注意
+      return firebaseSignInWithRedirect(auth, provider);
+    } catch (error) {
+      console.error('Error during sign in:', error);
+      throw new Error('Sign in failed');
+    }
   }, [provider]);
 
   const handleSignOut = useCallback(async () => {
-    return nextAuthSignOut();
+    try {
+      return nextAuthSignOut();
+    } catch (error) {
+      console.error('Error during sign out:', error);
+      throw new Error('Sign out failed');
+    }
   }, []);
 
   return {
