@@ -104,18 +104,23 @@ dir = "backend/genai/"
 run = "echo 'TODO'"
 dir = "backend/genai/"
 
-[tasks."be:build"]
-description = "Build a docker image"
-run = ["docker build --platform linux/amd64 -t {{vars.BACKEND_IMAGE_NAME}} ."]
+[tasks."be:build:dev"]
+description = "Build a docker image for development"
+run = ["docker build --platform linux/amd64 -f Dockerfile.development -t {{vars.BACKEND_IMAGE_NAME}}-development ."]
+dir = "backend/genai/"
+
+[tasks."be:build:prd"]
+description = "Build a docker image for production"
+run = ["docker build --platform linux/amd64 -f Dockerfile.production -t {{vars.BACKEND_IMAGE_NAME}}-production ."]
 dir = "backend/genai/"
 
 [tasks."be:check_dockerignore"]
 description = "Check a docker image files (use tree command, exclude .venv and .uv)"
-run = """docker run --platform=linux/amd64 --rm {{vars.BACKEND_IMAGE_NAME}}:latest sh -c "\
+run = """docker run --platform=linux/amd64 --rm {{vars.BACKEND_IMAGE_NAME}}-development:latest sh -c "\
     apt-get update && apt-get install -y tree && tree -I \\\"\\.venv|\\.uv\\\" -a -f /app"
 """
 
-[tasks."be:push"]
+[tasks."be:push:dev"]
 description = "Push a docker image to Google Cloud Artifact Registry"
 run = """
 #!/usr/bin/env bash
@@ -124,17 +129,38 @@ set -e
 # Get branch and commit information
 BRANCH=$(git symbolic-ref --short HEAD)
 COMMIT=$(git describe --tags --always)
-TAG="${BRANCH}-${COMMIT}"
-
+TAG="${BRANCH}-${COMMIT}-dev"
 # Construct the image name
-# ex. <location>-docker.pkg.dev/<project-name>/<repo-name>/<image-name>:main-1234567
+# ex. <location>-docker.pkg.dev/<project-name>/<repo-name>/<image-name>:main-1234567-dev
 NAME="{{vars.GOOGLE_CLOUD_LOCATION}}-docker.pkg.dev/{{vars.GOOGLE_CLOUD_PROJECT}}/{{vars.ARTIFACT_REGISTRY_REPOSITORY}}/{{vars.BACKEND_IMAGE_NAME}}:${TAG}"
-
 # Display and push the image
 echo "Deploying ${NAME}"
-docker tag {{vars.BACKEND_IMAGE_NAME}}:latest ${NAME}
+docker tag {{vars.BACKEND_IMAGE_NAME}}-development:latest ${NAME}
 docker push ${NAME}
+# Generate Google Cloud Console URL
+# ex. https://console.cloud.google.com/artifacts/docker/<project-name>/<location>/<repo-name>/<image-name>?project=<project-name>
+CONSOLE_URL="https://console.cloud.google.com/artifacts/docker/{{vars.GOOGLE_CLOUD_PROJECT}}/{{vars.GOOGLE_CLOUD_LOCATION}}/{{vars.ARTIFACT_REGISTRY_REPOSITORY}}/{{vars.BACKEND_IMAGE_NAME}}?project={{vars.GOOGLE_CLOUD_PROJECT}}"
+echo "🔗 Access the repository here: ${CONSOLE_URL}"
+echo "🏷️  ${TAG}"
+"""
 
+[tasks."be:push:prd"]
+description = "Push a docker image to Google Cloud Artifact Registry"
+run = """
+#!/usr/bin/env bash
+set -e
+
+# Get branch and commit information
+BRANCH=$(git symbolic-ref --short HEAD)
+COMMIT=$(git describe --tags --always)
+TAG="${BRANCH}-${COMMIT}-prd"
+# Construct the image name
+# ex. <location>-docker.pkg.dev/<project-name>/<repo-name>/<image-name>:main-1234567-prd
+NAME="{{vars.GOOGLE_CLOUD_LOCATION}}-docker.pkg.dev/{{vars.GOOGLE_CLOUD_PROJECT}}/{{vars.ARTIFACT_REGISTRY_REPOSITORY}}/{{vars.BACKEND_IMAGE_NAME}}:${TAG}"
+# Display and push the image
+echo "Deploying ${NAME}"
+docker tag {{vars.BACKEND_IMAGE_NAME}}-production:latest ${NAME}
+docker push ${NAME}
 # Generate Google Cloud Console URL
 # ex. https://console.cloud.google.com/artifacts/docker/<project-name>/<location>/<repo-name>/<image-name>?project=<project-name>
 CONSOLE_URL="https://console.cloud.google.com/artifacts/docker/{{vars.GOOGLE_CLOUD_PROJECT}}/{{vars.GOOGLE_CLOUD_LOCATION}}/{{vars.ARTIFACT_REGISTRY_REPOSITORY}}/{{vars.BACKEND_IMAGE_NAME}}?project={{vars.GOOGLE_CLOUD_PROJECT}}"
@@ -164,18 +190,23 @@ dir = "frontend/web/"
 run = "pnpm run lint"
 dir = "frontend/web/"
 
-[tasks."fe:build"]
-description = "Build a docker image"
-run = ["docker build --platform linux/amd64 -t {{vars.FRONTEND_IMAGE_NAME}} ."]
+[tasks."fe:build:dev"]
+description = "Build a docker image for development"
+run = ["docker build --platform linux/amd64 -f Dockerfile.development -t {{vars.FRONTEND_IMAGE_NAME}}-development ."]
+dir = "frontend/web/"
+
+[tasks."fe:build:prd"]
+description = "Build a docker image for development for production"
+run = ["docker build --platform linux/amd64 -f Dockerfile.production -t {{vars.FRONTEND_IMAGE_NAME}}-production ."]
 dir = "frontend/web/"
 
 [tasks."fe:check_dockerignore"]
 description = "Check a docker image files (use tree command, exclude node_modules and .next)"
-run = """docker run --platform=linux/amd64 --rm {{vars.FRONTEND_IMAGE_NAME}}:latest sh -c "\
+run = """docker run --platform=linux/amd64 --rm {{vars.FRONTEND_IMAGE_NAME}}-development:latest sh -c "\
     apk add --no-cache tree && tree -I \\\"node_modules|\\.next\\\" -a -f /app"
 """
 
-[tasks."fe:push"]
+[tasks."fe:push:dev"]
 description = "Push a docker image to Google Cloud Artifact Registry"
 run = """
 #!/usr/bin/env bash
@@ -184,17 +215,38 @@ set -e
 # Get branch and commit information
 BRANCH=$(git symbolic-ref --short HEAD)
 COMMIT=$(git describe --tags --always)
-TAG="${BRANCH}-${COMMIT}"
-
+TAG="${BRANCH}-${COMMIT}-dev"
 # Construct the image name
-# ex. <location>-docker.pkg.dev/<project-name>/<repo-name>/<image-name>:main-1234567
+# ex. <location>-docker.pkg.dev/<project-name>/<repo-name>/<image-name>:main-1234567-dev
 NAME="{{vars.GOOGLE_CLOUD_LOCATION}}-docker.pkg.dev/{{vars.GOOGLE_CLOUD_PROJECT}}/{{vars.ARTIFACT_REGISTRY_REPOSITORY}}/{{vars.FRONTEND_IMAGE_NAME}}:${TAG}"
-
 # Display and push the image
 echo "Deploying ${NAME}"
-docker tag {{vars.FRONTEND_IMAGE_NAME}}:latest ${NAME}
+docker tag {{vars.FRONTEND_IMAGE_NAME}}-development:latest ${NAME}
 docker push ${NAME}
+# Generate Google Cloud Console URL
+# ex. https://console.cloud.google.com/artifacts/docker/<project-name>/<location>/<repo-name>/<image-name>?project=<project-name>
+CONSOLE_URL="https://console.cloud.google.com/artifacts/docker/{{vars.GOOGLE_CLOUD_PROJECT}}/{{vars.GOOGLE_CLOUD_LOCATION}}/{{vars.ARTIFACT_REGISTRY_REPOSITORY}}/{{vars.FRONTEND_IMAGE_NAME}}?project={{vars.GOOGLE_CLOUD_PROJECT}}"
+echo "🔗 Access the repository here: ${CONSOLE_URL}"
+echo "🏷️  ${TAG}"
+"""
 
+[tasks."fe:push:prd"]
+description = "Push a docker image to Google Cloud Artifact Registry"
+run = """
+#!/usr/bin/env bash
+set -e
+
+# Get branch and commit information
+BRANCH=$(git symbolic-ref --short HEAD)
+COMMIT=$(git describe --tags --always)
+TAG="${BRANCH}-${COMMIT}-prd"
+# Construct the image name
+# ex. <location>-docker.pkg.dev/<project-name>/<repo-name>/<image-name>:main-1234567-prd
+NAME="{{vars.GOOGLE_CLOUD_LOCATION}}-docker.pkg.dev/{{vars.GOOGLE_CLOUD_PROJECT}}/{{vars.ARTIFACT_REGISTRY_REPOSITORY}}/{{vars.FRONTEND_IMAGE_NAME}}:${TAG}"
+# Display and push the image
+echo "Deploying ${NAME}"
+docker tag {{vars.FRONTEND_IMAGE_NAME}}-production:latest ${NAME}
+docker push ${NAME}
 # Generate Google Cloud Console URL
 # ex. https://console.cloud.google.com/artifacts/docker/<project-name>/<location>/<repo-name>/<image-name>?project=<project-name>
 CONSOLE_URL="https://console.cloud.google.com/artifacts/docker/{{vars.GOOGLE_CLOUD_PROJECT}}/{{vars.GOOGLE_CLOUD_LOCATION}}/{{vars.ARTIFACT_REGISTRY_REPOSITORY}}/{{vars.FRONTEND_IMAGE_NAME}}?project={{vars.GOOGLE_CLOUD_PROJECT}}"
