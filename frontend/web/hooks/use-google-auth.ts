@@ -4,6 +4,7 @@ import { auth } from '@/lib/firebase/client';
 import {
   GoogleAuthProvider,
   signInWithPopup as firebaseSignInWithPopup,
+  signInWithRedirect as firebaseSignInWithRedirect,
 } from 'firebase/auth';
 import { signOut as nextAuthSignOut } from 'next-auth/react';
 // firebase auth側のsignOutを使いたい場合: 現状想定なし
@@ -20,7 +21,7 @@ export function useGoogleAuth() {
 
   const handleSignInWithPopup = useCallback(() => {
     // WithRedirectは後続のnext-authと競合するので注意
-    return firebaseSignInWithPopup(auth, provider);
+    return firebaseSignInWithRedirect(auth, provider);
   }, [provider]);
 
   const handleSignOut = useCallback(async () => {
