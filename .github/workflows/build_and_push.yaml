@@ -72,6 +72,7 @@ jobs:
           NEXT_PUBLIC_USE_FIREBASE_EMULATOR: "true"
 
       - name: Run push
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
         run: |
           set -eo pipefail
           mise run fe:push
@@ -131,6 +132,7 @@ jobs:
         working-directory: ./backend/genai
 
       - name: Run push
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
         run: |
           set -eo pipefail
           mise run be:push
