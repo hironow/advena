@@ -45,7 +45,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
           return {
             ...decoded,
-            id: userInFirestore.id,
+            id: userInFirestore?.id,
             uid: decoded.uid,
           };
         } catch (error) {

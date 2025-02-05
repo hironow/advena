@@ -1,5 +1,6 @@
 import os
 from contextlib import asynccontextmanager
+from uuid import uuid4
 
 import firebase_admin
 import google.auth as gauth
@@ -46,11 +47,14 @@ MEANINGFUL_MINIMUM_QUESTION_LENGTH = 7
 
 gcp_project = None
 firebase_app = None
-db = None
+# client
+db: firestore.AsyncClient | None = None
+storage = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    global gcp_project, firebase_app, db  # storage
     logger.info("Starting server...")
 
     gcp_project = os.getenv("GOOGLE_CLOUD_PROJECT")
@@ -67,6 +71,7 @@ async def lifespan(app: FastAPI):
     logger.info("Initialized Firebase Admin SDK")
 
     db = fb_firestore_async.client(firebase_app)
+    # storage = fb_storage._StorageClient.from_app(firebase_app)
 
     yield
 
@@ -98,17 +103,24 @@ def import_files(corpus_name, gcs_path):
 # ============================
 @app.post("/add_user")
 async def add_user(request: Request):
+    """[COMMAND] creating users"""
+    if db is None:
+        logger.error("db is None")
+        raise Exception("db is None")
+
     body = await request.body()
     event = from_http(request.headers, body)
+    logger.info(f"event: {event}")
     document = event.get("document")
     event_id = event.get("id")
+    logger.info(f"{event_id}: start adding a user: {document}")
 
     # document は "users/uid" の形式であると想定
     users, uid = document.split("/")
     logger.info(f"{event_id}: start adding a user: {uid}")
 
+    # RAG engine
     embedding_model_config = rag.EmbeddingModelConfig(publisher_model=PUBLISHER_MODEL)
-
     logger.info(f"{event_id}: start creating a rag corpus for a user: {uid}")
     rag_corpus = rag.create_corpus(
         display_name=uid,
@@ -116,10 +128,13 @@ async def add_user(request: Request):
     )
     logger.info(f"{event_id}: finished creating a rag corpus for a user: {uid}")
 
+    id = uuid4()
     doc_ref = db.collection(users).document(uid)
-    doc_ref.update({"corpusName": rag_corpus.name, "status": "created"})
+    await doc_ref.update(
+        {"id": id, "uid": uid, "corpusName": rag_corpus.name, "status": "created"}
+    )
 
-    logger.info(f"{event_id}: finished adding a user: {uid}")
+    logger.info(f"{event_id}: finished adding a user for {uid} as {id}")
     return Response(content="finished", status_code=204)
 
 
