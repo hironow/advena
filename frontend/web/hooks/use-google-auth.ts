@@ -14,7 +14,7 @@ export function useGoogleAuth() {
   const provider = useMemo(() => {
     const prov = new GoogleAuthProvider();
     // 例: ユーザーに毎回アカウント選択を促す 他には 'login_hint auto_select' もある
-    // prov.setCustomParameters({ prompt: 'select_account' });
+    prov.setCustomParameters({ prompt: 'select_account' });
     return prov;
   }, []);
 
