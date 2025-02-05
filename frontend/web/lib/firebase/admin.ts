@@ -15,17 +15,8 @@ import type { ServiceAccount } from 'firebase-admin';
 /**
  * Firebase Admin SDK のアプリ (singleton)
  */
-function createFirebaseAdminApp(): ReturnType<typeof initializeAdminApp> {
-  const adminApps = getApps();
-  if (adminApps.length > 0) {
-    console.info('[Firebase Admin] Use existing admin app');
-    return adminApps[0];
-  }
-
-  // Emulator を使うかどうかのフラグ
-  const useEmulator = process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === 'true';
-
-  const adminOptions: AppOptions = useEmulator
+const options: AppOptions =
+  process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === 'true'
     ? {
         projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
       }
@@ -37,10 +28,8 @@ function createFirebaseAdminApp(): ReturnType<typeof initializeAdminApp> {
           privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
         } as ServiceAccount),
       };
-  return initializeAdminApp(adminOptions);
-}
 
-export const adminApp = createFirebaseAdminApp();
+export const adminApp = getApps()[0] ?? initializeAdminApp(options);
 
 /**
  * Firestore
