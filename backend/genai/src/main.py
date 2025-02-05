@@ -44,6 +44,10 @@ MAX_TOTAL_COMMON_QUESTIONS_LENGTH = 1024
 SUMMARIZATION_FAILED_MESSAGE = "申し訳ございません。要約の生成に失敗しました。"
 MEANINGFUL_MINIMUM_QUESTION_LENGTH = 7
 
+gcp_project = None
+firebase_app = None
+db = None
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -59,8 +63,10 @@ async def lifespan(app: FastAPI):
             "storageBucket": f"{gcp_project}.appspot.com",
         }
 
-    firebase_admin.initialize_app(options=options)
+    firebase_app = firebase_admin.initialize_app(options=options)
     logger.info("Initialized Firebase Admin SDK")
+
+    db = fb_firestore_async.client(firebase_app)
 
     yield
 
@@ -144,7 +150,7 @@ async def add_source(request: Request):
     name = doc.get("name")
     storagePath = doc.get("storagePath")
 
-    gcs_path = f"gs://{PROJECT_ID}.firebasestorage.app{storagePath}"
+    gcs_path = f"gs://{gcp_project}.firebasestorage.app{storagePath}"
 
     logger.info(f"{event_id}: start importing a source file: {name}")
     response_import = import_files(corpus_name, gcs_path)
@@ -309,7 +315,7 @@ async def summarize(request: Request):
 
     file_type = doc.get("type")
     storagePath = doc.get("storagePath")
-    gcs_path = f"gs://{PROJECT_ID}.firebasestorage.app{storagePath}"
+    gcs_path = f"gs://{gcp_project}.firebasestorage.app{storagePath}"
 
     model = GenerativeModel(model_name=GENERATIVE_MODEL_NAME)
     doc_part = Part.from_uri(gcs_path, file_type)
