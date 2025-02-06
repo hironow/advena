@@ -119,7 +119,7 @@ def test_add_user():
     user_doc.set({"status": "creating"})
 
     # when
-    payload = {"id": "event1", "document": "users/testuser"}
+    payload = {"id": "event1", "document": "users/" + dummy_id}
     response = client.post(
         "/add_user",
         data=json.dumps(payload),
