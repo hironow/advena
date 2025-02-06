@@ -80,10 +80,10 @@ gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --role="roles/storage.objectCreator" \
   --member="serviceAccount:${GITHUB_ACTIONS_SA_EMAIL}"
 # storage admin が必要であったため、上記の2つを削除してstorage.adminを追加
-# gcloud projects remove-iam-policy-binding "${PROJECT_ID}" \
-#   --project="${PROJECT_ID}" --quiet \
-#   --role="roles/storage.admin" \
-#   --member="serviceAccount:${GITHUB_ACTIONS_SA_EMAIL}"
+gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+  --project="${PROJECT_ID}" --quiet \
+  --role="roles/storage.admin" \
+  --member="serviceAccount:${GITHUB_ACTIONS_SA_EMAIL}"
 # DEBUG ONLY: serviceusage.services.use がないとエラーになるので一時的に roles/editor をつけてdebugする
 # see: https://cloud.google.com/logging/docs/audit/configure-data-access
 # Compute Engine デフォルトサービスアカウント への roles/iam.serviceAccountUser または roles/iam.serviceAccountTokenCreator の付与が必要
@@ -125,7 +125,7 @@ gcloud projects get-iam-policy "${PROJECT_ID}" --format=json | jq -r '.bindings[
 # cloud storage
 gcloud projects get-iam-policy "${PROJECT_ID}" --format=json | jq -r '.bindings[] | select(.role == "roles/storage.objectViewer")'
 gcloud projects get-iam-policy "${PROJECT_ID}" --format=json | jq -r '.bindings[] | select(.role == "roles/storage.objectCreator")'
-# gcloud projects get-iam-policy "${PROJECT_ID}" --format=json | jq -r '.bindings[] | select(.role == "roles/storage.admin")'
+gcloud projects get-iam-policy "${PROJECT_ID}" --format=json | jq -r '.bindings[] | select(.role == "roles/storage.admin")'
 # gcloud projects get-iam-policy "${PROJECT_ID}" --format=json | jq -r '.bindings[] | select(.role == "roles/editor")'
 gcloud iam service-accounts get-iam-policy "${COMPUTE_DEFAULT_SERVICE_ACCOUNT}" --format=json | jq -r '.bindings[] | select(.role == "roles/iam.serviceAccountUser")'
 # secret manager
