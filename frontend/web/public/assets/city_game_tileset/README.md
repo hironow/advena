@@ -1,5 +1,7 @@
 # city game tileset
 
+I have committed the downloaded file for build by github actions only.
+
 The `advena` project utilizes the **city game tileset** created by withering systems from Capo24's Collection.
 
 You can download this asset from [itch.io](https://itch.io/queue/c/4350872/capo24s-collection?game_id=755826).
