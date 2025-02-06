@@ -15,8 +15,8 @@ service cloud.firestore {
         return get(/databases/$(database)/documents/users/$(userId)).data
       }
 
-      match /chats/{chatId} {
-        // 自分のチャット情報のみ読み込み可能
+      match /keywords/{keywordId} {
+        // 自分のキーワード情報のみ読み込み可能
         allow read: if isSignedIn() && userDate().firebase_uid == request.auth.uid;
         allow write: if false;
       }
