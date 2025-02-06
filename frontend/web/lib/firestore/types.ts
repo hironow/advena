@@ -11,3 +11,15 @@ export type User = {
 };
 
 export const USER_COLLECTION = 'users'; // firestoreのcollection名: 作成後に変更しない
+
+export type RadioShow = {
+  id: string;
+  name: string;
+  created_at: TimestampAsStr;
+  updated_at: TimestampAsStr;
+  status: 'published'; // 公開後しか参照しない
+  published_at: TimestampAsStr;
+  audio_url: string;
+};
+
+export const RADIO_SHOW_COLLECTION = 'radio_shows'; // firestoreのcollection名: 作成後に変更しない

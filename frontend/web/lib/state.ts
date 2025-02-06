@@ -1,5 +1,5 @@
 import { atom } from 'jotai';
-import type { User } from './firestore/types';
+import { RadioShow, type User } from './firestore/types';
 // import { Message, Note, Notebook, Source } from '@/lib/firebase/firestore';
 
 // const sidebarOpenAtom = atom(true);
@@ -9,6 +9,7 @@ import type { User } from './firestore/types';
 // const notesAtom = atom<Note[]>([]);
 // const notebooksAtom = atom<Notebook[]>([]);
 const userAtom = atom<User | null>(null);
+const radioShowsAtom = atom<RadioShow[]>([]);
 // const messageAtom = atom('');
 // const sourceAtom = atom<Source | null>(null);
 // const commonQuestionsAtom = atom<string[]>((get) => {
@@ -32,4 +33,5 @@ export {
   //   sourceAtom,
   //   sourcesAtom,
   userAtom,
+  radioShowsAtom,
 };

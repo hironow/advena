@@ -28,8 +28,8 @@ service cloud.firestore {
       }
     }
 
-    match /public_chats/{publicChatId} {
-      // 公開チャットは全ユーザーが読み込み可能
+    match /radio_shows/{publicChatId} {
+      // ラジオ番組は全ユーザーが読み込み可能
       allow read: if isSignedIn();
       allow write: if false;
     }

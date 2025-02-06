@@ -23,7 +23,12 @@ import {
   updateDoc,
   where,
 } from 'firebase/firestore';
-import { type User, USER_COLLECTION } from './types';
+import {
+  RADIO_SHOW_COLLECTION,
+  type RadioShow,
+  type User,
+  USER_COLLECTION,
+} from './types';
 
 // Status: firestoreのdocumentの状態を表す
 // -ingは「command」として、-edは「event」として使われ、eventarcを通して backend に通知される
@@ -53,4 +58,70 @@ export const getUserByUid = async (userId: string): Promise<User> => {
   return {
     ...docRef.data(),
   } as User;
+};
+
+// ラジオ status (仮 & 最も複雑版):
+// concepting
+//    ↓
+// concepted
+//    ↓
+// scripting
+//    ↓
+// scripted
+//    ↓
+// ┌──────────────┐
+// │ (オプション)
+// │ rehearsing
+// │   ↓
+// │ rehearsed
+// └──────────────┘
+//    ↓（リハーサルがあった場合は rehearsed、なければ scripted）
+// recording
+//    ↓
+// recorded
+//    ↓
+// editing
+//    ↓
+// edited
+//    ↓
+// approving
+//    ↓
+// approved
+//    ↓
+// scheduling
+//    ↓
+// scheduled
+//    ↓
+// publishing
+//    ↓
+// published
+//    ↓
+// ┌─────────────────────────────┐
+// │         分岐
+// │  [アーカイブの場合]
+// │      archiving → archived
+// │  [ライブ放送の場合]
+// │      broadcasting → broadcasted
+// └─────────────────────────────┘
+
+type getRadioShowsSnapshotCallback = (radioShows: RadioShow[]) => void;
+
+export const getRadioShowsSnapshot = (cb: getRadioShowsSnapshotCallback) => {
+  const q = query(
+    // status が published のものだけ取得、published_at でソート、最新の公開が0番目
+    collection(db, RADIO_SHOW_COLLECTION),
+    where('status', '==', 'published'),
+    orderBy('published_at', 'desc'),
+  );
+  const unsubscribe = onSnapshot(q, (querySnapshot) => {
+    const radioShows = querySnapshot.docs.map(
+      (doc) =>
+        ({
+          id: doc.id,
+          ...doc.data(),
+        }) as RadioShow,
+    );
+    cb(radioShows);
+  });
+  return unsubscribe;
 };
