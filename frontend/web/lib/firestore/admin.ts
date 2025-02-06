@@ -22,9 +22,11 @@ import {
 
 // ユーザー追加処理（Firestore ドキュメント作成と CloudEvent の送信）
 export const addUserAdmin = async (firebase_uid: string): Promise<void> => {
-  // tx付きでfirebase_uid に該当するユーザを探し、なければ作成
   const adminDb = getAdminDb();
-  return adminDb.runTransaction(async (tx) => {
+  const newUserId = randomUUID(); // uuid v4
+
+  // tx付きでfirebase_uid に該当するユーザを探し、なければ作成
+  await adminDb.runTransaction(async (tx) => {
     const userRef = await tx.get(
       adminDb
         .collection(USER_COLLECTION)
@@ -32,40 +34,38 @@ export const addUserAdmin = async (firebase_uid: string): Promise<void> => {
         .limit(1),
     );
     if (userRef.empty) {
-      const newUserId = randomUUID(); // uuid v4
       const newUserRef = adminDb.collection(USER_COLLECTION).doc(newUserId);
       tx.set(newUserRef, {
         id: newUserId,
-        firebase_uid,
-        createdAt: FieldValue.serverTimestamp(),
+        firebase_uid: firebase_uid,
+        created_at: FieldValue.serverTimestamp(),
         status: 'creating',
       });
       console.info(
         `[COMMAND] ${USER_COLLECTION} document for id ${newUserId} created with status 'creating'`,
       );
-
-      if (useEmulator) {
-        // 送信データ（ここでは id のみを JSON 化）
-        const data = { id: newUserId };
-        const data_base64 = Buffer.from(JSON.stringify(data)).toString(
-          'base64',
-        );
-
-        const eventBody = createCloudEventBody(
-          USER_COLLECTION,
-          newUserId,
-          data_base64,
-        );
-        await sendCloudEvent(EVENTARC_ENDPOINT_ADD_USER, eventBody);
-      }
     }
   });
+
+  if (useEmulator) {
+    // 送信データ（ここでは id のみを JSON 化）
+    const data = { id: newUserId, firebase_uid: firebase_uid };
+    const data_base64 = Buffer.from(JSON.stringify(data)).toString('base64');
+
+    const eventBody = createCloudEventBody(
+      USER_COLLECTION,
+      newUserId,
+      data_base64,
+    );
+    await sendCloudEvent(EVENTARC_ENDPOINT_ADD_USER, eventBody);
+  }
 };
 
 export const getUserByFirebaseUidAdmin = async (
   firebase_uid: string,
 ): Promise<User | null> => {
   const adminDb = getAdminDb();
+
   const userRef = await adminDb
     .collection(USER_COLLECTION)
     .where('firebase_uid', '==', firebase_uid)
