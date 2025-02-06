@@ -58,8 +58,8 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
   --role='roles/eventarc.eventReceiver' \
   --project="${PROJECT_ID}"
 
-# TODO: Eventarcの設定
-# Eventarc用の dead leader を作成
+# Eventarcの設定
+# NOTE: Eventarc用の dead leader を作成。topicのみを作成して、subscriptionは手動で作成する
 if gcloud pubsub topics list --format json | jq -r '.[].name' | grep $DEAD_LETTER_TOPIC; then
   # すでにあれば作成しない
   echo "Dead letter topic ${DEAD_LETTER_TOPIC} already exists. Skipping creation."
@@ -93,12 +93,16 @@ else
     --service-account="${USER_SA_OF_EVENTARC_EMAIL}" \
     --event-data-content-type="application/protobuf" \
     --destination-run-path="/${ADD_USER_PATH}"
-
-  # 少し待つ 3秒
-  sleep 3
 fi
+# TODO: 以降追加のtriggerがあれば、同様に作成する
+
+echo "waiting... for create eventarc's Pub/Sub topic and subscription"
+# 2分
+sleep 120 
 
 # triggerごとの処理を別scriptに分けているので実行
+# NOTE: 失敗している可能性があるので、確認後、手動で実行する場合もある
 bash ./scripts/update-eventarc-trigger.sh "${TRIGGER_ADD_USER_NAME}"
+# TODO: 以降追加のtriggerがあれば、同様に作成する
 
 echo "⭐️ All done!"
