@@ -43,24 +43,26 @@ PROVIDER_ID=$(
 echo "PROVIDER_ID: ${PROVIDER_ID}"
 # ex: projects/123456789/locations/global/workloadIdentityPools/github/providers/my-repo
 
+WORKLOAD_IDENTITY_PRINCIPAL="//iam.googleapis.com/${WORKLOAD_IDENTITY_POOL_ID}/attribute.repository/${REPO}"
+
 # Add a policy binding to the Artifact Registry repository as direct push from GitHub Actions
 echo "Add a policy binding to the Artifact Registry as direct push"
 gcloud artifacts repositories add-iam-policy-binding "${ARTIFACT_REGISTRY_REPOSITORY}" \
   --location="${ARTIFACT_REGISTRY_LOCATION}" \
   --project="${PROJECT_ID}" --quiet \
   --role="roles/artifactregistry.writer" \
-  --member="principalSet://iam.googleapis.com/${WORKLOAD_IDENTITY_POOL_ID}/attribute.repository/${REPO}"
+  --member="principalSet:${WORKLOAD_IDENTITY_PRINCIPAL}"
 
 # Add a policy binding to the Cloud Build as trigger cloud build from GitHub Actions
 echo "Add a policy binding to the Cloud Build as trigger"
 gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
-  --member="principalSet://iam.googleapis.com/${WORKLOAD_IDENTITY_POOL_ID}/attribute.repository/${REPO}" \
   --role="roles/cloudbuild.builds.editor" \
-  --project="${PROJECT_ID}" --quiet
+  --project="${PROJECT_ID}" --quiet \
+  --member="principalSet:${WORKLOAD_IDENTITY_PRINCIPAL}"
 gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
-  --member="principalSet://iam.googleapis.com/${WORKLOAD_IDENTITY_POOL_ID}/attribute.repository/${REPO}" \
+  --project="${PROJECT_ID}" --quiet \
   --role="roles/serviceusage.serviceUsageConsumer" \
-  --project="${PROJECT_ID}" --quiet
+  --member="principalSet:${WORKLOAD_IDENTITY_PRINCIPAL}"  
 
 # Add a policy binding to the Cloud Build as builder and pusher
 echo "Add a policy binding to the Cloud Build as builder and pusher"
