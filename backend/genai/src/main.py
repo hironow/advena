@@ -22,6 +22,7 @@ from vertexai.preview import rag
 from vertexai.preview.generative_models import GenerativeModel, Tool
 
 from src.logger import logger
+from src.utils import get_now, is_valid_uuid
 
 if os.getenv("CI") == "true":
     # CI 環境では weave と Laminar を初期化しない
@@ -103,7 +104,7 @@ async def add_user(request: Request):
     document = event.get("document")
     event_id = event.get("id")
 
-    utc_now = datetime.now(tz=timezone.utc)
+    now = get_now()
 
     logger.info(f"{event_id}: start adding a document: {document}")
     # TODO: 抽象化できていないので、修正が必要
@@ -114,6 +115,10 @@ async def add_user(request: Request):
 
     users, user_id = document.split("/")
     logger.info(f"{event_id}: start adding a user: {user_id}")
+
+    if not is_valid_uuid(user_id):
+        logger.info(f"{event_id}: invalid user_id: {user_id}")
+        return Response(content="invalid user_id", status_code=400)
 
     # firestoreから取得
     user = db.collection(users).document(user_id).get()
@@ -128,7 +133,7 @@ async def add_user(request: Request):
     db.collection(users).document(user_id).update(
         {
             "status": "created",
-            "updated_at": utc_now,
+            "updated_at": now,
         }
     )
 
