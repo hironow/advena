@@ -49,6 +49,9 @@ echo "PROVIDER_ID: ${PROVIDER_ID}"
 # WORKLOAD_IDENTITY_PRINCIPAL="//iam.googleapis.com/${WORKLOAD_IDENTITY_POOL_ID}/attribute.repository/${REPO}"
 GITHUB_ACTIONS_SA_EMAIL="${GITHUB_ACTIONS_SA}@${PROJECT_ID}.iam.gserviceaccount.com"
 
+PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format="value(projectNumber)")
+COMPUTE_DEFAULT_SERVICE_ACCOUNT="${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
+
 # Add a policy binding to the Artifact Registry repository as direct push from GitHub Actions
 echo "Add a policy binding to the Artifact Registry as direct push"
 gcloud artifacts repositories add-iam-policy-binding "${ARTIFACT_REGISTRY_REPOSITORY}" \
@@ -77,19 +80,24 @@ gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --role="roles/storage.objectCreator" \
   --member="serviceAccount:${GITHUB_ACTIONS_SA_EMAIL}"
 # storage admin が必要であったため、上記の2つを削除してstorage.adminを追加
-gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
-  --project="${PROJECT_ID}" --quiet \
-  --role="roles/storage.admin" \
-  --member="serviceAccount:${GITHUB_ACTIONS_SA_EMAIL}"
+# gcloud projects remove-iam-policy-binding "${PROJECT_ID}" \
+#   --project="${PROJECT_ID}" --quiet \
+#   --role="roles/storage.admin" \
+#   --member="serviceAccount:${GITHUB_ACTIONS_SA_EMAIL}"
 # DEBUG ONLY: serviceusage.services.use がないとエラーになるので一時的に roles/editor をつけてdebugする
 # see: https://cloud.google.com/logging/docs/audit/configure-data-access
-
 # Compute Engine デフォルトサービスアカウント への roles/iam.serviceAccountUser または roles/iam.serviceAccountTokenCreator の付与が必要
+# gcloud projects remove-iam-policy-binding "${PROJECT_ID}" \
+#   --project="${PROJECT_ID}" --quiet \
+#   --role="roles/editor" \
+#   --member="serviceAccount:${GITHUB_ACTIONS_SA_EMAIL}"
 
-gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+# IMPORTANT: Compute EngineデフォルトSAをGitHub ActionsのSAが「ActAs」（代理実行）する必要があるため、必要なのは iam.serviceAccounts.actAs 権限、すなわち roles/iam.serviceAccountUser の付与
+gcloud iam service-accounts add-iam-policy-binding "${COMPUTE_DEFAULT_SERVICE_ACCOUNT}" \
   --project="${PROJECT_ID}" --quiet \
-  --role="roles/editor" \
+  --role="roles/iam.serviceAccountUser" \
   --member="serviceAccount:${GITHUB_ACTIONS_SA_EMAIL}"
+
 
 # Add a policy binding to the Cloud Build as builder and pusher
 echo "Add a policy binding to the Cloud Build as builder and pusher"
@@ -115,9 +123,11 @@ gcloud projects get-iam-policy "${PROJECT_ID}" --format=json | jq -r '.bindings[
 # cloud build
 gcloud projects get-iam-policy "${PROJECT_ID}" --format=json | jq -r '.bindings[] | select(.role == "roles/cloudbuild.builds.editor")'
 # cloud storage
-# gcloud projects get-iam-policy "${PROJECT_ID}" --format=json | jq -r '.bindings[] | select(.role == "roles/storage.objectViewer")'
-# gcloud projects get-iam-policy "${PROJECT_ID}" --format=json | jq -r '.bindings[] | select(.role == "roles/storage.objectCreator")'
-gcloud projects get-iam-policy "${PROJECT_ID}" --format=json | jq -r '.bindings[] | select(.role == "roles/storage.admin")'
+gcloud projects get-iam-policy "${PROJECT_ID}" --format=json | jq -r '.bindings[] | select(.role == "roles/storage.objectViewer")'
+gcloud projects get-iam-policy "${PROJECT_ID}" --format=json | jq -r '.bindings[] | select(.role == "roles/storage.objectCreator")'
+# gcloud projects get-iam-policy "${PROJECT_ID}" --format=json | jq -r '.bindings[] | select(.role == "roles/storage.admin")'
+# gcloud projects get-iam-policy "${PROJECT_ID}" --format=json | jq -r '.bindings[] | select(.role == "roles/editor")'
+gcloud iam service-accounts get-iam-policy "${COMPUTE_DEFAULT_SERVICE_ACCOUNT}" --format=json | jq -r '.bindings[] | select(.role == "roles/iam.serviceAccountUser")'
 # secret manager
 gcloud projects get-iam-policy "${PROJECT_ID}" --format=json | jq -r '.bindings[] | select(.role == "roles/secretmanager.secretAccessor")'
 # artifact registry
