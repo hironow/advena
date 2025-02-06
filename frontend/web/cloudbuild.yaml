@@ -62,7 +62,8 @@ steps:
 availableSecrets:
   secretManager:
     # dotenvx .env.keys で管理しているシークレットを取得
-    - versionName: "projects/38358387786/secrets/advena_frontend_DOTENV_PRIVATE_KEY_DEV/latest"
+    # projects/YOUR_PROJECT_ID/secrets/YOUR_SECRET_NAME/versions/latest
+    - versionName: "projects/38358387786/secrets/advena_frontend_DOTENV_PRIVATE_KEY_DEV/versions/latest"
       env: "FRONTEND_WEB_DOTENV_PRIVATE_KEY_DEV"
-    - versionName: "projects/38358387786/secrets/advena_frontend_DOTENV_PRIVATE_KEY_PRD/latest"
+    - versionName: "projects/38358387786/secrets/advena_frontend_DOTENV_PRIVATE_KEY_PRD/versions/latest"
       env: "FRONTEND_WEB_DOTENV_PRIVATE_KEY_PRD"
