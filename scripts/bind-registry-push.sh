@@ -9,6 +9,7 @@ export IDENTITY_POOL="github"                   # Workload Identity Poolの名�
 export IDENTITY_PROVIDER="my-repo"              # Workload Identity Pool Providerの名前
 export ARTIFACT_REGISTRY_REPOSITORY="advena"    # Artifact Registryのリポジトリ名
 export ARTIFACT_REGISTRY_LOCATION="us-central1" # Artifact Registryのリージョン
+export GITHUB_ACTIONS_SA="github-actions-on-advena"
 
 echo "=== Settings ==="
 echo "REPO:        $REPO"
@@ -17,6 +18,7 @@ echo "IDENTITY_POOL: $IDENTITY_POOL"
 echo "IDENTITY_PROVIDER: $IDENTITY_PROVIDER"
 echo "ARTIFACT_REGISTRY_REPOSITORY: $ARTIFACT_REGISTRY_REPOSITORY"
 echo "ARTIFACT_REGISTRY_LOCATION: $ARTIFACT_REGISTRY_LOCATION"
+echo "GITHUB_ACTIONS_SA: $GITHUB_ACTIONS_SA"
 echo "================"
 
 # Enable the Artifact Registry API
@@ -43,7 +45,9 @@ PROVIDER_ID=$(
 echo "PROVIDER_ID: ${PROVIDER_ID}"
 # ex: projects/123456789/locations/global/workloadIdentityPools/github/providers/my-repo
 
-WORKLOAD_IDENTITY_PRINCIPAL="//iam.googleapis.com/${WORKLOAD_IDENTITY_POOL_ID}/attribute.repository/${REPO}"
+# service accountへ紐付けたのでコメントアウト。 principalSet の設定はしない
+# WORKLOAD_IDENTITY_PRINCIPAL="//iam.googleapis.com/${WORKLOAD_IDENTITY_POOL_ID}/attribute.repository/${REPO}"
+GITHUB_ACTIONS_SA_EMAIL="${GITHUB_ACTIONS_SA}@${PROJECT_ID}.iam.gserviceaccount.com"
 
 # Add a policy binding to the Artifact Registry repository as direct push from GitHub Actions
 echo "Add a policy binding to the Artifact Registry as direct push"
@@ -51,7 +55,7 @@ gcloud artifacts repositories add-iam-policy-binding "${ARTIFACT_REGISTRY_REPOSI
   --location="${ARTIFACT_REGISTRY_LOCATION}" \
   --project="${PROJECT_ID}" --quiet \
   --role="roles/artifactregistry.writer" \
-  --member="principalSet:${WORKLOAD_IDENTITY_PRINCIPAL}"
+  --member="serviceAccount:${GITHUB_ACTIONS_SA_EMAIL}"
 
 # Add a policy binding to the Cloud Build as trigger cloud build from GitHub Actions
 # NOTE: needs serviceusage.services.use, storage.buckets.get, storage.buckets.list, storage.objects.create
@@ -59,19 +63,19 @@ echo "Add a policy binding to the Cloud Build as trigger"
 gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --role="roles/cloudbuild.builds.editor" \
   --project="${PROJECT_ID}" --quiet \
-  --member="principalSet:${WORKLOAD_IDENTITY_PRINCIPAL}"
+  --member="serviceAccount:${GITHUB_ACTIONS_SA_EMAIL}"
 gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --project="${PROJECT_ID}" --quiet \
   --role="roles/serviceusage.serviceUsageConsumer" \
-  --member="principalSet:${WORKLOAD_IDENTITY_PRINCIPAL}"  
+  --member="serviceAccount:${GITHUB_ACTIONS_SA_EMAIL}"
 gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --project="${PROJECT_ID}" --quiet \
   --role="roles/storage.objectViewer" \
-  --member="principalSet:${WORKLOAD_IDENTITY_PRINCIPAL}"
+  --member="serviceAccount:${GITHUB_ACTIONS_SA_EMAIL}"
 gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --project="${PROJECT_ID}" --quiet \
   --role="roles/storage.objectCreator" \
-  --member="principalSet:${WORKLOAD_IDENTITY_PRINCIPAL}"
+  --member="serviceAccount:${GITHUB_ACTIONS_SA_EMAIL}"
 
 # Add a policy binding to the Cloud Build as builder and pusher
 echo "Add a policy binding to the Cloud Build as builder and pusher"
