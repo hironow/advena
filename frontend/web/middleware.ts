@@ -33,6 +33,8 @@ export const config = {
    * - _next/static/* (static files)
    * - _next/image/* (image optimization files)
    * - assets/* (static files)
+   * - assets/bgm/* (static files)
+   * - assets/city_game_tileset/* (static files)
    * - images/* (static files)
    * - fonts/* (static files)
    * - favicon.ico
@@ -40,6 +42,6 @@ export const config = {
    * - home page (root route)
    */
   matcher: [
-    '/((?!api|_next/static|_next/image|assets|images|fonts|favicon.ico|robots.txt|$).*)',
+    '/((?!api|_next/static|_next/image|assets|assets/bgm|assets/city_game_tileset|images|fonts|favicon.ico|robots.txt|$).*)',
   ],
 };
