@@ -1,3 +1,6 @@
+substitutions:
+  _BRANCH: 'your_value_here'
+
 # タイムアウトは 10 分に設定
 timeout: "600s"
 
@@ -41,22 +44,22 @@ steps:
           echo "==> Installing dependencies with mise exec..."
           mise exec -- pnpm install
 
-          echo "==> Current branch: $BRANCH_NAME"
-          if [[ "$BRANCH_NAME" == "develop" ]]; then
+          echo "==> Current branch: $_BRANCH"
+          if [[ "$_BRANCH" == "develop" ]]; then
               echo "==> Running build for develop"
               # Secret Manager で注入した値を環境変数に設定
               export DOTENV_PRIVATE_KEY_DEV="$_FRONTEND_WEB_DOTENV_PRIVATE_KEY_DEV"
               mise run fe:build:dev
               echo "==> Running push for develop"
               mise run fe:push:dev
-          elif [[ "$BRANCH_NAME" == "main" ]]; then
+          elif [[ "$_BRANCH" == "main" ]]; then
               echo "==> Running build for main"
               export DOTENV_PRIVATE_KEY_PRD="$_FRONTEND_WEB_DOTENV_PRIVATE_KEY_PRD"
               mise run fe:build:prd
               echo "==> Running push for main"
               mise run fe:push:prd
           else
-              echo "==> Branch '$BRANCH_NAME' does not trigger build/push."
+              echo "==> Branch '$_BRANCH' does not trigger build/push."
           fi
 
 availableSecrets:
