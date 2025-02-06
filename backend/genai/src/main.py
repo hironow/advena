@@ -34,7 +34,7 @@ else:
 
 
 PUBLISHER_MODEL = "publishers/google/models/text-multilingual-embedding-002"
-GENERATIVE_MODEL_NAME = "gemini-1.5-flash-001"
+GENERATIVE_MODEL_NAME = "gemini-2.0-flash-001"  # see: https://cloud.google.com/vertex-ai/generative-ai/docs/learn/models#gemini-models
 RAG_CHUNK_SIZE = 512
 RAG_CHUNK_OVERLAP = 100
 RAG_MAX_EMBEDDING_REQUESTS_PER_MIN = 900
