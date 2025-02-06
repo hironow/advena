@@ -1,10 +1,6 @@
 # タイムアウトは 10 分に設定
 timeout: "600s"
 
-# Cloud Build のキャッシュ機能を利用して、.cache/mise ディレクトリを保存・復元する
-caches:
-  - path: .cache/mise
-
 steps:
   # gcloud CLI を利用した情報表示と Docker push 用認証
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:latest'
@@ -31,24 +27,8 @@ steps:
       - |
           set -eo pipefail
 
-          echo "==> Restoring mise cache if available..."
-          if [ -d .cache/mise ]; then
-            echo "Cache found. Restoring mise from cache..."
-            cp -r .cache/mise $HOME/.local/share/mise
-          else
-            echo "No cache found for mise."
-          fi
-
-          if [ ! -x "$HOME/.local/share/mise/bin/mise" ]; then
-            echo "==> Installing mise..."
-            curl https://mise.run | sh
-            echo "==> Caching mise installation..."
-            mkdir -p .cache
-            cp -r $HOME/.local/share/mise .cache/mise
-          else
-            echo "==> Using cached mise installation."
-          fi
-
+          echo "==> Installing mise..."
+          curl https://mise.run | sh
           # PATH の更新
           export PATH="$HOME/.local/share/mise/bin:$HOME/.local/share/mise/shims:$PATH"
 
