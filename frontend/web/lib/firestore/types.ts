@@ -1,10 +1,12 @@
 import type { Timestamp } from 'firebase/firestore';
 
+type TimestampAsStr = string;
+
 export type User = {
   id: string; // firestoreのid (uuid)
   firebase_uid: string; // firebase authのuid
-  created_at: Timestamp;
-  updated_at: Timestamp;
+  created_at: TimestampAsStr;
+  updated_at?: TimestampAsStr;
   status: 'creating' | 'created';
 };
 

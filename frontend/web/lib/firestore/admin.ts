@@ -34,11 +34,14 @@ export const addUserAdmin = async (firebase_uid: string): Promise<void> => {
         .limit(1),
     );
     if (userRef.empty) {
+      const utcNow = Timestamp.fromDate(
+        new Date(new Date().toUTCString()),
+      ) as unknown as string;
       const newUserRef = adminDb.collection(USER_COLLECTION).doc(newUserId);
       const newUser: User = {
         id: newUserId,
         firebase_uid: firebase_uid,
-        created_at: FieldValue.serverTimestamp(), // firestore Timestamp 型
+        created_at: utcNow,
         status: 'creating',
       };
       tx.set(newUserRef, newUser);
