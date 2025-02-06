@@ -68,14 +68,14 @@ gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --project="${PROJECT_ID}" --quiet \
   --role="roles/serviceusage.serviceUsageConsumer" \
   --member="serviceAccount:${GITHUB_ACTIONS_SA_EMAIL}"
-# gcloud projects remove-iam-policy-binding "${PROJECT_ID}" \
-#   --project="${PROJECT_ID}" --quiet \
-#   --role="roles/storage.objectViewer" \
-#   --member="serviceAccount:${GITHUB_ACTIONS_SA_EMAIL}"
-# gcloud projects remove-iam-policy-binding "${PROJECT_ID}" \
-#   --project="${PROJECT_ID}" --quiet \
-#   --role="roles/storage.objectCreator" \
-#   --member="serviceAccount:${GITHUB_ACTIONS_SA_EMAIL}"
+gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+  --project="${PROJECT_ID}" --quiet \
+  --role="roles/storage.objectViewer" \
+  --member="serviceAccount:${GITHUB_ACTIONS_SA_EMAIL}"
+gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+  --project="${PROJECT_ID}" --quiet \
+  --role="roles/storage.objectCreator" \
+  --member="serviceAccount:${GITHUB_ACTIONS_SA_EMAIL}"
 # storage admin が必要であったため、上記の2つを削除してstorage.adminを追加
 gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --project="${PROJECT_ID}" --quiet \
@@ -83,10 +83,13 @@ gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --member="serviceAccount:${GITHUB_ACTIONS_SA_EMAIL}"
 # DEBUG ONLY: serviceusage.services.use がないとエラーになるので一時的に roles/editor をつけてdebugする
 # see: https://cloud.google.com/logging/docs/audit/configure-data-access
-# gcloud projects remove-iam-policy-binding "${PROJECT_ID}" \
-#   --project="${PROJECT_ID}" --quiet \
-#   --role="roles/editor" \
-#   --member="serviceAccount:${GITHUB_ACTIONS_SA_EMAIL}"
+
+# Compute Engine デフォルトサービスアカウント への roles/iam.serviceAccountUser または roles/iam.serviceAccountTokenCreator の付与が必要
+
+gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+  --project="${PROJECT_ID}" --quiet \
+  --role="roles/editor" \
+  --member="serviceAccount:${GITHUB_ACTIONS_SA_EMAIL}"
 
 # Add a policy binding to the Cloud Build as builder and pusher
 echo "Add a policy binding to the Cloud Build as builder and pusher"
