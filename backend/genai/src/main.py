@@ -10,8 +10,9 @@ import weave
 from cloudevents.http import from_http
 from fastapi import FastAPI, Request, Response
 from firebase_admin import auth
-from firebase_admin import firestore as fb_firestore
-from firebase_admin import storage as fb_storage
+
+# from firebase_admin import firestore as fb_firestore
+# from firebase_admin import storage as fb_storage
 from google.cloud import firestore, storage
 from lmnr import Laminar as L
 from lmnr import observe
@@ -51,7 +52,7 @@ gcp_project = None
 firebase_app = None
 # client
 db: firestore.Client | None = None
-storage = None
+storage_client: storage.Client | None = None
 
 
 @asynccontextmanager
@@ -72,8 +73,8 @@ async def lifespan(app: FastAPI):
     firebase_app = firebase_admin.initialize_app(options=options)
     logger.info("Initialized Firebase Admin SDK")
 
-    db = fb_firestore.client(firebase_app)
-    # storage = fb_storage._StorageClient.from_app(firebase_app)
+    db = firestore.Client()  # firebase admin側は使わない
+    storage_client = storage.Client()
 
     yield
 
@@ -114,7 +115,7 @@ async def add_user(request: Request):
         return Response(content="invalid document", status_code=400)
 
     users, user_id = document.split("/")
-    logger.info(f"{event_id}: start adding a user: {user_id}")
+    logger.info(f"{event_id}: start adding collection: {users} in a user: {user_id}")
 
     if not is_valid_uuid(user_id):
         logger.error(f"{event_id}: invalid user_id: {user_id}")
