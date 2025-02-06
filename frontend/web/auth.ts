@@ -4,8 +4,8 @@ import { getAdminAuth } from '@/lib/firebase/admin';
 import { signInSchema } from '@/lib/zod';
 import type { DefaultSession, Session } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
-import { addUser, getUserByUid } from './lib/firestore/client';
-import { User } from './lib/firestore/types';
+import { User } from '@/lib/firestore/types';
+import { addUserAdmin, getUserByUidAdmin } from '@/lib/firestore/admin';
 
 interface ExtendedSession extends Session {
   user: {
@@ -34,13 +34,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           console.info('decoded: ', decoded);
 
           // NOTE: ここでfirebaseのauth uidを使ってユーザーを取得/作成する
-          let userInFirestore: User;
-          userInFirestore = await getUserByUid(decoded.uid);
-          console.info('userInFirestore: ', userInFirestore);
-          if (!userInFirestore) {
+          let userInFirestore: User | null = null;
+          userInFirestore = await getUserByUidAdmin(decoded.uid);
+          if (userInFirestore === null) {
             console.info('User not found, creating user');
-            await addUser(decoded.uid); // adminのfirestoreの方がいい？
-            userInFirestore = await getUserByUid(decoded.uid);
+            await addUserAdmin(decoded.uid);
+            userInFirestore = await getUserByUidAdmin(decoded.uid);
           }
 
           return {

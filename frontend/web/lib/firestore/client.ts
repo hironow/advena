@@ -45,19 +45,6 @@ export const getUserSnapshot = (uid: string, cb: GetUserSnapshotCallback) => {
   return unsubscribe;
 };
 
-export const addUser = async (uid: string): Promise<void> => {
-  try {
-    await setDoc(doc(db, USER_COLLECTION, uid), {
-      uid: uid,
-      createdAt: serverTimestamp(),
-      status: 'creating',
-    });
-    console.info(`[COMMAND] ${USER_COLLECTION} creating`);
-    console.info(`[COMMAND] not yet assigned id`);
-  } catch (error) {
-    console.error('Error adding document: ', error);
-  }
-};
 
 export const getUserByUid = async (uid: string): Promise<User> => {
   const docRef = await getDoc(doc(db, USER_COLLECTION, uid));
