@@ -130,9 +130,10 @@ async def add_user(request: Request):
 
     id = uuid4()
     doc_ref = db.collection(users).document(uid)
-    await doc_ref.update(
+    result = doc_ref.update(
         {"id": id, "uid": uid, "corpusName": rag_corpus.name, "status": "created"}
     )
+    logger.info("result: %s", result)
 
     logger.info(f"{event_id}: finished adding a user for {uid} as {id}")
     return Response(content="finished", status_code=204)

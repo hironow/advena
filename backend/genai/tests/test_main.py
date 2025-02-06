@@ -88,21 +88,21 @@ def patch_generate_content(monkeypatch):
 
 
 # --- Cloud Storage のパッチ ---
-@pytest.fixture(autouse=True)
-def patch_storage(monkeypatch):
-    class DummyBlob:
-        def delete(self):
-            return True
+# @pytest.fixture(autouse=True)
+# def patch_storage(monkeypatch):
+#     class DummyBlob:
+#         def delete(self):
+#             return True
 
-    class DummyBucket:
-        def blob(self, name):
-            return DummyBlob()
+#     class DummyBucket:
+#         def blob(self, name):
+#             return DummyBlob()
 
-    class DummyStorageClient:
-        def bucket(self, bucket_name):
-            return DummyBucket()
+#     class DummyStorageClient:
+#         def bucket(self, bucket_name):
+#             return DummyBucket()
 
-    monkeypatch.setattr(main_module.storage, "Client", lambda: DummyStorageClient())
+#     monkeypatch.setattr(main_module.storage, "Client", lambda: DummyStorageClient())
 
 
 # * tests for endpoints

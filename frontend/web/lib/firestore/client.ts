@@ -45,7 +45,6 @@ export const getUserSnapshot = (uid: string, cb: GetUserSnapshotCallback) => {
   return unsubscribe;
 };
 
-
 export const getUserByUid = async (uid: string): Promise<User> => {
   const docRef = await getDoc(doc(db, USER_COLLECTION, uid));
   return {
