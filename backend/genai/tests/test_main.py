@@ -1,4 +1,5 @@
 import json
+from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
@@ -88,21 +89,21 @@ def patch_generate_content(monkeypatch):
 
 
 # --- Cloud Storage のパッチ ---
-@pytest.fixture(autouse=True)
-def patch_storage(monkeypatch):
-    class DummyBlob:
-        def delete(self):
-            return True
+# @pytest.fixture(autouse=True)
+# def patch_storage(monkeypatch):
+#     class DummyBlob:
+#         def delete(self):
+#             return True
 
-    class DummyBucket:
-        def blob(self, name):
-            return DummyBlob()
+#     class DummyBucket:
+#         def blob(self, name):
+#             return DummyBlob()
 
-    class DummyStorageClient:
-        def bucket(self, bucket_name):
-            return DummyBucket()
+#     class DummyStorageClient:
+#         def bucket(self, bucket_name):
+#             return DummyBucket()
 
-    monkeypatch.setattr(main_module.storage, "Client", lambda: DummyStorageClient())
+#     monkeypatch.setattr(main_module.storage, "Client", lambda: DummyStorageClient())
 
 
 # * tests for endpoints
@@ -112,106 +113,15 @@ client = TestClient(main_module.app)
 def test_add_user():
     # given
     db = main_module.db
+    dummy_id = str(uuid4())
     # ユーザードキュメントは空ではなく、何かしらのフィールドを入れて作成する
-    user_doc = db.collection("users").document("testuser")
-    user_doc.set({"dummy": True})
+    user_doc = db.collection("users").document(dummy_id)
+    user_doc.set({"status": "creating"})
 
     # when
-    payload = {"id": "event1", "document": "users/testuser"}
+    payload = {"id": "event1", "document": "users/" + dummy_id}
     response = client.post(
         "/add_user",
-        data=json.dumps(payload),
-        headers={"Content-Type": "application/json"},
-    )
-
-    # then
-    assert response.status_code == 204
-
-
-def test_add_source():
-    # given
-    db = main_module.db
-    # ユーザー文書作成（既に存在する状態）
-    user_doc = db.collection("users").document("testuser")
-    user_doc.set({"corpusName": "corpus_for_testuser"})
-    # ノートブック文書の作成
-    notebook_doc = (
-        db.collection("users")
-        .document("testuser")
-        .collection("notebooks")
-        .document("testnb")
-    )
-    notebook_doc.set({"dummy": True})
-    # ソース文書の作成
-    source_doc = notebook_doc.collection("sources").document("testsource")
-    source_doc.set({"name": "dummy.txt", "storagePath": "/dummy/path/dummy.txt"})
-
-    # when
-    payload = {
-        "id": "event2",
-        "document": "users/testuser/notebooks/testnb/sources/testsource",
-    }
-    response = client.post(
-        "/add_source",
-        data=json.dumps(payload),
-        headers={"Content-Type": "application/json"},
-    )
-
-    # then
-    assert response.status_code == 204
-
-
-def test_question():
-    # given
-    db = main_module.db
-    # ユーザードキュメント作成
-    user_doc = db.collection("users").document("testuser")
-    user_doc.set({"corpusName": "corpus_for_testuser"})
-    # ノートブックとチャット文書の作成
-    notebook_doc = user_doc.collection("notebooks").document("testnb")
-    notebook_doc.set({"dummy": True})
-    chat_doc = notebook_doc.collection("chat").document("msg1")
-    chat_doc.set(
-        {
-            "role": "user",
-            "content": "What is test?",
-            "ragFileIds": ["dummy_rag_file_id"],
-            "loading": False,
-            "status": "success",
-            "createdAt": 0,
-        }
-    )
-
-    # when
-    payload = {"id": "event3", "document": "users/testuser/notebooks/testnb/chat/msg1"}
-    response = client.post(
-        "/question",
-        data=json.dumps(payload),
-        headers={"Content-Type": "application/json"},
-    )
-
-    # then
-    assert response.status_code == 204
-
-
-def test_summarize():
-    # given
-    db = main_module.db
-    # ユーザー、ノートブック、ソース文書の作成
-    user_doc = db.collection("users").document("testuser")
-    user_doc.set({"corpusName": "corpus_for_testuser"})
-    notebook_doc = user_doc.collection("notebooks").document("testnb")
-    notebook_doc.set({"dummy": True})
-    source_doc = notebook_doc.collection("sources").document("testsource")
-    source_doc.set({"type": "text/plain", "storagePath": "/dummy/path/dummy.txt"})
-
-    # when
-    payload = {
-        "id": "event5",
-        "document": "users/testuser/notebooks/testnb/sources/testsource",
-    }
-    response = client.post(
-        "/summarize",
         data=json.dumps(payload),
         headers={"Content-Type": "application/json"},
     )

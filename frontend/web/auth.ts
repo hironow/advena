@@ -4,6 +4,8 @@ import { getAdminAuth } from '@/lib/firebase/admin';
 import { signInSchema } from '@/lib/zod';
 import type { DefaultSession, Session } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
+import { addUserAdmin, getUserByFirebaseUidAdmin } from '@/lib/firestore/admin';
+import type { User } from '@/lib/firestore/types';
 
 interface ExtendedSession extends Session {
   user: {
@@ -31,16 +33,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           const decoded = await adminAuth.verifyIdToken(idToken);
           console.info('decoded: ', decoded);
 
-          // NOTE: ここでfirebaseのauthを使ってユーザーを取得/作成する
+          // NOTE: ここでfirebaseのauth uidを使ってユーザーを取得/作成する
+          let userInFirestore: User | null = null;
+          userInFirestore = await getUserByFirebaseUidAdmin(decoded.uid);
+          if (userInFirestore === null) {
+            console.info('User not found, creating user');
+            await addUserAdmin(decoded.uid);
+            userInFirestore = await getUserByFirebaseUidAdmin(decoded.uid);
+          }
 
           return {
             ...decoded,
-            id: '42',
+            id: userInFirestore?.id,
             uid: decoded.uid,
           };
         } catch (error) {
           console.error('Error during authorization:', error);
-          throw new Error('Authorization failed');
+          throw new Error('Authorization failed throw error');
         }
       },
     }),

@@ -1,7 +1,6 @@
 import 'server-only';
 
-import { genSaltSync, hashSync } from 'bcrypt-ts';
-// import postgres from 'postgres'; // TODO: replace firebase firestore
+// TODO: replace firebase firestore
 
 import type { User, Suggestion, Message } from './schema';
 import type { BlockKind } from '@/components/block';
@@ -24,9 +23,6 @@ export async function getUser(email: string): Promise<Array<User>> {
 }
 
 export async function createUser(email: string, password: string) {
-  const salt = genSaltSync(10);
-  const hash = hashSync(password, salt);
-
   try {
     console.log('not implemented');
     // return await db.insert(user).values({ email, password: hash });

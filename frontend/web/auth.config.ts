@@ -5,6 +5,7 @@ export const authConfig = {
   pages: {
     signIn: '/login',
     signOut: '/',
+    error: '/status', // TODO: 状態ページを作成する (メンテナンス中含む)
     newUser: '/',
   },
   providers: [
