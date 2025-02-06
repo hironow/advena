@@ -43,7 +43,6 @@ jobs:
           BRANCH_NAME=$(echo "${GITHUB_REF}" | sed 's|refs/heads/||')
           echo "Using branch: ${BRANCH_NAME}"
           gcloud builds submit --region=us-central1 --config=cloudbuild.yaml --substitutions=BRANCH_NAME=$BRANCH_NAME .
-        working-directory: ./frontend/web
         # DO NOT use dotenvx .env.keys for Next.js build on GitHub Actions
     
 

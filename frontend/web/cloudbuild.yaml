@@ -36,7 +36,7 @@ steps:
           npm install -g pnpm@9
 
           echo "==> Changing directory to frontend/web..."
-          ls
+          cd frontend/web
 
           echo "==> Installing dependencies with mise exec..."
           mise exec -- pnpm install
