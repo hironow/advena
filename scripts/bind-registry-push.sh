@@ -78,7 +78,7 @@ gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --member="serviceAccount:${GITHUB_ACTIONS_SA_EMAIL}"
 # debug only: serviceusage.services.use がないとエラーになるので一時的に roles/editor をつけてdebugする
 # see: https://cloud.google.com/logging/docs/audit/configure-data-access
-gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+gcloud projects remove-iam-policy-binding "${PROJECT_ID}" \
   --project="${PROJECT_ID}" --quiet \
   --role="roles/editor" \
   --member="serviceAccount:${GITHUB_ACTIONS_SA_EMAIL}"

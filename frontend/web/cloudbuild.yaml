@@ -41,22 +41,24 @@ steps:
           cd frontend/web
 
           echo "==> Installing dependencies with mise exec..."
-          mise exec -- pnpm install
+          ~/.local/bin/mise exec -- pnpm install
 
           echo "==> Current branch: $BRANCH_NAME"
           if [[ "$BRANCH_NAME" == "develop" ]]; then
               echo "==> Running build for develop"
-              # Secret Manager で注入した値を環境変数に設定
+
               export DOTENV_PRIVATE_KEY_DEV="$$FRONTEND_WEB_DOTENV_PRIVATE_KEY_DEV"
-              mise run fe:build:dev
+              ~/.local/bin/mise run fe:build:dev
+
               echo "==> Running push for develop"
-              mise run fe:push:dev
+              ~/.local/bin/mise run fe:push:dev
           elif [[ "$BRANCH_NAME" == "main" ]]; then
               echo "==> Running build for main"
               export DOTENV_PRIVATE_KEY_PRD="$$FRONTEND_WEB_DOTENV_PRIVATE_KEY_PRD"
-              mise run fe:build:prd
+              ~/.local/bin/mise run fe:build:prd
+
               echo "==> Running push for main"
-              mise run fe:push:prd
+              ~/.local/bin/mise run fe:push:prd
           else
               echo "==> Branch '$BRANCH_NAME' does not trigger build/push."
           fi
