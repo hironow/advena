@@ -1,0 +1,88 @@
+# タイムアウトは 10 分に設定
+timeout: "600s"
+
+# Cloud Build のキャッシュ機能を利用して、.cache/mise ディレクトリを保存・復元する
+caches:
+  - path: .cache/mise
+
+steps:
+  # gcloud CLI を利用した情報表示と Docker push 用認証
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:latest'
+    id: 'gcloud-setup'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+          echo "==> Running gcloud info..."
+          gcloud info
+          echo "==> Configuring Docker for us-central1-docker.pkg.dev..."
+          gcloud auth configure-docker us-central1-docker.pkg.dev
+
+  # Node.js を利用したビルド・デプロイ処理（ブランチによって処理を分岐）
+  - name: 'node:22.13.1'
+    id: 'build-and-deploy-advena-frontend'
+    entrypoint: 'bash'
+    # シークレットをこのステップに注入
+    secretEnv:
+      - _FRONTEND_WEB_DOTENV_PRIVATE_KEY_DEV
+      - _FRONTEND_WEB_DOTENV_PRIVATE_KEY_PRD
+    args:
+      - '-c'
+      - |
+          set -eo pipefail
+
+          echo "==> Restoring mise cache if available..."
+          if [ -d .cache/mise ]; then
+            echo "Cache found. Restoring mise from cache..."
+            cp -r .cache/mise $HOME/.local/share/mise
+          else
+            echo "No cache found for mise."
+          fi
+
+          if [ ! -x "$HOME/.local/share/mise/bin/mise" ]; then
+            echo "==> Installing mise..."
+            curl https://mise.run | sh
+            echo "==> Caching mise installation..."
+            mkdir -p .cache
+            cp -r $HOME/.local/share/mise .cache/mise
+          else
+            echo "==> Using cached mise installation."
+          fi
+
+          # PATH の更新
+          export PATH="$HOME/.local/share/mise/bin:$HOME/.local/share/mise/shims:$PATH"
+
+          echo "==> Installing pnpm (v9)..."
+          npm install -g pnpm@9
+
+          echo "==> Changing directory to frontend/web..."
+          cd frontend/web
+
+          echo "==> Installing dependencies with mise exec..."
+          mise exec -- pnpm install
+
+          echo "==> Current branch: $BRANCH_NAME"
+          if [[ "$BRANCH_NAME" == "develop" ]]; then
+              echo "==> Running build for develop"
+              # Secret Manager で注入した値を環境変数に設定
+              export DOTENV_PRIVATE_KEY_DEV="$_FRONTEND_WEB_DOTENV_PRIVATE_KEY_DEV"
+              mise run fe:build:dev
+              echo "==> Running push for develop"
+              mise run fe:push:dev
+          elif [[ "$BRANCH_NAME" == "main" ]]; then
+              echo "==> Running build for main"
+              export DOTENV_PRIVATE_KEY_PRD="$_FRONTEND_WEB_DOTENV_PRIVATE_KEY_PRD"
+              mise run fe:build:prd
+              echo "==> Running push for main"
+              mise run fe:push:prd
+          else
+              echo "==> Branch '$BRANCH_NAME' does not trigger build/push."
+          fi
+
+availableSecrets:
+  secretManager:
+    # dotenvx .env.keys で管理しているシークレットを取得
+    - versionName: "projects/38358387786/secrets/advena_frontend_DOTENV_PRIVATE_KEY_DEV/latest"
+      env: "_FRONTEND_WEB_DOTENV_PRIVATE_KEY_DEV"
+    - versionName: "projects/38358387786/secrets/advena_frontend_DOTENV_PRIVATE_KEY_PRD/latest"
+      env: "_FRONTEND_WEB_DOTENV_PRIVATE_KEY_PRD"

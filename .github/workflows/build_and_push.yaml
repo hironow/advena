@@ -24,12 +24,6 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - name: Use mise
-        run: |
-          curl https://mise.run | sh
-          echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
-          echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
-
       - uses: 'google-github-actions/auth@v2'
         with:
           # use permissions above
@@ -42,58 +36,16 @@ jobs:
         with:
           version: '>= 363.0.0'
 
-      - name: 'Use gcloud CLI'
-        run: 'gcloud info'
-
-      - name: 'Authorize Docker push'
-        run: gcloud auth configure-docker us-central1-docker.pkg.dev
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22.13.1'
-          cache: 'pnpm'
-          cache-dependency-path: ./frontend/web/pnpm-lock.yaml
-
-      - name: Install dependencies
-        run: mise exec -- pnpm install
-        working-directory: ./frontend/web
-
-      - name: Run build dev
-        if: github.ref == 'refs/heads/develop'
+      - name: Trigger Google Cloud Build
+        if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'
         run: |
-          set -eo pipefail
-          mise run fe:build:dev
+          # GITHUB_REF から "refs/heads/" を除いてブランチ名を抽出する
+          BRANCH_NAME=$(echo "${GITHUB_REF}" | sed 's|refs/heads/||')
+          echo "Using branch: ${BRANCH_NAME}"
+          gcloud builds submit --config=cloudbuild.yaml --substitutions=BRANCH_NAME=$BRANCH_NAME .
         working-directory: ./frontend/web
-        # DO NOT use dotenvx .env.keys for Next.js build
-
-      - name: Run build prd
-        if: github.ref == 'refs/heads/main'
-        run: |
-          set -eo pipefail
-          mise run fe:build:prd
-        working-directory: ./frontend/web
-        # DO NOT use dotenvx .env.keys for Next.js build
-  
-      - name: Run push dev
-        if: github.ref == 'refs/heads/develop'
-        run: |
-          set -eo pipefail
-          mise run fe:push:dev
-        working-directory: ./frontend/web
-  
-      - name: Run push prd
-        if: github.ref == 'refs/heads/main'
-        run: |
-          set -eo pipefail
-          mise run fe:push:prd
-        working-directory: ./frontend/web
-  
+        # DO NOT use dotenvx .env.keys for Next.js build on GitHub Actions
+    
 
   backend:
     runs-on: ubuntu-24.04
