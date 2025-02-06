@@ -51,21 +51,6 @@ export const addUserAdmin = async (firebase_uid: string): Promise<void> => {
       );
       return;
     }
-
-    // すでにユーザーが存在するが created になっていない場合は復旧が必要
-    // フェイルセーフで created にする処理として eventarc が必要なので created_at を更新する
-    const userDoc = userRef.docs[0];
-    const user = userDoc.data() as User;
-    if (user.status === 'creating') {
-      console.info(
-        `[COMMAND] ${USER_COLLECTION} document for id ${user.id} is already creating`,
-      );
-      // create_at を更新
-      tx.update(userDoc.ref, {
-        created_at: utcNow,
-      });
-      return;
-    }
   });
 
   if (useEmulator) {

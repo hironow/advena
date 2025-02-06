@@ -10,10 +10,10 @@ def new_id() -> str:
 def is_valid_uuid(value: str) -> bool:
     """文字列が有効なUUID v4かを判定する"""
     try:
-        u = uuid.UUID(value)
-    except ValueError:
+        uuid.UUID(value, version=4)
+        return True
+    except:
         return False
-    return u.version == 4
 
 
 def get_now() -> datetime:
@@ -25,21 +25,16 @@ def get_now() -> datetime:
 def is_valid_iso_format(value: str) -> bool:
     """ISO 8601 形式の文字列が有効かどうかを判定する"""
     try:
-        # 'Z' を '+00:00' に変換して対応する
-        if value.endswith("Z"):
-            value = value[:-1] + "+00:00"
         datetime.fromisoformat(value)
         return True
-    except ValueError:
+    except:
         return False
 
 
 def get_tz(iso_format: str) -> tzinfo | None:
     """ISO 8601 形式の文字列から tzinfo を取得する
-    末尾が 'Z' の場合は UTC として解釈する
+    NOTE: 末尾が 'Z' の場合は UTC として解釈しない
     """
-    if iso_format.endswith("Z"):
-        iso_format = iso_format[:-1] + "+00:00"
     return datetime.fromisoformat(iso_format).tzinfo
 
 

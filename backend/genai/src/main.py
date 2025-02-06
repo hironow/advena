@@ -110,24 +110,24 @@ async def add_user(request: Request):
     # TODO: 抽象化できていないので、修正が必要
     # document は "users/{userId}" の形式であると想定
     if "/" not in document or document.count("/") != 1:
-        logger.info(f"{event_id}: invalid document: {document}")
+        logger.error(f"{event_id}: invalid document: {document}")
         return Response(content="invalid document", status_code=400)
 
     users, user_id = document.split("/")
     logger.info(f"{event_id}: start adding a user: {user_id}")
 
     if not is_valid_uuid(user_id):
-        logger.info(f"{event_id}: invalid user_id: {user_id}")
+        logger.error(f"{event_id}: invalid user_id: {user_id}")
         return Response(content="invalid user_id", status_code=400)
 
     # firestoreから取得
     user = db.collection(users).document(user_id).get()
     if not user.exists:
-        logger.info(f"{event_id}: user {user_id} is not found")
+        logger.error(f"{event_id}: user {user_id} is not found")
         return Response(content="user not found", status_code=404)
 
     if user.get("status") == "created":
-        logger.info(f"{event_id}: user {user_id} is already created")
+        logger.error(f"{event_id}: user {user_id} is already created")
         return Response(content="user already created", status_code=204)
 
     db.collection(users).document(user_id).update(
