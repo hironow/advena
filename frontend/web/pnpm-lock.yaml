@@ -76,7 +76,7 @@ importers:
         version: 11.2.0
       firebase-admin:
         specifier: ^13.0.2
-        version: 13.0.2
+        version: 13.1.0
       framer-motion:
         specifier: ^12.3.1
         version: 12.3.1(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -2426,8 +2426,8 @@ packages:
       picomatch:
         optional: true
 
-  firebase-admin@13.0.2:
-    resolution: {integrity: sha512-YWVpoN+tZVSRXF0qC0gojoF5bSqvBRbnBk8+xUtFiguM2L4vB7f0moAwV1VVWDDHvTnvQ68OyTMpdp6wKo/clw==}
+  firebase-admin@13.1.0:
+    resolution: {integrity: sha512-XPKiTyPyvUMZ22EPk4M1oSiZ8/4qFeYwjK88o/DYpGtNbOLKrM6Oc9jTaK+P6Vwn3Vr1+OCyLLJ93Bci382UqA==}
     engines: {node: '>=18'}
 
   firebase@11.2.0:
@@ -5916,7 +5916,7 @@ snapshots:
     optionalDependencies:
       picomatch: 4.0.2
 
-  firebase-admin@13.0.2:
+  firebase-admin@13.1.0:
     dependencies:
       '@fastify/busboy': 3.1.1
       '@firebase/database-compat': 2.0.2
