@@ -1,5 +1,6 @@
 import os
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 from uuid import uuid4
 
 import firebase_admin
@@ -102,6 +103,8 @@ async def add_user(request: Request):
     document = event.get("document")
     event_id = event.get("id")
 
+    utc_now = datetime.now(tz=timezone.utc)
+
     logger.info(f"{event_id}: start adding a document: {document}")
     # TODO: 抽象化できていないので、修正が必要
     # document は "users/uid" の形式であると想定
@@ -125,7 +128,7 @@ async def add_user(request: Request):
     db.collection(users).document(user_id).update(
         {
             "status": "created",
-            "updated_at": firestore.SERVER_TIMESTAMP,
+            "updated_at": utc_now,
         }
     )
 
