@@ -42,4 +42,23 @@ for secret in "${secrets[@]}"; do
     --role="roles/secretmanager.secretAccessor"
 done
 
+# その他の role も付与する必要があり、以下を行う
+# - roles/aiplatform.user: genai
+# - roles/storage.objectUser: storage
+# - roles/eventarc.eventReceiver: eventarc
+# - roles/datastore.user: firestore(datastore)
+echo "Grant access to the service account to the other resources"
+gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+  --member="serviceAccount:${USER_SA_OF_SECRET_MANAGER_EMAIL}" \
+  --role="roles/aiplatform.user"
+gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+  --member="serviceAccount:${USER_SA_OF_SECRET_MANAGER_EMAIL}" \
+  --role="roles/storage.objectUser"
+gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+  --member="serviceAccount:${USER_SA_OF_SECRET_MANAGER_EMAIL}" \
+  --role="roles/eventarc.eventReceiver"
+gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+  --member="serviceAccount:${USER_SA_OF_SECRET_MANAGER_EMAIL}" \
+  --role="roles/datastore.user"
+
 echo "⭐️ All done!"

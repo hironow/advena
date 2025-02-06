@@ -51,12 +51,6 @@ gcloud run services add-iam-policy-binding "${GRANT_CLOUD_RUN_SERVICE}" \
   --role="roles/run.invoker" \
   --region="${REGION}" \
   --project="${PROJECT_ID}"
-# Eventarc needs the role to receive events.
-echo "Granting Eventarc Receiver role to Service Account for Cloud Eventarc"
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:${USER_SA_OF_EVENTARC_EMAIL}" \
-  --role='roles/eventarc.eventReceiver' \
-  --project="${PROJECT_ID}"
 
 # Eventarcの設定
 # NOTE: Eventarc用の dead leader を作成。topicのみを作成して、subscriptionは手動で作成する
