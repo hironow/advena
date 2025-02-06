@@ -79,18 +79,14 @@ gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --project="${PROJECT_ID}" --quiet \
   --role="roles/storage.objectCreator" \
   --member="serviceAccount:${GITHUB_ACTIONS_SA_EMAIL}"
-# storage admin が必要であったため、上記の2つを削除してstorage.adminを追加
+# NOTE: storage admin が必要であったため、上記の2つとともに storage.admin を追加すること
 gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --project="${PROJECT_ID}" --quiet \
   --role="roles/storage.admin" \
   --member="serviceAccount:${GITHUB_ACTIONS_SA_EMAIL}"
-# DEBUG ONLY: serviceusage.services.use がないとエラーになるので一時的に roles/editor をつけてdebugする
+
+# DEBUG ONLY: serviceusage.services.use がないとエラーになったら、一時的に roles/editor をつけてdebugすること
 # see: https://cloud.google.com/logging/docs/audit/configure-data-access
-# Compute Engine デフォルトサービスアカウント への roles/iam.serviceAccountUser または roles/iam.serviceAccountTokenCreator の付与が必要
-# gcloud projects remove-iam-policy-binding "${PROJECT_ID}" \
-#   --project="${PROJECT_ID}" --quiet \
-#   --role="roles/editor" \
-#   --member="serviceAccount:${GITHUB_ACTIONS_SA_EMAIL}"
 
 # IMPORTANT: Compute EngineデフォルトSAをGitHub ActionsのSAが「ActAs」（代理実行）する必要があるため、必要なのは iam.serviceAccounts.actAs 権限、すなわち roles/iam.serviceAccountUser の付与
 gcloud iam service-accounts add-iam-policy-binding "${COMPUTE_DEFAULT_SERVICE_ACCOUNT}" \
