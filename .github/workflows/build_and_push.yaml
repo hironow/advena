@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - develop
+  # DO NOT use pull_request_target, use pull_request
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-build
