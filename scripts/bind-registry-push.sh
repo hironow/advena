@@ -44,36 +44,45 @@ echo "PROVIDER_ID: ${PROVIDER_ID}"
 # ex: projects/123456789/locations/global/workloadIdentityPools/github/providers/my-repo
 
 # Add a policy binding to the Artifact Registry repository as direct push from GitHub Actions
+echo "Add a policy binding to the Artifact Registry as direct push"
 gcloud artifacts repositories add-iam-policy-binding "${ARTIFACT_REGISTRY_REPOSITORY}" \
   --location="${ARTIFACT_REGISTRY_LOCATION}" \
-  --project="${PROJECT_ID}" \
+  --project="${PROJECT_ID}" --quiet \
   --role="roles/artifactregistry.writer" \
   --member="principalSet://iam.googleapis.com/${WORKLOAD_IDENTITY_POOL_ID}/attribute.repository/${REPO}"
 
 # Add a policy binding to the Cloud Build as trigger cloud build from GitHub Actions
+echo "Add a policy binding to the Cloud Build as trigger"
 gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --member="principalSet://iam.googleapis.com/${WORKLOAD_IDENTITY_POOL_ID}/attribute.repository/${REPO}" \
-  --role="roles/cloudbuild.builds.editor"
+  --role="roles/cloudbuild.builds.editor" \
+  --project="${PROJECT_ID}" --quiet
 gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --member="principalSet://iam.googleapis.com/${WORKLOAD_IDENTITY_POOL_ID}/attribute.repository/${REPO}" \
-  --role="roles/serviceusage.serviceUsageConsumer"
+  --role="roles/serviceusage.serviceUsageConsumer" \
+  --project="${PROJECT_ID}" --quiet
 
 # Add a policy binding to the Cloud Build as builder and pusher
+echo "Add a policy binding to the Cloud Build as builder and pusher"
 PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format="value(projectNumber)")
 CLOUD_BUILD_DEFAULT_SERVICE_ACCOUNT="${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
 # secret manager access (for Cloud Build)
 gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --member="serviceAccount:${CLOUD_BUILD_DEFAULT_SERVICE_ACCOUNT}" \
-  --role="roles/secretmanager.secretAccessor"
+  --role="roles/secretmanager.secretAccessor" \
+  --project="${PROJECT_ID}" --quiet
 # artifact registry
 gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --member="serviceAccount:${CLOUD_BUILD_DEFAULT_SERVICE_ACCOUNT}" \
-  --role="roles/artifactregistry.writer"
+  --role="roles/artifactregistry.writer" \
+  --project="${PROJECT_ID}" --quiet
 
 
 # Check result
 # artifact registry
 gcloud artifacts repositories get-iam-policy "${ARTIFACT_REGISTRY_REPOSITORY}" --location="${ARTIFACT_REGISTRY_LOCATION}" --format=json --project="${PROJECT_ID}" | jq -r '.bindings[] | select(.role == "roles/artifactregistry.writer")'
+# service usage
+gcloud projects get-iam-policy "${PROJECT_ID}" --format=json | jq -r '.bindings[] | select(.role == "roles/serviceusage.serviceUsageConsumer")'
 # cloud build
 gcloud projects get-iam-policy "${PROJECT_ID}" --format=json | jq -r '.bindings[] | select(.role == "roles/cloudbuild.builds.editor")'
 # secret manager

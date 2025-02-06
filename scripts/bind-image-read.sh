@@ -58,7 +58,7 @@ echo
 echo "【STEP 2】advena-dev プロジェクトの Artifact Registry リポジトリに IAM バインディングを追加します..."
 gcloud artifacts repositories add-iam-policy-binding "${REPO_NAME}" \
   --location="${REPO_LOCATION}" \
-  --project="${DEV_PROJECT}" \
+  --project="${DEV_PROJECT}" --quiet \
   --member="serviceAccount:${PULL_SA_EMAIL}" \
   --role="roles/artifactregistry.reader"
 
