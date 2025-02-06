@@ -54,6 +54,7 @@ gcloud artifacts repositories add-iam-policy-binding "${ARTIFACT_REGISTRY_REPOSI
   --member="principalSet:${WORKLOAD_IDENTITY_PRINCIPAL}"
 
 # Add a policy binding to the Cloud Build as trigger cloud build from GitHub Actions
+# NOTE: needs serviceusage.services.use, storage.buckets.get, storage.buckets.list, storage.objects.create
 echo "Add a policy binding to the Cloud Build as trigger"
 gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --role="roles/cloudbuild.builds.editor" \
@@ -63,6 +64,14 @@ gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --project="${PROJECT_ID}" --quiet \
   --role="roles/serviceusage.serviceUsageConsumer" \
   --member="principalSet:${WORKLOAD_IDENTITY_PRINCIPAL}"  
+gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+  --project="${PROJECT_ID}" --quiet \
+  --role="roles/storage.objectViewer" \
+  --member="principalSet:${WORKLOAD_IDENTITY_PRINCIPAL}"
+gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+  --project="${PROJECT_ID}" --quiet \
+  --role="roles/storage.objectCreator" \
+  --member="principalSet:${WORKLOAD_IDENTITY_PRINCIPAL}"
 
 # Add a policy binding to the Cloud Build as builder and pusher
 echo "Add a policy binding to the Cloud Build as builder and pusher"
@@ -87,6 +96,9 @@ gcloud artifacts repositories get-iam-policy "${ARTIFACT_REGISTRY_REPOSITORY}" -
 gcloud projects get-iam-policy "${PROJECT_ID}" --format=json | jq -r '.bindings[] | select(.role == "roles/serviceusage.serviceUsageConsumer")'
 # cloud build
 gcloud projects get-iam-policy "${PROJECT_ID}" --format=json | jq -r '.bindings[] | select(.role == "roles/cloudbuild.builds.editor")'
+# cloud storage
+gcloud projects get-iam-policy "${PROJECT_ID}" --format=json | jq -r '.bindings[] | select(.role == "roles/storage.objectViewer")'
+gcloud projects get-iam-policy "${PROJECT_ID}" --format=json | jq -r '.bindings[] | select(.role == "roles/storage.objectCreator")'
 # secret manager
 gcloud projects get-iam-policy "${PROJECT_ID}" --format=json | jq -r '.bindings[] | select(.role == "roles/secretmanager.secretAccessor")'
 # artifact registry
