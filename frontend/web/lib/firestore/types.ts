@@ -2,7 +2,7 @@ import type { Timestamp } from 'firebase/firestore';
 
 export type User = {
   id: string; // firestoreのid (uuid)
-  uid: string; // firebase authのuid
+  firebase_uid: string; // firebase authのuid
   createdAt: Timestamp;
   status: 'creating' | 'created';
   corpusName: string;

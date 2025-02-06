@@ -34,8 +34,11 @@ import { type User, USER_COLLECTION } from './types';
 
 type GetUserSnapshotCallback = (user: User) => void;
 
-export const getUserSnapshot = (uid: string, cb: GetUserSnapshotCallback) => {
-  const q = doc(db, USER_COLLECTION, uid);
+export const getUserSnapshot = (
+  userId: string,
+  cb: GetUserSnapshotCallback,
+) => {
+  const q = doc(db, USER_COLLECTION, userId);
   const unsubscribe = onSnapshot(q, (doc) => {
     const user = {
       ...doc.data(),
@@ -45,8 +48,8 @@ export const getUserSnapshot = (uid: string, cb: GetUserSnapshotCallback) => {
   return unsubscribe;
 };
 
-export const getUserByUid = async (uid: string): Promise<User> => {
-  const docRef = await getDoc(doc(db, USER_COLLECTION, uid));
+export const getUserByUid = async (userId: string): Promise<User> => {
+  const docRef = await getDoc(doc(db, USER_COLLECTION, userId));
   return {
     ...docRef.data(),
   } as User;

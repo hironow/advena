@@ -9,7 +9,7 @@ import weave
 from cloudevents.http import from_http
 from fastapi import FastAPI, Request, Response
 from firebase_admin import auth
-from firebase_admin import firestore_async as fb_firestore_async
+from firebase_admin import firestore as fb_firestore
 from firebase_admin import storage as fb_storage
 from google.cloud import firestore, storage
 from lmnr import Laminar as L
@@ -48,7 +48,7 @@ MEANINGFUL_MINIMUM_QUESTION_LENGTH = 7
 gcp_project = None
 firebase_app = None
 # client
-db: firestore.AsyncClient | None = None
+db: firestore.Client | None = None
 storage = None
 
 
@@ -70,7 +70,7 @@ async def lifespan(app: FastAPI):
     firebase_app = firebase_admin.initialize_app(options=options)
     logger.info("Initialized Firebase Admin SDK")
 
-    db = fb_firestore_async.client(firebase_app)
+    db = fb_firestore.client(firebase_app)
     # storage = fb_storage._StorageClient.from_app(firebase_app)
 
     yield
@@ -113,29 +113,30 @@ async def add_user(request: Request):
     logger.info(f"event: {event}")
     document = event.get("document")
     event_id = event.get("id")
-    logger.info(f"{event_id}: start adding a user: {document}")
 
+    logger.info(f"{event_id}: start adding a document: {document}")
+    # TODO: 抽象化できていないので、修正が必要
     # document は "users/uid" の形式であると想定
-    users, uid = document.split("/")
-    logger.info(f"{event_id}: start adding a user: {uid}")
+    if "/" not in document or document.count("/") != 1:
+        logger.info(f"{event_id}: invalid document: {document}")
+        return Response(content="invalid document", status_code=400)
 
-    # RAG engine
-    embedding_model_config = rag.EmbeddingModelConfig(publisher_model=PUBLISHER_MODEL)
-    logger.info(f"{event_id}: start creating a rag corpus for a user: {uid}")
-    rag_corpus = rag.create_corpus(
-        display_name=uid,
-        embedding_model_config=embedding_model_config,
-    )
-    logger.info(f"{event_id}: finished creating a rag corpus for a user: {uid}")
+    users, user_id = document.split("/")
+    logger.info(f"{event_id}: start adding a user: {user_id}")
 
-    id = uuid4()
-    doc_ref = db.collection(users).document(uid)
-    result = doc_ref.update(
-        {"id": id, "uid": uid, "corpusName": rag_corpus.name, "status": "created"}
-    )
-    logger.info("result: %s", result)
+    # firestoreから取得
+    user = db.collection(users).document(user_id).get()
+    if not user.exists:
+        logger.info(f"{event_id}: user {user_id} is not found")
+        return Response(content="user not found", status_code=404)
 
-    logger.info(f"{event_id}: finished adding a user for {uid} as {id}")
+    if user.get("status") == "created":
+        logger.info(f"{event_id}: user {user_id} is already created")
+        return Response(content="user already created", status_code=204)
+
+    db.collection(users).document(user_id).update({"status": "created"})
+
+    logger.info(f"{event_id}: finished adding a user for {user_id} as created")
     return Response(content="finished", status_code=204)
 
 

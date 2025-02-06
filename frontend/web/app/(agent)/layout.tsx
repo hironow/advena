@@ -1,21 +1,38 @@
+'use client';
+
 import { AppSidebar } from '@/components/app-sidebar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 
 import Script from 'next/script';
 import { AudioProvider } from '@/components/visualizer/audio-context-provider';
-import { auth } from '@/auth';
+import { useSession } from 'next-auth/react';
+import { useEffect } from 'react';
+import { useAtom, useSetAtom } from 'jotai';
+import { userAtom } from '@/lib/state';
+import { getUserSnapshot } from '@/lib/firestore/client';
 
-export const experimental_ppr = true;
-
-export default async function Layout({
+export default function Layout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
-  console.info('agent layout session: ', session);
+  const { data: session, status } = useSession();
+  const userId = session?.user?.id;
 
-  const user = session?.user;
+  const [user, setUser] = useAtom(userAtom);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const unsubscribeUser = getUserSnapshot(userId, (data) => {
+      console.log('[snapshot] user', data);
+      setUser(data);
+    });
+
+    return () => {
+      unsubscribeUser();
+    };
+  }, [userId]);
 
   // TODO: Implement cookieStore
   const isCollapsed = false; // cookieStore.get('sidebar:state')?.value !== 'true';
@@ -28,7 +45,7 @@ export default async function Layout({
       />
       <AudioProvider>
         <SidebarProvider defaultOpen={!isCollapsed}>
-          <AppSidebar user={user} />
+          <AppSidebar user={user || undefined} />
           <SidebarInset>{children}</SidebarInset>
         </SidebarProvider>
       </AudioProvider>
