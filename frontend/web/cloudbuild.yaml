@@ -15,7 +15,7 @@ steps:
           gcloud auth configure-docker us-central1-docker.pkg.dev
 
   # Node.js を利用したビルド・デプロイ処理（ブランチによって処理を分岐）
-  - name: 'node:22.13.1'
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:latest'
     id: 'build-and-deploy-advena-frontend'
     entrypoint: 'bash'
     # シークレットをこのステップに注入
@@ -26,6 +26,11 @@ steps:
       - '-c'
       - |
           set -eo pipefail
+
+          echo "==> Installing Node.js and dependencies..."
+          apt-get update && apt-get install -y curl
+          curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+          apt-get install -y nodejs
 
           echo "==> Installing mise..."
           curl https://mise.run | sh
