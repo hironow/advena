@@ -70,8 +70,7 @@ jobs:
           set -eo pipefail
           mise run fe:build:dev
         working-directory: ./frontend/web
-        env: # use dotenvx .env.keys for Next.js build
-          DOTENV_PRIVATE_KEY_DEV: ${{ secrets.FRONTEND_WEB_DOTENV_PRIVATE_KEY_DEV }}
+        # DO NOT use dotenvx .env.keys for Next.js build
 
       - name: Run build prd
         if: github.ref == 'refs/heads/main'
@@ -79,8 +78,7 @@ jobs:
           set -eo pipefail
           mise run fe:build:prd
         working-directory: ./frontend/web
-        env: # use dotenvx .env.keys for Next.js build
-          DOTENV_PRIVATE_KEY_PRD: ${{ secrets.FRONTEND_WEB_DOTENV_PRIVATE_KEY_PRD }}
+        # DO NOT use dotenvx .env.keys for Next.js build
   
       - name: Run push dev
         if: github.ref == 'refs/heads/develop'
