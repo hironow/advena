@@ -108,7 +108,7 @@ async def add_user(request: Request):
 
     logger.info(f"{event_id}: start adding a document: {document}")
     # TODO: 抽象化できていないので、修正が必要
-    # document は "users/uid" の形式であると想定
+    # document は "users/{userId}" の形式であると想定
     if "/" not in document or document.count("/") != 1:
         logger.info(f"{event_id}: invalid document: {document}")
         return Response(content="invalid document", status_code=400)
