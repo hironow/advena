@@ -44,7 +44,7 @@ jobs:
           echo "Using branch: ${BRANCH_NAME}"
           gcloud builds submit --region=us-central1 --config=frontend/web/cloudbuild.yaml --substitutions=BRANCH_NAME=$BRANCH_NAME .
         # DO NOT use dotenvx .env.keys for Next.js build on GitHub Actions
-    
+
 
   backend:
     runs-on: ubuntu-24.04

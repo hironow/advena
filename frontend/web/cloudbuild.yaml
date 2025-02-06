@@ -29,11 +29,13 @@ steps:
 
           echo "==> Installing mise..."
           curl https://mise.run | sh
-          # PATH の更新
-          export PATH="$$HOME/.local/share/mise/bin:$$HOME/.local/share/mise/shims:$$PATH"
+          echo "mise version:"
+          ~/.local/bin/mise --version
 
           echo "==> Installing pnpm (v9)..."
           npm install -g pnpm@9
+          echo "pnpm version:"
+          pnpm --version
 
           echo "==> Changing directory to frontend/web..."
           cd frontend/web
