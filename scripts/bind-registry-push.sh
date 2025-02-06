@@ -50,8 +50,16 @@ gcloud artifacts repositories add-iam-policy-binding "${ARTIFACT_REGISTRY_REPOSI
   --role="roles/artifactregistry.writer" \
   --member="principalSet://iam.googleapis.com/${WORKLOAD_IDENTITY_POOL_ID}/attribute.repository/${REPO}"
 
-# Check result
-gcloud artifacts repositories get-iam-policy "${ARTIFACT_REGISTRY_REPOSITORY}" --location="${ARTIFACT_REGISTRY_LOCATION}" --format=json --project="${PROJECT_ID}" | jq -r '.bindings[] | select(.role == "roles/artifactregistry.writer")'
+# Add a policy binding to the Cloud Build Editor
+gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+  --member="principalSet://iam.googleapis.com/${WORKLOAD_IDENTITY_POOL_ID}/attribute.repository/${REPO}" \
+  --role="roles/cloudbuild.builds.editor"
 
+
+# Check result
+# artifact registry
+gcloud artifacts repositories get-iam-policy "${ARTIFACT_REGISTRY_REPOSITORY}" --location="${ARTIFACT_REGISTRY_LOCATION}" --format=json --project="${PROJECT_ID}" | jq -r '.bindings[] | select(.role == "roles/artifactregistry.writer")'
+# cloud build
+gcloud projects get-iam-policy "${PROJECT_ID}" --format=json | jq -r '.bindings[] | select(.role == "roles/cloudbuild.builds.editor")'
 
 echo "⭐️ All done!"
