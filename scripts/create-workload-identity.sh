@@ -5,14 +5,21 @@ set -euo pipefail
 # see: https://github.com/google-github-actions/auth?tab=readme-ov-file#preferred-direct-workload-identity-federation
 export REPO="hironow/advena"   # リポジトリ名 (owner/repo 形式)
 export PROJECT_ID="advena-dev" # GCPプロジェクトID
+export GITHUB_ACTIONS_SA="github-actions-on-advena"
 
 echo "=== Settings ==="
 echo "REPO:        $REPO"
 echo "PROJECT_ID:  $PROJECT_ID"
+echo "GITHUB_ACTIONS_SA: $GITHUB_ACTIONS_SA"
 echo "================"
 
 # Enable the IAM Credentials API
 gcloud services enable iamcredentials.googleapis.com --project "${PROJECT_ID}"
+
+# 紐付け用のservice accountを作成
+gcloud iam service-accounts create "${GITHUB_ACTIONS_SA}" \
+  --project="${PROJECT_ID}" \
+  --display-name="GitHub Actions Service Account for advena"
 
 # Create a (Workload Identity) Pool
 gcloud iam workload-identity-pools create "github" \
@@ -49,5 +56,11 @@ PROVIDER_ID=$(
 )
 echo "PROVIDER_ID: ${PROVIDER_ID}"
 # ex: projects/123456789/locations/global/workloadIdentityPools/github/providers/my-repo
+
+# Bind the service account to the Workload Identity Pool
+gcloud iam service-accounts add-iam-policy-binding "${GITHUB_ACTIONS_SA}@${PROJECT_ID}.iam.gserviceaccount.com" \
+  --project="${PROJECT_ID}" \
+  --role="roles/iam.workloadIdentityUser" \
+  --member="principalSet://iam.googleapis.com/${WORKLOAD_IDENTITY_POOL_ID}/attribute.repository/${REPO}"
 
 echo "⭐️ All done!"

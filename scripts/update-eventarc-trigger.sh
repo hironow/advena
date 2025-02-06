@@ -29,6 +29,7 @@ gcloud pubsub subscriptions update "${SUBSCRIPTION}" \
 # Grant roles
 gcloud pubsub subscriptions add-iam-policy-binding "${SUBSCRIPTION}" \
   --member="serviceAccount:${PUBSUB_DEFAULT_SERVICE_ACCOUNT}" \
-  --role="roles/pubsub.subscriber"
+  --role="roles/pubsub.subscriber" \
+  --project="${PROJECT_ID}" --quiet
 
 echo "⭐️ ${SUBSCRIPTION} is updated!"
