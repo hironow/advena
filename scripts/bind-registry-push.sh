@@ -43,18 +43,22 @@ PROVIDER_ID=$(
 echo "PROVIDER_ID: ${PROVIDER_ID}"
 # ex: projects/123456789/locations/global/workloadIdentityPools/github/providers/my-repo
 
-# Add a policy binding to the Artifact Registry repository
+# Add a policy binding to the Artifact Registry repository as direct push from GitHub Actions
 gcloud artifacts repositories add-iam-policy-binding "${ARTIFACT_REGISTRY_REPOSITORY}" \
   --location="${ARTIFACT_REGISTRY_LOCATION}" \
   --project="${PROJECT_ID}" \
   --role="roles/artifactregistry.writer" \
   --member="principalSet://iam.googleapis.com/${WORKLOAD_IDENTITY_POOL_ID}/attribute.repository/${REPO}"
 
-# Add a policy binding to the Cloud Build as trigger
+# Add a policy binding to the Cloud Build as trigger cloud build from GitHub Actions
 gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --member="principalSet://iam.googleapis.com/${WORKLOAD_IDENTITY_POOL_ID}/attribute.repository/${REPO}" \
   --role="roles/cloudbuild.builds.editor"
-# Add a policy binding to the Cloud Build as builder
+gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+  --member="principalSet://iam.googleapis.com/${WORKLOAD_IDENTITY_POOL_ID}/attribute.repository/${REPO}" \
+  --role="roles/serviceusage.serviceUsageConsumer"
+
+# Add a policy binding to the Cloud Build as builder and pusher
 PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format="value(projectNumber)")
 CLOUD_BUILD_DEFAULT_SERVICE_ACCOUNT="${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
 # secret manager access (for Cloud Build)
