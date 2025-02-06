@@ -35,12 +35,13 @@ export const addUserAdmin = async (firebase_uid: string): Promise<void> => {
     );
     if (userRef.empty) {
       const newUserRef = adminDb.collection(USER_COLLECTION).doc(newUserId);
-      tx.set(newUserRef, {
+      const newUser: User = {
         id: newUserId,
         firebase_uid: firebase_uid,
-        created_at: FieldValue.serverTimestamp(),
+        created_at: FieldValue.serverTimestamp(), // firestore Timestamp 型
         status: 'creating',
-      });
+      };
+      tx.set(newUserRef, newUser);
       console.info(
         `[COMMAND] ${USER_COLLECTION} document for id ${newUserId} created with status 'creating'`,
       );
@@ -49,13 +50,12 @@ export const addUserAdmin = async (firebase_uid: string): Promise<void> => {
 
   if (useEmulator) {
     // 送信データ（ここでは id のみを JSON 化）
-    const data = { id: newUserId, firebase_uid: firebase_uid };
-    const data_base64 = Buffer.from(JSON.stringify(data)).toString('base64');
-
+    const data = { id: newUserId };
+    const dataBase64 = Buffer.from(JSON.stringify(data)).toString('base64');
     const eventBody = createCloudEventBody(
       USER_COLLECTION,
       newUserId,
-      data_base64,
+      dataBase64,
     );
     await sendCloudEvent(EVENTARC_ENDPOINT_ADD_USER, eventBody);
   }
