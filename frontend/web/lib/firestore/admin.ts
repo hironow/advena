@@ -27,6 +27,10 @@ export const addUserAdmin = async (firebase_uid: string): Promise<void> => {
 
   // tx付きでfirebase_uid に該当するユーザを探し、なければ作成
   await adminDb.runTransaction(async (tx) => {
+    const utcNow = Timestamp.fromDate(
+      new Date(new Date().toUTCString()),
+    ) as unknown as string;
+
     const userRef = await tx.get(
       adminDb
         .collection(USER_COLLECTION)
@@ -34,9 +38,6 @@ export const addUserAdmin = async (firebase_uid: string): Promise<void> => {
         .limit(1),
     );
     if (userRef.empty) {
-      const utcNow = Timestamp.fromDate(
-        new Date(new Date().toUTCString()),
-      ) as unknown as string;
       const newUserRef = adminDb.collection(USER_COLLECTION).doc(newUserId);
       const newUser: User = {
         id: newUserId,
@@ -48,6 +49,22 @@ export const addUserAdmin = async (firebase_uid: string): Promise<void> => {
       console.info(
         `[COMMAND] ${USER_COLLECTION} document for id ${newUserId} created with status 'creating'`,
       );
+      return;
+    }
+
+    // すでにユーザーが存在するが created になっていない場合は復旧が必要
+    // フェイルセーフで created にする処理として eventarc が必要なので created_at を更新する
+    const userDoc = userRef.docs[0];
+    const user = userDoc.data() as User;
+    if (user.status === 'creating') {
+      console.info(
+        `[COMMAND] ${USER_COLLECTION} document for id ${user.id} is already creating`,
+      );
+      // create_at を更新
+      tx.update(userDoc.ref, {
+        created_at: utcNow,
+      });
+      return;
     }
   });
 
