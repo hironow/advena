@@ -43,11 +43,15 @@ for secret in "${secrets[@]}"; do
 done
 
 # その他の role も付与する必要があり、以下を行う
+# backend:
 # - roles/aiplatform.user: genai
 # - roles/storage.objectUser: storage
 # - roles/eventarc.eventReceiver: eventarc
 # - roles/datastore.user: firestore(datastore)
-echo "Grant access to the service account to the other resources"
+# frontend:
+# - roles/firebaseauth.admin: firebaseauth
+# - roles/iam.serviceAccountTokenCreator: pubsub
+echo "Grant access to the Cloud Run service account to the other resources"
 gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --member="serviceAccount:${USER_SA_OF_SECRET_MANAGER_EMAIL}" \
   --role="roles/aiplatform.user"
@@ -60,5 +64,18 @@ gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
 gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --member="serviceAccount:${USER_SA_OF_SECRET_MANAGER_EMAIL}" \
   --role="roles/datastore.user"
+gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+  --member="serviceAccount:${USER_SA_OF_SECRET_MANAGER_EMAIL}" \
+  --role="roles/firebaseauth.admin"
+gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+  --member="serviceAccount:${USER_SA_OF_SECRET_MANAGER_EMAIL}" \
+  --role="roles/iam.serviceAccountTokenCreator"
+
+# 付与されているrolesを確認
+echo "Check the roles granted to the Cloud Run service account"
+gcloud projects get-iam-policy "${PROJECT_ID}" \
+  --flatten="bindings[].members" \
+  --format="table(bindings.role)" \
+  --filter="bindings.members:${USER_SA_OF_SECRET_MANAGER_EMAIL}"
 
 echo "⭐️ All done!"
