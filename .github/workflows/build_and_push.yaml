@@ -37,7 +37,6 @@ jobs:
           version: '>= 363.0.0'
 
       - name: Trigger Google Cloud Build
-        if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'
         run: |
           # GITHUB_REF から "refs/heads/" を除いてブランチ名を抽出する
           BRANCH_NAME=$(echo "${GITHUB_REF}" | sed 's|refs/heads/||')
