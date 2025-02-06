@@ -45,7 +45,7 @@ PROVIDER_ID=$(
 echo "PROVIDER_ID: ${PROVIDER_ID}"
 # ex: projects/123456789/locations/global/workloadIdentityPools/github/providers/my-repo
 
-# service accountへ紐付けたのでコメントアウト。 principalSet の設定はしない
+# service accountへ紐付けたのでコメントアウト。 principalSet の設定はしない FIXME: debug後、principalSetでも動くか確認
 # WORKLOAD_IDENTITY_PRINCIPAL="//iam.googleapis.com/${WORKLOAD_IDENTITY_POOL_ID}/attribute.repository/${REPO}"
 GITHUB_ACTIONS_SA_EMAIL="${GITHUB_ACTIONS_SA}@${PROJECT_ID}.iam.gserviceaccount.com"
 
@@ -76,9 +76,9 @@ gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --project="${PROJECT_ID}" --quiet \
   --role="roles/storage.objectCreator" \
   --member="serviceAccount:${GITHUB_ACTIONS_SA_EMAIL}"
-# debug only: serviceusage.services.use がないとエラーになるので一時的に roles/editor をつけてdebugする
+# DEBUG ONLY: serviceusage.services.use がないとエラーになるので一時的に roles/editor をつけてdebugする
 # see: https://cloud.google.com/logging/docs/audit/configure-data-access
-gcloud projects remove-iam-policy-binding "${PROJECT_ID}" \
+gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --project="${PROJECT_ID}" --quiet \
   --role="roles/editor" \
   --member="serviceAccount:${GITHUB_ACTIONS_SA_EMAIL}"
