@@ -94,6 +94,26 @@ env.CI = "false"
 run = "dotenvx run -- uv run python -m src.main"
 dir = "backend/genai/"
 
+[tasks."be:gen"]
+run = """
+#!/usr/bin/env bash
+set -e
+
+ENTITY_DIR=./src/event_sourcing/entity
+GENERATED_DIR=../../frontend/web/lib/firestore/generated
+
+echo "Start generating TypeScript files..."
+# collection
+PYTHONPATH=$(pwd) uv run pydantic2ts --module ${ENTITY_DIR}/user.py --output ${GENERATED_DIR}/entity_user.ts
+PYTHONPATH=$(pwd) uv run pydantic2ts --module ${ENTITY_DIR}/radio_show.py --output ${GENERATED_DIR}/entity_radio_show.ts
+
+# sub collection
+PYTHONPATH=$(pwd) uv run pydantic2ts --module ${ENTITY_DIR}/user_keyword.py --output ${GENERATED_DIR}/entity_user_keyword.ts --exclude User  --exclude UserId
+
+echo "🎉 Generated TypeScript files"
+"""
+dir = "backend/genai/"
+
 [tasks."be:dev"]
 run = "dotenvx run -- uv run python -m uvicorn src.main:app --reload"
 dir = "backend/genai/"
