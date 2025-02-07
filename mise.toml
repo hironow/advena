@@ -95,12 +95,15 @@ run = "dotenvx run -- uv run python -m src.main"
 dir = "backend/genai/"
 
 [tasks."be:gen"]
+description = "Generate TypeScript files from Pydantic models"
 run = """
 #!/usr/bin/env bash
 set -e
 
 ENTITY_DIR=./src/event_sourcing/entity
 GENERATED_DIR=../../frontend/web/lib/firestore/generated
+echo "Python entity: ${ENTITY_DIR}"
+echo "TypeScript generated: ${GENERATED_DIR}"
 
 echo "Start generating TypeScript files..."
 # collection

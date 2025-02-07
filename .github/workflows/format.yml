@@ -87,3 +87,14 @@ jobs:
         if: failure()
         run: git diff
         working-directory: ./backend/genai
+
+      - name: Run gen
+        run: |
+          mise run be:gen
+          git diff --exit-code
+        working-directory: ./backend/genai
+
+      - name: Show gen diff on failure
+        if: failure()
+        run: git diff
+        working-directory: ./backend/genai
