@@ -69,7 +69,7 @@ jobs:
           set -eo pipefail
           mise run fe:build:dev
         working-directory: ./frontend/web
-        env: # use dotenvx .env.keys for Next.js build
+        env: # use dotenvx .env.keys for Next.js build with protected github option (allow hironow, and select non-hironow, actions and reusable workflows)
           DOTENV_PRIVATE_KEY_DEV: ${{ secrets.FRONTEND_WEB_DOTENV_PRIVATE_KEY_DEV }}
 
       - name: Run build prd
@@ -78,7 +78,7 @@ jobs:
           set -eo pipefail
           mise run fe:build:prd
         working-directory: ./frontend/web
-        env: # use dotenvx .env.keys for Next.js build
+        env: # use dotenvx .env.keys for Next.js build with protected github option
           DOTENV_PRIVATE_KEY_PRD: ${{ secrets.FRONTEND_WEB_DOTENV_PRIVATE_KEY_PRD }}
   
       - name: Run push dev
