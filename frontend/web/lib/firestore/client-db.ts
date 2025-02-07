@@ -23,12 +23,9 @@ import {
   updateDoc,
   where,
 } from 'firebase/firestore';
-import {
-  RADIO_SHOW_COLLECTION,
-  type RadioShow,
-  type User,
-  USER_COLLECTION,
-} from './types';
+import { RADIO_SHOW_COLLECTION, USER_COLLECTION } from './types';
+import type { User } from './generated/entity_user';
+import type { RadioShow } from './generated/entity_radio_show';
 
 // Status: firestoreのdocumentの状態を表す
 // -ingは「command」として、-edは「event」として使われ、eventarcを通して backend に通知される

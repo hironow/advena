@@ -8,7 +8,7 @@ import {
   addUserAdmin,
   getUserByFirebaseUidAdmin,
 } from '@/lib/firestore/admin-db';
-import type { User } from '@/lib/firestore/types';
+import type { User } from '@/lib/firestore/generated/entity_user';
 
 interface ExtendedSession extends Session {
   user: {

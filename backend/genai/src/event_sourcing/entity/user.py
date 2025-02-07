@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Callable, Literal, Optional
+from typing import Any, Callable, Literal
 
 from google.api_core.exceptions import GoogleAPICallError, NotFound
 from google.cloud.firestore import (

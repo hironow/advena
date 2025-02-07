@@ -5,7 +5,8 @@ import 'server-only';
 import { Timestamp, FieldValue } from 'firebase-admin/firestore';
 
 import { getAdminDb, useEmulator } from '../firebase/admin';
-import { type User, USER_COLLECTION } from './types';
+import { USER_COLLECTION } from './types';
+import type { User } from './generated/entity_user';
 import { randomUUID } from 'node:crypto';
 import {
   createCloudEventBody,
@@ -40,6 +41,7 @@ export const addUserAdmin = async (firebase_uid: string): Promise<void> => {
     if (userRef.empty) {
       const newUserRef = adminDb.collection(USER_COLLECTION).doc(newUserId);
       const newUser: User = {
+        version: 0,
         id: newUserId,
         firebase_uid: firebase_uid,
         created_at: utcNow,

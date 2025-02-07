@@ -1,5 +1,4 @@
 from datetime import datetime
-from re import U
 from typing import Any, Callable
 
 from google.api_core.exceptions import GoogleAPICallError, NotFound
