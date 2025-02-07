@@ -17,8 +17,14 @@ g = "gcloud config configurations activate advena-dev"
 
 # firebase tasks
 [tasks."f"]
-description = "Use Firebase default project"
+description = "Use Firebase default project for development"
 run = "firebase use default"
+dir = "frontend/web/"
+hide = true
+
+[tasks."f:prd"]
+description = "Use Firebase default project for production"
+run = "firebase use production"
 dir = "frontend/web/"
 hide = true
 
@@ -30,10 +36,16 @@ dir = "frontend/web/"
 # NOTE: Emulators must be started with the same project name
 # Emulatorを利用する部分とGoogle Cloud環境を利用する部分があるため
 
-[tasks."f:deploy"]
-description = "Deploy to Firebase Suite"
+[tasks."f:deploy:dev"]
+description = "Deploy to Firebase Suite (mainly firestore.rules, firestore.indexes.json, storage.rules) for development"
 run = "firebase deploy"
 depends = ["f"]
+dir = "frontend/web/"
+
+[tasks."f:deploy:prd"]
+description = "Deploy to Firebase Suite (mainly firestore.rules, firestore.indexes.json, storage.rules) for production"
+run = "firebase deploy"
+depends = ["f:prd"]
 dir = "frontend/web/"
 
 [tasks."f:deploy_cors"]
@@ -57,7 +69,7 @@ run = "gcloud auth application-default login"
 
 [tasks."g:create_repo"]
 description = "Create a repository in Google Cloud Artifact Registry (only once)"
-depends = ["g"]
+depends = ["g"]  # prdはdevのartifact registryを利用するため外さない
 run = """
 gcloud artifacts repositories create {{vars.ARTIFACT_REGISTRY_REPOSITORY}} \
     --repository-format=docker \
@@ -96,12 +108,8 @@ dir = "backend/genai/"
 
 [tasks."be:test"]
 env.GOOGLE_CLOUD_PROJECT = "test-project"
-env.GOOGLE_CLOUD_LOCATION = "us-central1"
+env.CI = "true"
 run = "uv run pytest --log-cli-level=INFO"
-dir = "backend/genai/"
-
-[tasks."be:lint"]
-run = "echo 'TODO'"
 dir = "backend/genai/"
 
 [tasks."be:build:dev"]
@@ -184,10 +192,6 @@ dir = "frontend/web/"
 
 [tasks."fe:test"]
 run = "pnpm run test"
-dir = "frontend/web/"
-
-[tasks."fe:lint"]
-run = "pnpm run lint"
 dir = "frontend/web/"
 
 [tasks."fe:build:dev"]

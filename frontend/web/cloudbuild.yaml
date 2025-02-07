@@ -1,0 +1,78 @@
+# タイムアウトは 10 分に設定
+timeout: "600s"
+
+steps:
+  # gcloud CLI を利用した情報表示と Docker push 用認証
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:latest'
+    id: 'gcloud-setup'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+          echo "==> Running gcloud info..."
+          gcloud info
+          echo "==> Configuring Docker for us-central1-docker.pkg.dev..."
+          gcloud auth configure-docker us-central1-docker.pkg.dev
+
+  # Node.js を利用したビルド・デプロイ処理（ブランチによって処理を分岐）
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:latest'
+    id: 'build-and-deploy-advena-frontend'
+    entrypoint: 'bash'
+    # シークレットをこのステップに注入
+    secretEnv:
+      - FRONTEND_WEB_DOTENV_PRIVATE_KEY_DEV
+      - FRONTEND_WEB_DOTENV_PRIVATE_KEY_PRD
+    args:
+      - '-c'
+      - |
+          set -eo pipefail
+
+          echo "==> Installing Node.js and dependencies..."
+          apt-get update && apt-get install -y curl
+          curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+          apt-get install -y nodejs
+
+          echo "==> Installing mise..."
+          curl https://mise.run | sh
+          echo "mise version:"
+          ~/.local/bin/mise --version
+
+          echo "==> Installing pnpm (v9)..."
+          npm install -g pnpm@9
+          echo "pnpm version:"
+          pnpm --version
+
+          echo "==> Changing directory to frontend/web..."
+          cd frontend/web
+
+          echo "==> Installing dependencies with mise exec..."
+          ~/.local/bin/mise exec -- pnpm install
+
+          echo "==> Current branch: $BRANCH_NAME"
+          if [[ "$BRANCH_NAME" == "develop" ]]; then
+              echo "==> Running build for develop"
+
+              export DOTENV_PRIVATE_KEY_DEV="$$FRONTEND_WEB_DOTENV_PRIVATE_KEY_DEV"
+              ~/.local/bin/mise run fe:build:dev
+
+              echo "==> Running push for develop"
+              ~/.local/bin/mise run fe:push:dev
+          elif [[ "$BRANCH_NAME" == "main" ]]; then
+              echo "==> Running build for main"
+              export DOTENV_PRIVATE_KEY_PRD="$$FRONTEND_WEB_DOTENV_PRIVATE_KEY_PRD"
+              ~/.local/bin/mise run fe:build:prd
+
+              echo "==> Running push for main"
+              ~/.local/bin/mise run fe:push:prd
+          else
+              echo "==> Branch '$BRANCH_NAME' does not trigger build/push."
+          fi
+
+availableSecrets:  # TODO; docker pushでtagの問題でこけている
+  secretManager:
+    # dotenvx .env.keys で管理しているシークレットを取得
+    # projects/YOUR_PROJECT_ID/secrets/YOUR_SECRET_NAME/versions/latest
+    - versionName: "projects/38358387786/secrets/advena_frontend_DOTENV_PRIVATE_KEY_DEV/versions/latest"
+      env: "FRONTEND_WEB_DOTENV_PRIVATE_KEY_DEV"
+    - versionName: "projects/38358387786/secrets/advena_frontend_DOTENV_PRIVATE_KEY_PRD/versions/latest"
+      env: "FRONTEND_WEB_DOTENV_PRIVATE_KEY_PRD"

@@ -6,8 +6,32 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    match /{document=**} {
-      allow read, write: if false;
+    match /users/{userId} {
+      // 自分のユーザー情報のみ読み込み可能
+      allow read: if isSignedIn() && resource.data.firebase_uid == request.auth.uid;
+      allow write: if false;
+
+      function userDate() {
+        return get(/databases/$(database)/documents/users/$(userId)).data
+      }
+
+      match /chats/{chatId} {
+        // 自分のチャット情報のみ読み込み可能
+        allow read: if isSignedIn() && userDate().firebase_uid == request.auth.uid;
+        allow write: if false;
+      }
+
+      match /likes/{likeId} {
+        // 自分のライク情報のみ読み込み可能
+        allow read: if isSignedIn() && userDate().firebase_uid == request.auth.uid;
+        allow write: if false;
+      }
+    }
+
+    match /public_chats/{publicChatId} {
+      // 公開チャットは全ユーザーが読み込み可能
+      allow read: if isSignedIn();
+      allow write: if false;
     }
   }
 }

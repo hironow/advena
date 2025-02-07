@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - develop
+  # DO NOT use pull_request_target, use pull_request
   pull_request:
     branches:
       - main
@@ -26,17 +27,15 @@ jobs:
           echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
           echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: '22.13.1'
-          cache: 'pnpm'
+          cache: 'npm'
           cache-dependency-path: ./frontend/web/pnpm-lock.yaml
+
+      - name: Install pnpm
+        run: npm install -g pnpm
 
       - name: Install dependencies
         run: mise exec -- pnpm install
@@ -67,6 +66,7 @@ jobs:
           # use permissions above
           project_id: 'advena-dev'
           workload_identity_provider: 'projects/38358387786/locations/global/workloadIdentityPools/github/providers/my-repo'
+          service_account: 'github-actions-on-advena@advena-dev.iam.gserviceaccount.com'
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5

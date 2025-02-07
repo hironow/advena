@@ -37,6 +37,12 @@ gcloud run services add-iam-policy-binding "${GRANT_CLOUD_RUN_SERVICE}" \
   --member="serviceAccount:${USER_SA_OF_SCHEDULER_EMAIL}" \
   --role="roles/run.invoker" \
   --region="${REGION}" \
+  --project="${PROJECT_ID}" --quiet
+
+# 付与されているrolesを確認
+echo "Check the roles granted to the Cloud Scheduler service account"
+gcloud run services get-iam-policy "${GRANT_CLOUD_RUN_SERVICE}" \
+  --region="${REGION}" \
   --project="${PROJECT_ID}"
 
 echo "⭐️ All done!"
