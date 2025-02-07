@@ -30,8 +30,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22.13.1'
-          cache: 'pnpm'
-          cache-dependency-path: ./frontend/web/pnpm-lock.yaml
 
       - name: Install pnpm
         run: npm install -g pnpm
