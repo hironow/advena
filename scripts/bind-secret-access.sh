@@ -37,7 +37,7 @@ secrets=(
 for secret in "${secrets[@]}"; do
   echo "Granting Secret Manager access to ${USER_SA_OF_SECRET_MANAGER_EMAIL} for secret ${secret}"
   gcloud secrets add-iam-policy-binding "${secret}" \
-    --project="${PROJECT_ID}" \
+    --project="${PROJECT_ID}" --quiet \
     --member="serviceAccount:${USER_SA_OF_SECRET_MANAGER_EMAIL}" \
     --role="roles/secretmanager.secretAccessor"
 done
@@ -54,22 +54,28 @@ done
 echo "Grant access to the Cloud Run service account to the other resources"
 gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --member="serviceAccount:${USER_SA_OF_SECRET_MANAGER_EMAIL}" \
-  --role="roles/aiplatform.user"
+  --role="roles/aiplatform.user" \
+  --project="${PROJECT_ID}" --quiet
 gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --member="serviceAccount:${USER_SA_OF_SECRET_MANAGER_EMAIL}" \
-  --role="roles/storage.objectUser"
+  --role="roles/storage.objectUser" \
+  --project="${PROJECT_ID}" --quiet
 gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --member="serviceAccount:${USER_SA_OF_SECRET_MANAGER_EMAIL}" \
-  --role="roles/eventarc.eventReceiver"
+  --role="roles/eventarc.eventReceiver" \
+  --project="${PROJECT_ID}" --quiet
 gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --member="serviceAccount:${USER_SA_OF_SECRET_MANAGER_EMAIL}" \
-  --role="roles/datastore.user"
+  --role="roles/datastore.user" \
+  --project="${PROJECT_ID}" --quiet
 gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --member="serviceAccount:${USER_SA_OF_SECRET_MANAGER_EMAIL}" \
-  --role="roles/firebaseauth.admin"
+  --role="roles/firebaseauth.admin" \
+  --project="${PROJECT_ID}" --quiet
 gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --member="serviceAccount:${USER_SA_OF_SECRET_MANAGER_EMAIL}" \
-  --role="roles/iam.serviceAccountTokenCreator"
+  --role="roles/iam.serviceAccountTokenCreator" \
+  --project="${PROJECT_ID}" --quiet
 
 # 付与されているrolesを確認
 echo "Check the roles granted to the Cloud Run service account"

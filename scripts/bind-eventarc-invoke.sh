@@ -43,14 +43,14 @@ echo "Granting Pub/Sub Token Creator role to Service Account for Cloud Eventarc"
 gcloud projects add-iam-policy-binding $PROJECT_ID \
   --member="serviceAccount:${PUBSUB_DEFAULT_SERVICE_ACCOUNT}" \
   --role='roles/iam.serviceAccountTokenCreator' \
-  --project="${PROJECT_ID}"
+  --project="${PROJECT_ID}" --quiet
 # Eventarc needs the role invoke Cloud Run services.
 echo "Granting Cloud Run Invoker role to Service Account for Cloud Eventarc"
 gcloud run services add-iam-policy-binding "${GRANT_CLOUD_RUN_SERVICE}" \
   --member="serviceAccount:${USER_SA_OF_EVENTARC_EMAIL}" \
   --role="roles/run.invoker" \
   --region="${REGION}" \
-  --project="${PROJECT_ID}"
+  --project="${PROJECT_ID}" --quiet
 
 # Eventarcの設定
 # NOTE: Eventarc用の dead leader を作成。topicのみを作成して、subscriptionは手動で作成する
@@ -65,7 +65,9 @@ fi
 echo "Dead letter topic ${DEAD_LETTER_TOPIC} grant roles"
 gcloud pubsub topics add-iam-policy-binding "${DEAD_LETTER_TOPIC}" \
   --member="serviceAccount:${PUBSUB_DEFAULT_SERVICE_ACCOUNT}" \
-  --role="roles/pubsub.publisher"
+  --role="roles/pubsub.publisher" \
+  --project="${PROJECT_ID}" --quiet
+
 
 # NOTE: labelをつけても、Pub/Sub topic, subscriptionには反映されないので注意
 ADD_USER_PATH="add_user"
