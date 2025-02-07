@@ -8,7 +8,14 @@ from pydantic import ValidationError
 from src.database.firestore import (
     db,  # テスト時は Firestore エミュレータなどのテスト環境が利用される前提
 )
-from src.event_sourcing.entity.user import User, get, get_by_firebase_uid, update
+from src.event_sourcing.entity.user import (
+    MIGRATIONS,
+    User,
+    get,
+    get_by_firebase_uid,
+    migrate,
+    update,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -325,3 +332,68 @@ def test_get_migrate_minimal_document():
     assert migrated_doc.get("version") == User.__current_version__
     assert migrated_doc.get("status") == "created"
     assert migrated_doc.get("name") == "Default Name"
+
+
+# --- 提案1: 誤ったバージョンキーでの登録テスト ---
+def test_incorrect_migration_key_with_version_3(monkeypatch, caplog):
+    # 元の __current_version__ を保存しておく
+    original_version = User.__current_version__
+    # テスト用に一時的に最新バージョンを 3 に変更する
+    User.__current_version__ = 3
+
+    user_id = "test_incorrect_key"
+    minimal_doc = {
+        "id": user_id,
+        "firebase_uid": "uid_incorrect",
+        "created_at": datetime(2020, 1, 1),
+        "status": "creating",
+    }
+    # ドキュメントを登録
+    db.collection(User.__collection__).document(user_id).set(minimal_doc)
+    time.sleep(0.2)
+
+    # 誤ったマイグレーションキーをシミュレーション:
+    # 本来、バージョン 2 のマイグレーション関数を MIGRATIONS[2] に登録すべきところを、
+    # 意図的に MIGRATIONS[2] を削除し、誤って MIGRATIONS[3] に登録する
+    if 2 in MIGRATIONS:
+        del MIGRATIONS[2]
+    # ここでは、例として簡単なlambdaを誤ったキーで登録
+    MIGRATIONS[3] = lambda doc: {**doc, "version": 3, "name": "Faulty"}
+
+    user = get(user_id)
+    # 期待: マイグレーションが途中で止まるので、最終バージョンは 3 にならず、たとえば 2 のままとなる
+    assert user.version != User.__current_version__, (
+        "誤ったマイグレーションキーのため、最終バージョンが更新されるべきではない"
+    )
+
+    # クリーンアップ: 元の __current_version__ を復元する
+    User.__current_version__ = original_version
+
+
+# --- 提案3: マイグレーションチェーンの順次実行テスト ---
+def test_migration_chain_order():
+    """
+    バージョン 0 の状態のドキュメントから get() を呼び出した際に、マイグレーション関数が
+    順次実行され、最終的に __current_version__ になることを検証するテスト。
+    また、各ステップで補完処理（status の変換、各フィールドの setdefault()）が行われることを確認する。
+    """
+    user_id = "test_migration_chain"
+    minimal_doc = {
+        "id": user_id,
+        "firebase_uid": "uid_chain",
+        "created_at": datetime(2020, 1, 1),
+        "status": "creating",
+    }
+    db.collection(User.__collection__).document(user_id).set(minimal_doc)
+
+    user = get(user_id)
+    # 期待: 最終的なバージョンが __current_version__ (例: 2 または 3) になっている
+    assert user.version == User.__current_version__, (
+        "マイグレーションチェーンが正しく順次実行されていなければならない"
+    )
+    # status が "created" に変換されていること
+    assert user.status == "created"
+    # 補完されたフィールドの確認（例えば continuous_login_count が 0、name が "Default Name" など）
+    assert user.continuous_login_count == 0
+    # ここは migrate_from_1_to_2 で name を "Default Name" にしている場合
+    assert user.name == "Default Name"
