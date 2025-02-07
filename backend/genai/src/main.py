@@ -48,8 +48,6 @@ MEANINGFUL_MINIMUM_QUESTION_LENGTH = 7
 
 gcp_project = None
 firebase_app = None
-# client
-storage_client: storage.Client | None = None
 
 
 @asynccontextmanager
@@ -70,12 +68,9 @@ async def lifespan(app: FastAPI):
     firebase_app = firebase_admin.initialize_app(options=options)
     logger.info("Initialized Firebase Admin SDK")
 
-    storage_client = storage.Client()
-
+    logger.info("Started server...")
     yield
-
     # リソースを解放する
-
     logger.info("Stopping server...")
 
 
