@@ -28,7 +28,7 @@ service cloud.firestore {
       }
     }
 
-    match /radio_shows/{publicChatId} {
+    match /radio_shows/{radioShowId} {
       // ラジオ番組は全ユーザーが読み込み可能
       allow read: if isSignedIn();
       allow write: if false;
