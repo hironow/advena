@@ -10,9 +10,6 @@ import weave
 from cloudevents.http import from_http
 from fastapi import FastAPI, Request, Response
 from firebase_admin import auth
-
-# from firebase_admin import firestore as fb_firestore
-# from firebase_admin import storage as fb_storage
 from google.cloud import firestore, storage
 from lmnr import Laminar as L
 from lmnr import observe
@@ -22,6 +19,7 @@ from vertexai.generative_models import Content, GenerationConfig, Part
 from vertexai.preview import rag
 from vertexai.preview.generative_models import GenerativeModel, Tool
 
+from src.database.firestore import db
 from src.logger import logger
 from src.utils import get_now, is_valid_uuid
 
@@ -51,7 +49,6 @@ MEANINGFUL_MINIMUM_QUESTION_LENGTH = 7
 gcp_project = None
 firebase_app = None
 # client
-db: firestore.Client | None = None
 storage_client: storage.Client | None = None
 
 
@@ -73,7 +70,6 @@ async def lifespan(app: FastAPI):
     firebase_app = firebase_admin.initialize_app(options=options)
     logger.info("Initialized Firebase Admin SDK")
 
-    db = firestore.Client()  # firebase admin側は使わない
     storage_client = storage.Client()
 
     yield
