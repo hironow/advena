@@ -350,7 +350,6 @@ def test_incorrect_migration_key_with_version_3(monkeypatch, caplog):
     }
     # ドキュメントを登録
     db.collection(User.__collection__).document(user_id).set(minimal_doc)
-    time.sleep(0.2)
 
     # 誤ったマイグレーションキーをシミュレーション:
     # 本来、バージョン 2 のマイグレーション関数を MIGRATIONS[2] に登録すべきところを、
