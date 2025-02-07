@@ -68,7 +68,7 @@ steps:
               echo "==> Branch '$BRANCH_NAME' does not trigger build/push."
           fi
 
-availableSecrets:
+availableSecrets:  # TODO; docker pushでtagの問題でこけている
   secretManager:
     # dotenvx .env.keys で管理しているシークレットを取得
     # projects/YOUR_PROJECT_ID/secrets/YOUR_SECRET_NAME/versions/latest
