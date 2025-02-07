@@ -9,7 +9,10 @@ import { useSession } from 'next-auth/react';
 import { useEffect } from 'react';
 import { useAtom, useSetAtom } from 'jotai';
 import { radioShowsAtom, userAtom } from '@/lib/state';
-import { getRadioShowsSnapshot, getUserSnapshot } from '@/lib/firestore/client';
+import {
+  getRadioShowsSnapshot,
+  getUserSnapshot,
+} from '@/lib/firestore/client-db';
 
 export default function Layout({
   children,
