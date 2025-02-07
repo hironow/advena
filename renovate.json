@@ -6,10 +6,15 @@
   "packageRules": [
     {
       "matchUpdateTypes": [
-        "minor",
+        "minor"
+      ],
+      "groupName": "all minor updates"
+    }
+    {
+      "matchUpdateTypes": [
         "patch"
       ],
-      "groupName": "all non-major updates"
+      "groupName": "all patch updates"
     }
   ],
   "schedule": [
