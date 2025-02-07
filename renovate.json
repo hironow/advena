@@ -9,7 +9,7 @@
         "minor"
       ],
       "groupName": "all minor updates"
-    }
+    },
     {
       "matchUpdateTypes": [
         "patch"
