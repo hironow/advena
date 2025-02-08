@@ -58,9 +58,6 @@ if __name__ == "__main__":
 
 それでは、今日の放送はここまで。また次回、お耳にかかりましょう！"""
 
-    # 改行をスペースに変換
-    text = text.replace("\n", " ")
-
     response = synthesize(text)
     with open("tts_output_3.mp3", "wb") as out:
         out.write(response.audio_content)

@@ -8,9 +8,16 @@ from smolagents import LiteLLMModel, ToolCallingAgent
 
 from src.llm.config import INSTRUCTION_PROMPT
 
+# LLM settings
+MODEL_ID = "gemini-2.0-flash-001"
+# 微調整対象のパラメータ
+TEMPERATURE = 0.08
+SEED = 42
+
 if os.getenv("CI") == "true":
     # CI 環境では weave と Laminar を初期化しない
-    pass
+    # LiteLLM のデバッグログを有効化
+    litellm._turn_on_debug()
 else:
     weave.init(project_name=os.getenv("WEAVE_PROJECT_NAME", ""))
     L.initialize(project_api_key=os.getenv("LMNR_PROJECT_API_KEY"))
@@ -19,11 +26,10 @@ else:
 def _get_agent() -> ToolCallingAgent:
     # use smolagents as llm agent
     # see: https://cloud.google.com/vertex-ai/generative-ai/docs/learn/models#gemini-models
-    model_id = "gemini-2.0-flash-001"
     model = LiteLLMModel(
-        model_id,
-        temperature=0.08,
-        seed=42,
+        MODEL_ID,
+        temperature=TEMPERATURE,
+        seed=SEED,
     )
     agent = ToolCallingAgent(
         tools=[],
