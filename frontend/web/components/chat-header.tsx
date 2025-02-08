@@ -32,6 +32,7 @@ function PureChatHeader() {
               }}
             >
               <PlusIcon />
+              {/* TODO: ここにloginボタン */}
               <span className="md:sr-only">New Chat</span>
             </Button>
           </TooltipTrigger>

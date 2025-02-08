@@ -61,6 +61,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                     router.refresh();
                   }}
                 >
+                  {/* TODO: ここにloginボタン */}
                   <PlusIcon />
                 </Button>
               </TooltipTrigger>
