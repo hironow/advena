@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, Callable
 
-import feedparser
+import feedparser  # type: ignore
 import httpx
 
 
