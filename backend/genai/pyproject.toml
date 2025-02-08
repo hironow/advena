@@ -13,6 +13,8 @@ dependencies = [
     "google-cloud-aiplatform>=1.76.0",
     "google-cloud-firestore>=2.20.0",
     "google-cloud-storage>=2.19.0",
+    "google-cloud-tasks>=2.18.0",
+    "google-cloud-texttospeech>=2.24.0",
     "google-generativeai>=0.8.3",
     "helium>=5.1.0",
     "litellm>=1.60.0",
@@ -22,6 +24,7 @@ dependencies = [
     "sickle>=0.7.0",
     "smolagents[litellm]>=1.7.0",
     "tenacity>=9.0.0",
+    "types-protobuf>=5.29.1.20250208",
     "uvicorn>=0.34.0",
     "weave>=0.51.31",
 ]

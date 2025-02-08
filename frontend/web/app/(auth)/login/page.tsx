@@ -3,7 +3,11 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { signIn as nextAuthSignIn, useSession } from 'next-auth/react';
+import {
+  signIn as nextAuthSignIn,
+  signOut as nextAuthSignOut,
+  useSession,
+} from 'next-auth/react';
 
 import { useGoogleAuth } from '@/hooks/use-google-auth';
 import { Button } from '@/components/ui/button';
@@ -31,7 +35,12 @@ export default function Page() {
   };
 
   const handleSignOut = () => {
-    signOut().catch(console.error);
+    signOut()
+      .then(() => nextAuthSignOut())
+      .catch((err) => {
+        console.error('Google sign out error:', err);
+        toast.error('Failed to sign out');
+      });
   };
 
   return (

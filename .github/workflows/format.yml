@@ -87,3 +87,25 @@ jobs:
         if: failure()
         run: git diff
         working-directory: ./backend/genai
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.1'
+          cache: 'npm'
+          cache-dependency-path: ./frontend/web/pnpm-lock.yaml
+
+      - name: Install json2ts
+        run: npm install -g json-schema-to-typescript
+        # below python to typescript gen requires json2ts
+
+      - name: Run gen
+        run: |
+          mise run be:gen
+          git diff --exit-code
+        working-directory: ./backend/genai
+
+      - name: Show gen diff on failure
+        if: failure()
+        run: git diff
+        working-directory: ./backend/genai
