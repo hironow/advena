@@ -1,4 +1,4 @@
-from google.cloud import texttospeech
+from google.cloud import texttospeech  # type: ignore
 
 # TTS settings
 AUDIO_ENCODING = "MP3"

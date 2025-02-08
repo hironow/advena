@@ -2,9 +2,9 @@ import os
 
 import litellm
 import weave
-from lmnr import Laminar as L
-from lmnr import observe
-from smolagents import LiteLLMModel, ToolCallingAgent
+from lmnr import Laminar as L  # type: ignore
+from lmnr import observe  # type: ignore
+from smolagents import LiteLLMModel, ToolCallingAgent  # type: ignore
 
 from src.llm.config import INSTRUCTION_PROMPT
 
