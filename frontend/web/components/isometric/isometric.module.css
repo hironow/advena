@@ -5,6 +5,8 @@
   overflow: hidden;
   background-color: #fff;
   color: #000;
+  /* iOS safari以外はこれで画面外のスクロールを禁止できる */
+  overscroll-behavior: none;
 }
 
 .gameInner {

@@ -6,6 +6,9 @@ import IsometricBackground from './IsometricBackground';
 import IsometricPlayer from './IsometricPlayer';
 import IsometricCamera from './IsometricCamera';
 import { dummy_layer_map, dummy_tile_map } from './tileset';
+import { consoleLogWithStyle } from './utils';
+
+// TODO: playerのポジションが変わった時だけに発火してcallbackする関数(modalの表示など)
 
 /**
  * 全体をまとめる "ワールド" コンポーネント

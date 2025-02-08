@@ -145,7 +145,7 @@ export default function IsometricPlayer({
     // TODO: ダブルタップで任意のx,yに移動する機能を追加する
 
     // iOS Safari のオーバースクロール（バウンス）を抑制するためのリスナー
-    // ※ 単一タッチの場合にのみ preventDefault() することで、ピンチなどのマルチタッチジェスチャーは妨げないようにしています
+    // ※ 単一タッチの場合にのみ preventDefault() することで、ピンチなどのマルチタッチジェスチャーは妨げないようにする
     const disableOverscroll = (e: TouchEvent) => {
       if (e.touches.length === 1) {
         e.preventDefault();
