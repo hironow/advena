@@ -17,7 +17,7 @@ from tenacity import (
 from src.logger import logger
 
 # 現状、queueは worker 1つのみを想定
-WORKER_QUEUE_NAME = "worker"
+WORKER_QUEUE_NAME = "async-task-worker"
 
 cloudtasks_client = tasks.CloudTasksClient()
 
