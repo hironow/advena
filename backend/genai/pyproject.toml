@@ -24,6 +24,7 @@ dependencies = [
     "sickle>=0.7.0",
     "smolagents[litellm]>=1.7.0",
     "tenacity>=9.0.0",
+    "types-protobuf>=5.29.1.20250208",
     "uvicorn>=0.34.0",
     "weave>=0.51.31",
 ]

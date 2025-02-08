@@ -473,6 +473,7 @@ dependencies = [
     { name = "sickle" },
     { name = "smolagents", extra = ["litellm"] },
     { name = "tenacity" },
+    { name = "types-protobuf" },
     { name = "uvicorn" },
     { name = "weave" },
 ]
@@ -508,6 +509,7 @@ requires-dist = [
     { name = "sickle", specifier = ">=0.7.0" },
     { name = "smolagents", extras = ["litellm"], specifier = ">=1.7.0" },
     { name = "tenacity", specifier = ">=9.0.0" },
+    { name = "types-protobuf", specifier = ">=5.29.1.20250208" },
     { name = "uvicorn", specifier = ">=0.34.0" },
     { name = "weave", specifier = ">=0.51.31" },
 ]
@@ -1071,7 +1073,7 @@ wheels = [
 [[package]]
 name = "litellm"
 version = "1.60.8"
-source = { git = "https://github.com/BerriAI/litellm.git?rev=main#34084873fc7188648f5516273eaad2bc3a1c196e" }
+source = { git = "https://github.com/BerriAI/litellm.git?rev=main#80b13007f62c2584de4e48f6012cd7e11ced0ea2" }
 dependencies = [
     { name = "aiohttp" },
     { name = "click" },
@@ -2698,6 +2700,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/dd/36/abad2385853077424a11b818d9fd8350d249d9e31d583cb9c11cd4c85eda/trio-websocket-0.11.1.tar.gz", hash = "sha256:18c11793647703c158b1f6e62de638acada927344d534e3c7628eedcb746839f", size = 26511 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/48/be/a9ae5f50cad5b6f85bd2574c2c923730098530096e170c1ce7452394d7aa/trio_websocket-0.11.1-py3-none-any.whl", hash = "sha256:520d046b0d030cf970b8b2b2e00c4c2245b3807853ecd44214acd33d74581638", size = 17408 },
+]
+
+[[package]]
+name = "types-protobuf"
+version = "5.29.1.20250208"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ff/75/8effaebae86ae9e489d4d453b30c6da728e8a9267a261418d476c5c2fbe6/types_protobuf-5.29.1.20250208.tar.gz", hash = "sha256:c1acd6a59ab554dbe09b5d1fa7dd701e2fcfb2212937a3af1c03b736060b792a", size = 59330 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/96/e9/095c36efdc9dbb1df75ce42f37c0de6a6879aad937a08f0b97942b7c5968/types_protobuf-5.29.1.20250208-py3-none-any.whl", hash = "sha256:c5f8bfb4afdc1b5cbca1848f2c8b361a2090add7401f410b22b599ef647bf483", size = 73925 },
 ]
 
 [[package]]
