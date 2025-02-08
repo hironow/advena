@@ -2,38 +2,20 @@ import os
 from contextlib import asynccontextmanager
 from typing import Any
 
-import firebase_admin
 import google.auth as gauth
 from cloudevents.http import from_http
 from fastapi import FastAPI, Request, Response
-from firebase_admin import auth
 from tenacity import retry, wait_exponential
 
 from src.database.firestore import db
 from src.logger import logger
 from src.utils import get_now, is_valid_uuid
 
-firebase_app = None
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global firebase_app
     logger.info("Starting server...")
-
-    gcp_project = os.getenv("GOOGLE_CLOUD_PROJECT")
-    # Firebase AuthのIdTokenのJWTを検証することが必要なのでFirebase Admin SDKを利用する
-    options = {}
-    if os.getenv("USE_FIREBASE_EMULATOR") == "true":
-        logger.warning("Using Firebase Emulator")
-        options: dict[str, Any] = {
-            "projectId": gcp_project,
-            "storageBucket": f"{gcp_project}.appspot.com",
-        }
-
-    firebase_app = firebase_admin.initialize_app(options=options)
-    logger.info("Initialized Firebase Admin SDK")
-
+    # リソースを確保する
     logger.info("Started server...")
     yield
     # リソースを解放する
@@ -52,12 +34,9 @@ app = FastAPI(
 @app.post("/add_user")
 async def add_user(request: Request):
     """[COMMAND] creating users"""
-    if db is None:
-        logger.error("db is None")
-        raise Exception("db is None")
-
+    # cloud event からのリクエストを受け取る
     body = await request.body()
-    event = from_http(request.headers, body)
+    event = from_http(request.headers, body)  # type: ignore
     logger.info(f"event: {event}")
     document = event.get("document")
     event_id = event.get("id")
@@ -65,7 +44,7 @@ async def add_user(request: Request):
     now = get_now()
 
     logger.info(f"{event_id}: start adding a document: {document}")
-    # TODO: 抽象化できていないので、修正が必要
+    # FIXME: 抽象化できていないので、修正が必要
     # document は "users/{userId}" の形式であると想定
     if "/" not in document or document.count("/") != 1:
         logger.error(f"{event_id}: invalid document: {document}")
@@ -99,6 +78,19 @@ async def add_user(request: Request):
     return Response(content="finished", status_code=204)
 
 
+# cloud scheduler からの非同期処理を一手に引き受けるエンドポイント
+@app.post("/async_task")
+async def async_task(request: Request):
+    """[COMMAND] async task"""
+    # cloud eventではないので、jsonとして処理
+    body = await request.json()
+    logger.info(f"async task body: {body}")
+
+    # TODO: ここで非同期処理をmatchで振り分ける
+
+    return Response(content="finished", status_code=204)
+
+
 @app.post("/hcheck")
 async def hcheck():
     """ヘルスチェック用エンドポイント"""
@@ -109,9 +101,3 @@ if __name__ == "__main__":
     # see: https://github.com/googleapis/google-auth-library-python/blob/main/google/auth/_default.py#L577-L595
     _, project_id = gauth.default()
     logger.info("project_id: %s", project_id)
-
-    # # storageも何が入っているか確認する
-    # bucket = fb_storage.bucket()
-    # print("bucket: ", bucket.name)
-    # blobs = bucket.list_blobs()
-    # print("blobs count: ", len(list(blobs)))
