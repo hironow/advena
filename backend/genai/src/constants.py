@@ -34,7 +34,7 @@ def thumbnail(isbn_or_jpecode: str) -> str:
     return f"{THUMBNAIL_URL_BASE}{isbn_or_jpecode}.jpg"
 
 
-def latest_all(size: int = 100) -> str:
+def latest_all(size: int = 10) -> str:
     """最新の全ての資料を取得するための URL を生成する
     期待する URL query string は:
     ?cs=bib&display=panel&from=0&size=1000&sort=published%3Adesc&f-ht=ndl&f-ht=library&f-repository=R100000137&f-doc_style=digital&f-doc_style=paper&f-mt=dtbook&f-mt=dbook
@@ -47,8 +47,8 @@ def latest_all(size: int = 100) -> str:
     <category>図書</category>
     <pubDate>Sat, 21 Dec 2024 18:46:00 +0900</pubDate>
     """
-    if size > 1000:
-        size = 1000
+    if size > 10:
+        size = 10
     if size < 1:
         size = 1
 
@@ -68,15 +68,15 @@ def latest_all(size: int = 100) -> str:
     return f"{RSS_URL_BASE}?{query_string}"
 
 
-def latest_with_keywords(keywords: list[str], size: int = 100) -> str:
+def latest_with_keywords(keywords: list[str], size: int = 10) -> str:
     """最新の資料をキーワードで検索するための URL を生成する
     期待する URL query string は:
     ?cs=bib&display=panel&from=0&size=20&keyword=AI%20LLM%20%E3%82%A8%E3%83%B3%E3%82%B8%E3%83%8B%E3%82%A2&f-ht=ndl&f-ht=library
 
     NOTE: keywordの順序で返り値は変わらないことを期待する
     """
-    if size > 100:
-        size = 100
+    if size > 10:
+        size = 10
     if size < 1:
         size = 1
 
