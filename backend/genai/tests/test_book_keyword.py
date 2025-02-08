@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.keyword import parse_keywords
+from src.book.keyword import parse_keywords
 
 
 @pytest.mark.parametrize(

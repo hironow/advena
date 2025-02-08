@@ -1,4 +1,7 @@
+from datetime import datetime
 from urllib.parse import urlencode
+
+from pydantic import BaseModel
 
 # 国立国会図書館サーチの RSS フィード
 RSS_URL_BASE = "https://ndlsearch.ndl.go.jp/rss/ndls/bib.xml"
@@ -19,6 +22,17 @@ OAI_PMH_URL_BASE = "https://ndlsearch.ndl.go.jp/api/oaipmh"
 JPRO_REPOSITORY = "R100000137"
 
 # memo: I9784621310328 の I のあとが 13桁 であれば ISBN 、20桁であれば JP-eコード とみなせる？
+
+
+class FeedItem(BaseModel):
+    title: str
+    link: str
+    description: str
+    guid_url: str
+    guid_isPermaLink: bool
+    guid: str
+    category: str
+    pubDate: datetime
 
 
 def thumbnail(isbn_or_jpecode: str) -> str:

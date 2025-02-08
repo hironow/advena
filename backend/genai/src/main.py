@@ -1,7 +1,6 @@
 import os
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
-from uuid import uuid4
+from typing import Any
 
 import firebase_admin
 import google.auth as gauth
@@ -27,7 +26,7 @@ async def lifespan(app: FastAPI):
     options = {}
     if os.getenv("USE_FIREBASE_EMULATOR") == "true":
         logger.warning("Using Firebase Emulator")
-        options = {
+        options: dict[str, Any] = {
             "projectId": gcp_project,
             "storageBucket": f"{gcp_project}.appspot.com",
         }
