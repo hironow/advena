@@ -1,12 +1,10 @@
-import os
 from contextlib import asynccontextmanager
 from typing import Any
 
 import google.auth as gauth
-from cloudevents.http import from_http
+from cloudevents.http import from_http  # type: ignore
 from fastapi import FastAPI, Request, Response
 from pydantic import BaseModel
-from tenacity import retry, wait_exponential
 
 from src.database.firestore import db
 from src.logger import logger
@@ -84,15 +82,25 @@ class AsyncTaskBody(BaseModel):
     data: dict[str, Any] | None = None  # kindに応じてkey-valueでデータを受け取る
 
 
+KIND_LATEST_ALL = "latest_all"
+KIND_LATEST_WITH_KEYWORDS_BY_USER = "latest_with_keywords_by_user"
+
+
 # cloud scheduler からの非同期処理を一手に引き受けるエンドポイント
 @app.post("/async_task")
 async def async_task(body: AsyncTaskBody):
     """[COMMAND] async task"""
     logger.info(f"async task kind: {body.kind}, data: {body.data}")
 
-    # TODO: cloud schedulerからの定期的な非同期処理(eventarc経由ではない)を
-    #   match-caseで振り分ける
+    # TODO: cloud schedulerからの定期的な非同期処理(eventarc経由ではない)
     # NOTE: Fan-Outパターンで処理を分散するパターンも考えられる
+
+    if body.kind == KIND_LATEST_ALL:
+        # start latest_all
+        pass
+    elif body.kind == KIND_LATEST_WITH_KEYWORDS_BY_USER:
+        # start latest_with_keywords_by_user for each user
+        pass
 
     return Response(status_code=204)
 

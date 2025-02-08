@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 
 import src.main as main_module
 from src.database.firestore import db
+from src.main import KIND_LATEST_ALL, KIND_LATEST_WITH_KEYWORDS_BY_USER
 
 
 # --- CloudEvent のパースのパッチ ---
@@ -57,3 +58,45 @@ def test_add_user():
 
     # then
     assert response.status_code == 204
+
+
+def test_async_task_latest_all():
+    """
+    KIND_LATEST_ALLのリクエストを送信し、204(No Content)が返ることを検証する
+    """
+    payload = {"kind": KIND_LATEST_ALL, "data": {"example_key": "example_value"}}
+    response = client.post("/async_task", json=payload)
+    assert response.status_code == 204
+
+
+def test_async_task_latest_with_keywords_by_user():
+    """
+    KIND_LATEST_WITH_KEYWORDS_BY_USERのリクエストを送信し、204(No Content)が返ることを検証する
+    """
+    payload = {
+        "kind": KIND_LATEST_WITH_KEYWORDS_BY_USER,
+        "data": {"user_id": 42, "keywords": ["fastapi", "pytest"]},
+    }
+    response = client.post("/async_task", json=payload)
+    assert response.status_code == 204
+
+
+def test_async_task_without_optional_data():
+    """
+    オプション項目であるdataを省略した場合でも、バリデーションエラーが発生せず204が返ることを検証する
+    """
+    payload = {
+        "kind": KIND_LATEST_ALL
+        # dataは省略可能
+    }
+    response = client.post("/async_task", json=payload)
+    assert response.status_code == 204
+
+
+def test_async_task_invalid_payload():
+    """
+    必須項目であるkindがない場合は、リクエストボディのバリデーションエラー(422)が発生することを検証する
+    """
+    payload = {"data": {"some": "data"}}
+    response = client.post("/async_task", json=payload)
+    assert response.status_code == 422  # Unprocessable Entity
