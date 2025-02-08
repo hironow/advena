@@ -2,6 +2,8 @@
 
 web client for advena.
 
+use [vercel/ai-chatbot](https://github.com/vercel/ai-chatbot) template.
+
 ## Development
 
 ```sh
