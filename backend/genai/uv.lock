@@ -1035,8 +1035,8 @@ wheels = [
 
 [[package]]
 name = "litellm"
-version = "1.60.7"
-source = { git = "https://github.com/BerriAI/litellm.git?rev=main#16be203283b25f1116c6acc9144b19711b10e909" }
+version = "1.60.8"
+source = { git = "https://github.com/BerriAI/litellm.git?rev=main#34084873fc7188648f5516273eaad2bc3a1c196e" }
 dependencies = [
     { name = "aiohttp" },
     { name = "click" },
