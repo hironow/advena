@@ -5,6 +5,7 @@ from typing import Any
 import google.auth as gauth
 from cloudevents.http import from_http
 from fastapi import FastAPI, Request, Response
+from pydantic import BaseModel
 from tenacity import retry, wait_exponential
 
 from src.database.firestore import db
@@ -78,17 +79,22 @@ async def add_user(request: Request):
     return Response(content="finished", status_code=204)
 
 
+class AsyncTaskBody(BaseModel):
+    kind: str
+    data: dict[str, Any] | None = None  # kindに応じてkey-valueでデータを受け取る
+
+
 # cloud scheduler からの非同期処理を一手に引き受けるエンドポイント
 @app.post("/async_task")
-async def async_task(request: Request):
+async def async_task(body: AsyncTaskBody):
     """[COMMAND] async task"""
-    # cloud eventではないので、jsonとして処理
-    body = await request.json()
-    logger.info(f"async task body: {body}")
+    logger.info(f"async task kind: {body.kind}, data: {body.data}")
 
-    # TODO: ここで非同期処理をmatchで振り分ける
+    # TODO: cloud schedulerからの定期的な非同期処理(eventarc経由ではない)を
+    #   match-caseで振り分ける
+    # NOTE: Fan-Outパターンで処理を分散するパターンも考えられる
 
-    return Response(content="finished", status_code=204)
+    return Response(status_code=204)
 
 
 @app.post("/hcheck")

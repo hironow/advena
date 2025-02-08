@@ -2,7 +2,7 @@ from typing import Any
 
 from sickle import Sickle
 
-from src.constants import JPRO_REPOSITORY, OAI_PMH_URL_BASE
+from .book import OAI_PMH_URL_BASE
 
 sickle_client = Sickle(OAI_PMH_URL_BASE)
 

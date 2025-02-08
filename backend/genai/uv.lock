@@ -462,6 +462,7 @@ dependencies = [
     { name = "google-cloud-aiplatform" },
     { name = "google-cloud-firestore" },
     { name = "google-cloud-storage" },
+    { name = "google-cloud-tasks" },
     { name = "google-cloud-texttospeech" },
     { name = "google-generativeai" },
     { name = "helium" },
@@ -496,6 +497,7 @@ requires-dist = [
     { name = "google-cloud-aiplatform", specifier = ">=1.76.0" },
     { name = "google-cloud-firestore", specifier = ">=2.20.0" },
     { name = "google-cloud-storage", specifier = ">=2.19.0" },
+    { name = "google-cloud-tasks", specifier = ">=2.18.0" },
     { name = "google-cloud-texttospeech", specifier = ">=2.24.0" },
     { name = "google-generativeai", specifier = ">=0.8.3" },
     { name = "helium", specifier = ">=5.1.0" },
@@ -725,6 +727,22 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/36/76/4d965702e96bb67976e755bed9828fa50306dca003dbee08b67f41dd265e/google_cloud_storage-2.19.0.tar.gz", hash = "sha256:cd05e9e7191ba6cb68934d8eb76054d9be4562aa89dbc4236feee4d7d51342b2", size = 5535488 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d5/94/6db383d8ee1adf45dc6c73477152b82731fa4c4a46d9c1932cc8757e0fd4/google_cloud_storage-2.19.0-py2.py3-none-any.whl", hash = "sha256:aeb971b5c29cf8ab98445082cbfe7b161a1f48ed275822f59ed3f1524ea54fba", size = 131787 },
+]
+
+[[package]]
+name = "google-cloud-tasks"
+version = "2.18.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "google-api-core", extra = ["grpc"] },
+    { name = "google-auth" },
+    { name = "grpc-google-iam-v1" },
+    { name = "proto-plus" },
+    { name = "protobuf" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/14/bd/d64a9095a8d0ecc6c31a00d515eb326e5742d39f3cc6132fa9786b40c148/google_cloud_tasks-2.18.0.tar.gz", hash = "sha256:11a26b5b48733405cc4ea066b4f81ac353e5fb8566419b9b4d35d4bd1ceec58c", size = 332938 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/46/cd/c1a3bbed0f426956d2e2e98e20e9b5d06605ea972819bc026f04fd3f9582/google_cloud_tasks-2.18.0-py2.py3-none-any.whl", hash = "sha256:5d994ba60a136c942e322b76bc178e1089fbb9bc08ad58b5178e035cc26d2fe9", size = 281570 },
 ]
 
 [[package]]
