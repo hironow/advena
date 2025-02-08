@@ -69,3 +69,45 @@ def test_get_agent(monkeypatch):
     assert dummy_agent.prompt_templates == {"system_prompt": "dummy prompt"}
     # モデルの初期化が正しく行われ、モデル ID が "gemini-2.0-flash-001" であることを確認
     assert dummy_agent.model.model_id == "gemini-2.0-flash-001"
+
+
+def test_extract_script_block_found():
+    text = """
+<html>
+<head>
+<script>
+console.log('Hello World');
+</script>
+</head>
+<body>
+<p>Some text</p>
+</body>
+</html>
+"""
+    expected = "<script>\nconsole.log('Hello World');\n</script>"
+    result = agent.extract_script_block(text)
+    assert result is not None
+    # 前後の余分な空白を除いて比較
+    assert result.strip() == expected.strip()
+
+
+def test_extract_script_block_not_found():
+    text = "<html><body><p>No script here</p></body></html>"
+    result = agent.extract_script_block(text)
+    assert result is None
+
+
+def test_extract_script_block_multiple():
+    text = """
+<script>
+console.log('First');
+</script>
+<script>
+console.log('Second');
+</script>
+"""
+    # 最初の <script> ブロックのみが抽出されるはず
+    expected = "<script>\nconsole.log('First');\n</script>"
+    result = agent.extract_script_block(text)
+    assert result is not None
+    assert result.strip() == expected.strip()
