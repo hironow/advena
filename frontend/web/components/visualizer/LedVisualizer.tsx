@@ -9,7 +9,7 @@ const LedVisualizer: React.FC<{
   radioShow: RadioShow | undefined;
   width?: number;
   height?: number;
-}> = ({ width = 600, height = 300 }) => {
+}> = ({ width = 280, height = 70 }) => {
   const { freqData } = useAudioContextState();
   const svgRef = useRef<SVGSVGElement>(null);
   const initedRef = useRef(false);

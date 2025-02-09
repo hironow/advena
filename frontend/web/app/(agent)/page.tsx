@@ -47,14 +47,17 @@ export default function Page() {
         <ChatHeader />
         <div>
           {/* 本が横一連に並んでいるUI */}
-          <Bookshelf radioShow={currentRadioShow} />
+          {/* <Bookshelf radioShow={currentRadioShow} /> */}
         </div>
 
         <IsometricWorld />
 
-        <div>
-          {/* footerで固定したエリアに再生系と可視化系を積み上げる */}
-          <LedVisualizer radioShow={currentRadioShow} />
+        {/* 中央真下に浮かせる */}
+        <div className="w-full flex justify-center items-center">
+          <div className="fixed bottom-6 p-2">
+            {/* footerで固定したエリアに再生系と可視化系を積み上げる */}
+            <LedVisualizer radioShow={currentRadioShow} />
+          </div>
         </div>
       </div>
     </>
