@@ -95,7 +95,11 @@ def exec_fetch_rss_and_oai_pmh_workflow(
             raise ValueError("broadcasted_at must be timezone-aware.")
 
     utcnow = get_now()
-    cached_xml = get_closest_cached_rss_file(utcnow, prefix_dir, suffix_dir)
+    try:
+        cached_xml = get_closest_cached_rss_file(utcnow, prefix_dir, suffix_dir)
+    except ValueError as e:
+        logger.error(f"RSS フィードのキャッシュ取得に失敗しました: {e}")
+        cached_xml = None
 
     feed: feedparser.FeedParserDict
     if cached_xml is None:
@@ -224,9 +228,13 @@ def exec_run_agent_and_tts_workflow(
             raise ValueError("broadcasted_at must be timezone-aware.")
 
     # load masterdata
-    mst_json = get_json_file(masterdata_blob_path)
-    mst_books_loaded = MstBooks.model_validate_json(mst_json)
-    logger.info("Success to load masterdata json.")
+    try:
+        mst_json = get_json_file(masterdata_blob_path)
+        mst_books_loaded = MstBooks.model_validate_json(mst_json)
+        logger.info("Success to load masterdata json.")
+    except Exception as e:
+        logger.error(f"masterdata の読み込みに失敗しました: {e}")
+        raise e
 
     # 以降はJSTでの処理
     exec_date_jst = datetime.now(JST)
