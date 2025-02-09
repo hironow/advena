@@ -3,7 +3,7 @@ import type { NextAuthConfig } from 'next-auth';
 export const authConfig = {
   debug: true,
   pages: {
-    signIn: '/login',
+    signIn: '/',
     signOut: '/',
     error: '/status', // TODO: 状態ページを作成する (メンテナンス中含む)
     newUser: '/',
