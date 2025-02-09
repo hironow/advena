@@ -161,36 +161,39 @@ KIND_LATEST_WITH_KEYWORDS_BY_USER = "latest_with_keywords_by_user"
 @app.post("/async_task")
 async def async_task(body: AsyncTaskBody):
     """[COMMAND] async task"""
-    logger.info(f"async task kind: {body.kind}, data: {body.data}")
+    try:
+        logger.info(f"async task kind: {body.kind}, data: {body.data}")
 
-    # TODO: cloud schedulerからの定期的な非同期処理(eventarc経由ではない)
-    # NOTE: Fan-Outパターンで処理を分散するパターンも考えられる
+        # TODO: cloud schedulerからの定期的な非同期処理(eventarc経由ではない)
+        # NOTE: Fan-Outパターンで処理を分散するパターンも考えられる
 
-    if body.kind == KIND_LATEST_ALL:
-        # dataには `broadcasted_at` が含まれる場合がある
-        broadcasted_at: datetime | None = None
-        if body.data:
-            broadcasted_at_str = body.data.get("broadcasted_at")
-            if broadcasted_at_str:
-                dt = datetime.fromisoformat(broadcasted_at_str)
-                # tzinfoが既にある場合はUTCに変換、ない場合はUTCとして解釈
-                if dt.tzinfo is None:
-                    dt = dt.replace(tzinfo=ZoneInfo("UTC"))
-                else:
-                    dt = dt.astimezone(ZoneInfo("UTC"))
-                broadcasted_at = dt
-                logger.info(f"broadcasted_at: {broadcasted_at}")
+        if body.kind == KIND_LATEST_ALL:
+            # dataには `broadcasted_at` が含まれる場合がある
+            broadcasted_at: datetime | None = None
+            if body.data:
+                broadcasted_at_str = body.data.get("broadcasted_at")
+                if broadcasted_at_str:
+                    dt = datetime.fromisoformat(broadcasted_at_str)
+                    # tzinfoが既にある場合はUTCに変換、ない場合はUTCとして解釈
+                    if dt.tzinfo is None:
+                        dt = dt.replace(tzinfo=ZoneInfo("UTC"))
+                    else:
+                        dt = dt.astimezone(ZoneInfo("UTC"))
+                    broadcasted_at = dt
+                    logger.info(f"broadcasted_at: {broadcasted_at}")
 
-        # start latest_all workflow
-        url = book.latest_all()
-        workflows.exec_fetch_rss_and_oai_pmh_workflow(
-            url, storage.XML_LATEST_ALL_DIR_BASE, "test", broadcasted_at
-        )
-    elif body.kind == KIND_LATEST_WITH_KEYWORDS_BY_USER:
-        # start latest_with_keywords_by_user for each user workflow
-        pass
+            # start latest_all workflow
+            url = book.latest_all()
+            workflows.exec_fetch_rss_and_oai_pmh_workflow(
+                url, storage.XML_LATEST_ALL_DIR_BASE, "test", broadcasted_at
+            )
+        elif body.kind == KIND_LATEST_WITH_KEYWORDS_BY_USER:
+            # start latest_with_keywords_by_user for each user workflow
+            pass
 
-    return Response(status_code=204)
+        return Response(status_code=204)
+    except Exception as e:
+        return Response(content="error + " + str(e), status_code=500)
 
 
 @app.post("/hcheck")
