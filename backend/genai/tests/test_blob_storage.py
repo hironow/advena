@@ -1,75 +1,116 @@
-import importlib
-import os
+import io
 
 import pytest
-from google.cloud import storage
+
+from src.blob import storage  # テスト対象のモジュール
 
 
-def reload_storage_module():
-    """
-    環境変数の状態に応じてモジュールを再読み込みし、返却するヘルパー関数
-    """
-    import src.blob.storage as storage_module
+class DummyBlob:
+    def __init__(self, blob_path: str):
+        self.blob_path = blob_path
+        self.metadata = {}
+        self.upload_called = False
+        self.content_type = None
+        self.predefined_acl = None
+        self.file_content = None
 
-    importlib.reload(storage_module)
-    return storage_module
+    def upload_from_file(self, file, content_type: str, predefined_acl: str = None):
+        self.upload_called = True
+        self.content_type = content_type
+        self.predefined_acl = predefined_acl
+        file.seek(0)
+        self.file_content = file.read()
 
-
-def test_emulator_mode(monkeypatch):
-    """
-    USE_FIREBASE_EMULATOR が "true" の場合、ストレージバケットは
-    "<GOOGLE_CLOUD_PROJECT>.appspot.com" になることを検証する。
-    """
-    monkeypatch.setenv("USE_FIREBASE_EMULATOR", "true")
-    monkeypatch.setenv("GOOGLE_CLOUD_PROJECT", "test-project")
-    # GOOGLE_CLOUD_STORAGE_BUCKET は使用されないので削除しておく
-    monkeypatch.delenv("GOOGLE_CLOUD_STORAGE_BUCKET", raising=False)
-
-    storage_module = reload_storage_module()
-
-    expected_bucket = "test-project.appspot.com"
-    assert storage_module.storage_bucket == expected_bucket, (
-        f"エミュレータモードでは storage_bucket は {expected_bucket} であるべき。"
-    )
-    # storage_client の project プロパティの確認
-    assert isinstance(storage_module.storage_client, storage.Client)
-    assert storage_module.storage_client.project == "test-project"
+    @property
+    def public_url(self) -> str:
+        return f"https://dummy.storage/{self.blob_path}"
 
 
-def test_non_emulator_mode_with_bucket(monkeypatch):
-    """
-    USE_FIREBASE_EMULATOR が "true" でない場合、環境変数 GOOGLE_CLOUD_STORAGE_BUCKET の値が
-    storage_bucket として採用されることを検証する。
-    """
-    # エミュレータモードではないので、明示的に削除
-    monkeypatch.delenv("USE_FIREBASE_EMULATOR", raising=False)
-    monkeypatch.setenv("GOOGLE_CLOUD_PROJECT", "prod-project")
-    monkeypatch.setenv("GOOGLE_CLOUD_STORAGE_BUCKET", "prod-bucket")
+class DummyBucket:
+    def __init__(self):
+        self.blobs = {}
 
-    storage_module = reload_storage_module()
-
-    expected_bucket = "prod-bucket"
-    assert storage_module.storage_bucket == expected_bucket, (
-        f"通常モードでは storage_bucket は {expected_bucket} であるべき。"
-    )
-    assert isinstance(storage_module.storage_client, storage.Client)
-    assert storage_module.storage_client.project == "prod-project"
+    def blob(self, blob_path: str) -> DummyBlob:
+        blob = DummyBlob(blob_path)
+        self.blobs[blob_path] = blob
+        return blob
 
 
-def test_non_emulator_mode_without_bucket(monkeypatch):
-    """
-    USE_FIREBASE_EMULATOR が "true" でなく、かつ GOOGLE_CLOUD_STORAGE_BUCKET が設定されていない場合、
-    storage_bucket は空文字列となることを検証する。
-    """
-    monkeypatch.delenv("USE_FIREBASE_EMULATOR", raising=False)
-    monkeypatch.setenv("GOOGLE_CLOUD_PROJECT", "prod-project")
-    monkeypatch.delenv("GOOGLE_CLOUD_STORAGE_BUCKET", raising=False)
+@pytest.fixture
+def dummy_bucket():
+    return DummyBucket()
 
-    storage_module = reload_storage_module()
 
-    expected_bucket = ""
-    assert storage_module.storage_bucket == expected_bucket, (
-        f"通常モードで GOOGLE_CLOUD_STORAGE_BUCKET 未設定の場合、storage_bucket は空文字列であるべき。"
-    )
-    assert isinstance(storage_module.storage_client, storage.Client)
-    assert storage_module.storage_client.project == "prod-project"
+# すべてのテストで、get_bucket() をダミーの Bucket を返すように上書きする
+@pytest.fixture(autouse=True)
+def patch_get_bucket(monkeypatch, dummy_bucket):
+    monkeypatch.setattr(storage, "_get_bucket", lambda: dummy_bucket)
+
+
+# --- テストケース ---
+def test_put_tts_audio_file(dummy_bucket):
+    signature = "test_tts"
+    file_obj = io.BytesIO(b"audio content")
+    public_url = storage.put_tts_audio_file(signature, file_obj)
+    expected_path = f"{storage.RADIO_SHOW_AUDIO_DIR}/{signature}.mp3"
+
+    blob = dummy_bucket.blobs.get(expected_path)
+    assert blob is not None, "Blob が作成されていない"
+    assert blob.upload_called, "upload_from_file が呼ばれていない"
+    assert blob.content_type == "audio/mpeg"
+    assert blob.predefined_acl == "publicRead"
+    assert public_url == f"https://dummy.storage/{expected_path}"
+    assert blob.metadata.get("Cache-Control") == "public, max-age=604800"
+    assert blob.metadata.get("content-type") == "audio/mpeg"
+    assert "custom_time" in blob.metadata
+
+
+def test_put_combined_json_file(dummy_bucket):
+    signature = "test_json"
+    file_obj = io.BytesIO(b'{"key": "value"}')
+    public_url = storage.put_combined_json_file(signature, file_obj)
+    expected_path = f"{storage.MASTERDATA_DIR}/{signature}.json"
+
+    blob = dummy_bucket.blobs.get(expected_path)
+    assert blob is not None, "Blob が作成されていない"
+    assert blob.upload_called, "upload_from_file が呼ばれていない"
+    # ACL 指定はしていない想定なので None であること
+    assert blob.predefined_acl is None
+    # JSON 用の content_type は "application/json" としてアップロードしている
+    assert blob.content_type == "application/json"
+    assert public_url == f"https://dummy.storage/{expected_path}"
+    assert blob.metadata.get("Cache-Control") == "public, max-age=300"
+    assert blob.metadata.get("content-type") == "application/json; charset=utf-8"
+    assert "custom_time" in blob.metadata
+
+
+def test_put_rss_xml_file(dummy_bucket):
+    signature = "test_rss"
+    file_obj = io.BytesIO(b"<rss></rss>")
+    public_url = storage.put_rss_xml_file(signature, file_obj)
+    expected_path = f"{storage.RSS_RAW_DIR}/{signature}.xml"
+
+    blob = dummy_bucket.blobs.get(expected_path)
+    assert blob is not None, "Blob が作成されていない"
+    assert blob.upload_called, "upload_from_file が呼ばれていない"
+    assert blob.content_type == "application/xml"
+    assert public_url == f"https://dummy.storage/{expected_path}"
+    assert blob.metadata.get("Cache-Control") == "public, max-age=300"
+    assert blob.metadata.get("content-type") == "application/xml; charset=utf-8"
+    assert "custom_time" in blob.metadata
+
+
+def test_put_oai_pmh_json_file(dummy_bucket):
+    signature = "test_oai"
+    file_obj = io.BytesIO(b'{"data": "value"}')
+    public_url = storage.put_oai_pmh_json_file(signature, file_obj)
+    expected_path = f"{storage.OAI_PMH_RAW_DIR}/{signature}.json"
+
+    blob = dummy_bucket.blobs.get(expected_path)
+    assert blob is not None, "Blob が作成されていない"
+    assert blob.upload_called, "upload_from_file が呼ばれていない"
+    assert blob.content_type == "application/json"
+    assert public_url == f"https://dummy.storage/{expected_path}"
+    assert blob.metadata.get("Cache-Control") == "public, max-age=300"
+    assert blob.metadata.get("content-type") == "application/json; charset=utf-8"
+    assert "custom_time" in blob.metadata

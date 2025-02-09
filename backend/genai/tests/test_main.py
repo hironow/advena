@@ -9,7 +9,7 @@ from src.database.firestore import db
 from src.main import KIND_LATEST_ALL, KIND_LATEST_WITH_KEYWORDS_BY_USER
 
 
-# --- CloudEvent のパースのパッチ ---
+# cloudevnts からのリクエストボディを dict に変換する関数をモックする
 @pytest.fixture(autouse=True)
 def patch_from_http(monkeypatch):
     def fake_from_http(headers, body):
@@ -17,24 +17,6 @@ def patch_from_http(monkeypatch):
         return json.loads(body)
 
     monkeypatch.setattr(main_module, "from_http", fake_from_http)
-
-
-# --- Cloud Storage のパッチ ---
-# @pytest.fixture(autouse=True)
-# def patch_storage(monkeypatch):
-#     class DummyBlob:
-#         def delete(self):
-#             return True
-
-#     class DummyBucket:
-#         def blob(self, name):
-#             return DummyBlob()
-
-#     class DummyStorageClient:
-#         def bucket(self, bucket_name):
-#             return DummyBucket()
-
-#     monkeypatch.setattr(main_module.storage, "Client", lambda: DummyStorageClient())
 
 
 # * tests for endpoints
