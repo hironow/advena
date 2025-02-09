@@ -65,7 +65,7 @@ export default function Layout({
       />
       <AudioProvider>
         <SidebarProvider defaultOpen={!isCollapsed}>
-          <AppSidebar user={user || undefined} />
+          <AppSidebar user={user || undefined} radioShows={radioShows} />
           <SidebarInset>{children}</SidebarInset>
         </SidebarProvider>
       </AudioProvider>

@@ -37,6 +37,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { fetcher } from '@/lib/utils';
+import { RadioShow } from '@/lib/firestore/generated/entity_radio_show';
 
 const PureChatItem = ({
   chat,
@@ -94,49 +95,14 @@ export const ChatItem = memo(PureChatItem, (prevProps, nextProps) => {
   return true;
 });
 
-export function SidebarHistory({ user }: { user: User | undefined }) {
+export function SidebarHistory({
+  user,
+  radioShows,
+}: { user: User | undefined; radioShows: RadioShow[] }) {
   const { setOpenMobile } = useSidebar();
   const { id } = useParams();
   const pathname = usePathname();
-  const {
-    data: history,
-    isLoading,
-    mutate,
-  } = useSWR<Array<any>>(user ? '/api/history' : null, fetcher, {
-    fallbackData: [],
-  });
-
-  useEffect(() => {
-    mutate();
-  }, [pathname, mutate]);
-
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const router = useRouter();
-  const handleDelete = async () => {
-    const deletePromise = fetch(`/api/chat?id=${deleteId}`, {
-      method: 'DELETE',
-    });
-
-    toast.promise(deletePromise, {
-      loading: 'Deleting chat...',
-      success: () => {
-        mutate((history) => {
-          if (history) {
-            return history.filter((h) => h.id !== id);
-          }
-        });
-        return 'Chat deleted successfully';
-      },
-      error: 'Failed to delete chat',
-    });
-
-    setShowDeleteDialog(false);
-
-    if (deleteId === id) {
-      router.push('/');
-    }
-  };
 
   if (!user) {
     return (
@@ -150,7 +116,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     );
   }
 
-  if (isLoading) {
+  if (false) {
     return (
       <SidebarGroup>
         <div className="px-2 py-1 text-xs text-sidebar-foreground/50">
@@ -179,12 +145,12 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     );
   }
 
-  if (history?.length === 0) {
+  if (radioShows?.length === 0) {
     return (
       <SidebarGroup>
         <SidebarGroupContent>
           <div className="px-2 text-zinc-500 w-full flex flex-row justify-center items-center text-sm gap-2">
-            Your conversations will appear here once you start chatting!
+            ラジオ番組がまだ届いていません
           </div>
         </SidebarGroupContent>
       </SidebarGroup>
