@@ -249,7 +249,11 @@ def new(masterdata_blob_path: str, broadcasted_at: datetime | None) -> RadioShow
 
 
 def publish(
-    radio_show_id: str, audio_url: str, script_url: str, books: list[RadioShowBook]
+    radio_show_id: str,
+    audio_url: str,
+    script_url: str,
+    books: list[RadioShowBook],
+    broadcasted_at: datetime,
 ) -> None:
     """
     ラジオショーの audio_url を更新する。
@@ -262,6 +266,7 @@ def publish(
             "script_url": script_url,
             "status": "created",
             "updated_at": now,
+            "broadcasted_at": broadcasted_at,
             "book_count": len(books),
             "books": [b.model_dump() for b in books],
         }

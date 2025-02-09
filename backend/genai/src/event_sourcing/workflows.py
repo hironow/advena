@@ -105,7 +105,7 @@ def exec_fetch_rss_and_oai_pmh_workflow(
         if last_build_date is None:
             raise ValueError("RSS フィードの更新日時が取得できませんでした。")
 
-        # UTC -> JST
+        # JST
         last_build_date = last_build_date.astimezone(JST)
         # cache upload
         bs_xml = io.BytesIO(raw_xml.encode("utf-8"))
@@ -122,7 +122,7 @@ def exec_fetch_rss_and_oai_pmh_workflow(
         if last_build_date is None:
             raise ValueError("RSS フィードの更新日時が取得できませんでした。")
 
-        # UTC -> JST
+        # JST
         last_build_date = last_build_date.astimezone(JST)
         logger.info("キャッシュからRSSフィードを取得しました。")
 
@@ -285,7 +285,11 @@ def exec_run_agent_and_tts_workflow(
     # created に更新
 
     entity_radio_show.publish(
-        radio_show_id, audio_public_url, script_public_url, save_books
+        radio_show_id,
+        audio_public_url,
+        script_public_url,
+        save_books,
+        broadcasted_at=exec_date_jst,
     )
 
     return
