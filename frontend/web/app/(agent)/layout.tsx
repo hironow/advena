@@ -4,12 +4,16 @@ import { AppSidebar } from '@/components/app-sidebar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 
 import Script from 'next/script';
-import { AudioProvider } from '@/components/visualizer/audio-context-provider';
 import { useSession } from 'next-auth/react';
 import { useEffect } from 'react';
-import { useAtom, useSetAtom } from 'jotai';
-import { userAtom } from '@/lib/state';
-import { getUserSnapshot } from '@/lib/firestore/client';
+import {
+  getRadioShowsSnapshot,
+  getUserSnapshot,
+} from '@/lib/firestore/client-db';
+import type { User } from '@/lib/firestore/generated/entity_user';
+import type { RadioShow } from '@/lib/firestore/generated/entity_radio_show';
+import { useAtom } from 'jotai';
+import { radioShowsAtom, userAtom } from '@/lib/state';
 
 export default function Layout({
   children,
@@ -19,18 +23,34 @@ export default function Layout({
   const { data: session, status } = useSession();
   const userId = session?.user?.id;
 
-  const [user, setUser] = useAtom(userAtom);
+  const isLoggedIn = status === 'authenticated';
+
+  const [user, setUser] = useAtom<User | null>(userAtom);
+  const [radioShows, setRadioShows] = useAtom<RadioShow[]>(radioShowsAtom);
 
   useEffect(() => {
     if (!userId) return;
 
     const unsubscribeUser = getUserSnapshot(userId, (data) => {
-      console.log('[snapshot] user', data);
+      console.debug('[snapshot changed][user]');
       setUser(data);
     });
 
     return () => {
       unsubscribeUser();
+    };
+  }, [userId]);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const unsubscribeRadioShows = getRadioShowsSnapshot((data) => {
+      console.debug('[snapshot changed][radio_shows]');
+      setRadioShows(data);
+    });
+
+    return () => {
+      unsubscribeRadioShows();
     };
   }, [userId]);
 
@@ -43,12 +63,10 @@ export default function Layout({
         src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"
         strategy="beforeInteractive"
       />
-      <AudioProvider>
-        <SidebarProvider defaultOpen={!isCollapsed}>
-          <AppSidebar user={user || undefined} />
-          <SidebarInset>{children}</SidebarInset>
-        </SidebarProvider>
-      </AudioProvider>
+      <SidebarProvider defaultOpen={!isCollapsed}>
+        <AppSidebar user={user || undefined} radioShows={radioShows} />
+        <SidebarInset>{children}</SidebarInset>
+      </SidebarProvider>
     </>
   );
 }

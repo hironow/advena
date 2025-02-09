@@ -51,6 +51,11 @@ gcloud run services add-iam-policy-binding "${GRANT_CLOUD_RUN_SERVICE}" \
   --role="roles/run.invoker" \
   --region="${REGION}" \
   --project="${PROJECT_ID}" --quiet
+# NOTE: eventarc.events.receiveEvent が必要
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:${USER_SA_OF_EVENTARC_EMAIL}" \
+  --role="roles/eventarc.eventReceiver" \
+  --project="${PROJECT_ID}" --quiet
 
 # Eventarcの設定
 # NOTE: Eventarc用の dead leader を作成。topicのみを作成して、subscriptionは手動で作成する
@@ -90,6 +95,26 @@ else
     --event-data-content-type="application/protobuf" \
     --destination-run-path="/${ADD_USER_PATH}"
 fi
+ADD_RADIO_SHOW_PATH="add_radio_show"
+ADD_RADIO_SHOW_DOCUMENT="radio_shows/{radioShowId}"
+TRIGGER_ADD_RADIO_SHOW_NAME="${GRANT_CLOUD_RUN_SERVICE}-add-radio-show"
+if gcloud eventarc triggers list --location="${FIRESTORE_LOCATION}" --format="value(name)" | grep -q "${TRIGGER_ADD_RADIO_SHOW_NAME}"; then
+  # すでに同名のトリガーが存在する場合は作成しない
+  echo "Trigger ${TRIGGER_ADD_RADIO_SHOW_NAME} already exists. Skipping creation."
+else
+  # トリガーはFirestoreと同じlocationに作成する
+  echo "Creating trigger: ${TRIGGER_ADD_RADIO_SHOW_NAME}"
+  gcloud eventarc triggers create "${TRIGGER_ADD_RADIO_SHOW_NAME}" \
+    --location="${FIRESTORE_LOCATION}" \
+    --destination-run-service="${GRANT_CLOUD_RUN_SERVICE}" \
+    --destination-run-region="${REGION}" \
+    --event-filters="type=google.cloud.firestore.document.v1.created" \
+    --event-filters="database=(default)" \
+    --event-filters-path-pattern="document=${ADD_RADIO_SHOW_DOCUMENT}" \
+    --service-account="${USER_SA_OF_EVENTARC_EMAIL}" \
+    --event-data-content-type="application/protobuf" \
+    --destination-run-path="/${ADD_RADIO_SHOW_PATH}"
+fi
 # TODO: 以降追加のtriggerがあれば、同様に作成する
 
 echo "waiting... for create eventarc's Pub/Sub topic and subscription"
@@ -99,6 +124,7 @@ sleep 120
 # triggerごとの処理を別scriptに分けているので実行
 # NOTE: 失敗している可能性があるので、確認後、手動で実行する場合もある
 bash ./scripts/update-eventarc-trigger.sh "${TRIGGER_ADD_USER_NAME}"
+bash ./scripts/update-eventarc-trigger.sh "${TRIGGER_ADD_RADIO_SHOW_NAME}"
 # TODO: 以降追加のtriggerがあれば、同様に作成する
 
 echo "⭐️ All done!"

@@ -1,85 +1,29 @@
-import os
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
-from uuid import uuid4
+from datetime import datetime
+from typing import Any
+from zoneinfo import ZoneInfo
 
-import firebase_admin
 import google.auth as gauth
-import litellm
-import weave
-from cloudevents.http import from_http
+from cloudevents.http import from_http  # type: ignore
 from fastapi import FastAPI, Request, Response
-from firebase_admin import auth
+from pydantic import BaseModel
 
-# from firebase_admin import firestore as fb_firestore
-# from firebase_admin import storage as fb_storage
-from google.cloud import firestore, storage
-from lmnr import Laminar as L
-from lmnr import observe
-from smolagents import LiteLLMModel, ToolCallingAgent
-from tenacity import retry, wait_exponential
-from vertexai.generative_models import Content, GenerationConfig, Part
-from vertexai.preview import rag
-from vertexai.preview.generative_models import GenerativeModel, Tool
-
+from src import utils
+from src.blob import storage
+from src.book import book
+from src.database.firestore import db
+from src.event_sourcing import workflows
+from src.event_sourcing.entity import radio_show as entity_radio_show
 from src.logger import logger
-from src.utils import get_now, is_valid_uuid
-
-if os.getenv("CI") == "true":
-    # CI 環境では weave と Laminar を初期化しない
-    pass
-else:
-    weave.init(project_name=os.getenv("WEAVE_PROJECT_NAME", ""))
-    L.initialize(project_api_key=os.getenv("LMNR_PROJECT_API_KEY"))
-
-
-PUBLISHER_MODEL = "publishers/google/models/text-multilingual-embedding-002"
-GENERATIVE_MODEL_NAME = "gemini-1.5-flash-001"
-RAG_CHUNK_SIZE = 512
-RAG_CHUNK_OVERLAP = 100
-RAG_MAX_EMBEDDING_REQUESTS_PER_MIN = 900
-RAG_SIMILARITY_TOP_K = 3
-RAG_VECTOR_DISTANCE_THRESHOLD = 0.5
-QUESTION_FAILED_MESSAGE = (
-    "申し訳ございません。回答の生成に失敗しました。再度質問をやり直してください。"
-)
-MAX_SUMMARIZATION_LENGTH = 2048
-MAX_TOTAL_COMMON_QUESTIONS_LENGTH = 1024
-SUMMARIZATION_FAILED_MESSAGE = "申し訳ございません。要約の生成に失敗しました。"
-MEANINGFUL_MINIMUM_QUESTION_LENGTH = 7
-
-gcp_project = None
-firebase_app = None
-# client
-db: firestore.Client | None = None
-storage_client: storage.Client | None = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global gcp_project, firebase_app, db  # storage
     logger.info("Starting server...")
-
-    gcp_project = os.getenv("GOOGLE_CLOUD_PROJECT")
-    # Firebase AuthのIdTokenのJWTを検証することが必要なのでFirebase Admin SDKを利用する
-    options = {}
-    if os.getenv("USE_FIREBASE_EMULATOR") == "true":
-        logger.warning("Using Firebase Emulator")
-        options = {
-            "projectId": gcp_project,
-            "storageBucket": f"{gcp_project}.appspot.com",
-        }
-
-    firebase_app = firebase_admin.initialize_app(options=options)
-    logger.info("Initialized Firebase Admin SDK")
-
-    db = firestore.Client()  # firebase admin側は使わない
-    storage_client = storage.Client()
-
+    # リソースを確保する
+    logger.info("Started server...")
     yield
-
     # リソースを解放する
-
     logger.info("Stopping server...")
 
 
@@ -94,52 +38,159 @@ app = FastAPI(
 # ============================
 @app.post("/add_user")
 async def add_user(request: Request):
-    """[COMMAND] creating users"""
-    if db is None:
-        logger.error("db is None")
-        raise Exception("db is None")
+    """[COMMAND] creating user"""
+    try:
+        # cloud event からのリクエストを受け取る
+        body = await request.body()
+        event = from_http(request.headers, body)  # type: ignore
+        logger.info(f"event: {event}")
+        document = event.get("document")
+        event_id = event.get("id")
 
-    body = await request.body()
-    event = from_http(request.headers, body)
-    logger.info(f"event: {event}")
-    document = event.get("document")
-    event_id = event.get("id")
+        now = utils.get_now()
 
-    now = get_now()
+        logger.info(f"{event_id}: start adding a document: {document}")
+        # FIXME: 抽象化できていないので、修正が必要
+        # document は "users/{userId}" の形式であると想定
+        if "/" not in document or document.count("/") != 1:
+            logger.error(f"{event_id}: invalid document: {document}")
+            return Response(content="invalid document", status_code=400)
 
-    logger.info(f"{event_id}: start adding a document: {document}")
-    # TODO: 抽象化できていないので、修正が必要
-    # document は "users/{userId}" の形式であると想定
-    if "/" not in document or document.count("/") != 1:
-        logger.error(f"{event_id}: invalid document: {document}")
-        return Response(content="invalid document", status_code=400)
+        users, user_id = document.split("/")
+        logger.info(
+            f"{event_id}: start adding collection: {users} in a user: {user_id}"
+        )
 
-    users, user_id = document.split("/")
-    logger.info(f"{event_id}: start adding collection: {users} in a user: {user_id}")
+        if not utils.is_valid_uuid(user_id):
+            logger.error(f"{event_id}: invalid user_id: {user_id}")
+            return Response(content="invalid user_id", status_code=400)
 
-    if not is_valid_uuid(user_id):
-        logger.error(f"{event_id}: invalid user_id: {user_id}")
-        return Response(content="invalid user_id", status_code=400)
+        # firestoreから取得
+        user = db.collection(users).document(user_id).get()
+        if not user.exists:
+            logger.error(f"{event_id}: user {user_id} is not found")
+            return Response(content="user not found", status_code=404)
 
-    # firestoreから取得
-    user = db.collection(users).document(user_id).get()
-    if not user.exists:
-        logger.error(f"{event_id}: user {user_id} is not found")
-        return Response(content="user not found", status_code=404)
+        if user.get("status") == "created":
+            logger.error(f"{event_id}: user {user_id} is already created")
+            return Response(content="user already created", status_code=204)
 
-    if user.get("status") == "created":
-        logger.error(f"{event_id}: user {user_id} is already created")
-        return Response(content="user already created", status_code=204)
+        db.collection(users).document(user_id).update(
+            {
+                "status": "created",
+                "updated_at": now,
+            }
+        )
 
-    db.collection(users).document(user_id).update(
-        {
-            "status": "created",
-            "updated_at": now,
-        }
-    )
+        logger.info(f"{event_id}: finished adding a user for {user_id} as created")
+        return Response(content="finished", status_code=204)
+    except Exception as e:
+        logger.error(f"error: {e}")
+        return Response(content="error", status_code=500)
 
-    logger.info(f"{event_id}: finished adding a user for {user_id} as created")
-    return Response(content="finished", status_code=204)
+
+@app.post("/add_radio_show")
+async def add_radio_show(request: Request):
+    """[COMMAND] creating radio_show"""
+    try:
+        # cloud event からのリクエストを受け取る
+        body = await request.body()
+        event = from_http(request.headers, body)  # type: ignore
+        logger.info(f"event: {event}")
+        document = event.get("document")
+        event_id = event.get("id")
+
+        now = utils.get_now()
+
+        logger.info(f"{event_id}: start adding a document: {document}")
+        # FIXME: 抽象化できていないので、修正が必要
+        # document は "radio_shows/{radioShowId}" の形式であると想定
+        if "/" not in document or document.count("/") != 1:
+            logger.error(f"{event_id}: invalid document: {document}")
+            return Response(content="invalid document", status_code=400)
+
+        radio_shows, radio_show_id = document.split("/")
+        logger.info(
+            f"{event_id}: start adding collection: {radio_shows} in a radio_show: {radio_show_id}"
+        )
+        if (
+            not utils.is_valid_uuid(radio_show_id)
+            or radio_shows != entity_radio_show.RadioShow.__collection__
+        ):
+            logger.error(f"{event_id}: invalid radio_show_id: {radio_show_id}")
+            return Response(content="invalid radio_show_id", status_code=400)
+
+        # firestoreから取得
+        doc = entity_radio_show.get(radio_show_id)
+        if doc is None:
+            logger.error(f"{event_id}: radio_show {radio_show_id} is not found")
+            return Response(content="radio_show not found", status_code=404)
+
+        if doc.status == "created":
+            logger.error(f"{event_id}: radio_show {radio_show_id} is already created")
+            return Response(content="radio_show already created", status_code=204)
+
+        # start workflow
+        masterdata_blob_path = doc.masterdata_blob_path
+        broadcasted_at = doc.broadcasted_at
+        workflows.exec_run_agent_and_tts_workflow(
+            radio_show_id,
+            masterdata_blob_path,
+            broadcasted_at,
+        )
+
+        logger.info(
+            f"{event_id}: finished adding a radio_show for {radio_show_id} as created"
+        )
+        return Response(content="finished", status_code=204)
+    except Exception as e:
+        logger.error(f"/add_radio_show endpoint error: {e}")
+        return Response(content="error", status_code=500)
+
+
+class AsyncTaskBody(BaseModel):
+    kind: str
+    data: dict[str, Any] | None = None  # kindに応じてkey-valueでデータを受け取る
+
+
+KIND_LATEST_ALL = "latest_all"
+KIND_LATEST_WITH_KEYWORDS_BY_USER = "latest_with_keywords_by_user"
+
+
+# cloud scheduler からの非同期処理を一手に引き受けるエンドポイント
+@app.post("/async_task")
+async def async_task(body: AsyncTaskBody):
+    """[COMMAND] async task"""
+    logger.info(f"async task kind: {body.kind}, data: {body.data}")
+
+    # TODO: cloud schedulerからの定期的な非同期処理(eventarc経由ではない)
+    # NOTE: Fan-Outパターンで処理を分散するパターンも考えられる
+
+    if body.kind == KIND_LATEST_ALL:
+        # dataには `broadcasted_at` が含まれる場合がある
+        broadcasted_at: datetime | None = None
+        if body.data:
+            broadcasted_at_str = body.data.get("broadcasted_at")
+            if broadcasted_at_str:
+                dt = datetime.fromisoformat(broadcasted_at_str)
+                # tzinfoが既にある場合はUTCに変換、ない場合はUTCとして解釈
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=ZoneInfo("UTC"))
+                else:
+                    dt = dt.astimezone(ZoneInfo("UTC"))
+                broadcasted_at = dt
+                logger.info(f"broadcasted_at: {broadcasted_at}")
+
+        # start latest_all workflow
+        url = book.latest_all()
+        workflows.exec_fetch_rss_and_oai_pmh_workflow(
+            url, storage.XML_LATEST_ALL_DIR_BASE, "test", broadcasted_at
+        )
+    elif body.kind == KIND_LATEST_WITH_KEYWORDS_BY_USER:
+        # start latest_with_keywords_by_user for each user workflow
+        pass
+
+    return Response(status_code=204)
 
 
 @app.post("/hcheck")
@@ -149,31 +200,6 @@ async def hcheck():
 
 
 if __name__ == "__main__":
-    # # see: https://github.com/googleapis/google-auth-library-python/blob/main/google/auth/_default.py#L577-L595
-    # _, project_id = gauth.default()
-    # logger.info("project_id: %s", project_id)
-
-    # # db で何が入っているか確認するので、countとかを使ってみる
-    # users = db.collection("users").stream()
-    # print("users count: ", len(list(users)))
-
-    # # storageも何が入っているか確認する
-    # bucket = fb_storage.bucket()
-    # print("bucket: ", bucket.name)
-    # blobs = bucket.list_blobs()
-    # print("blobs count: ", len(list(blobs)))
-
-    # # llm agent
-    # model_id = "vertex_ai/gemini-1.5-flash"
-    # model = LiteLLMModel(
-    #     model_id,
-    #     temperature=0.08,
-    # )
-    # agent = ToolCallingAgent(
-    #     tools=[],
-    #     model=model,
-    # )
-    # print(agent)
-    # print(type(agent))
-    # # print(agent.run("Hello"))
-    pass
+    # see: https://github.com/googleapis/google-auth-library-python/blob/main/google/auth/_default.py#L577-L595
+    _, project_id = gauth.default()
+    logger.info("project_id: %s", project_id)

@@ -8,7 +8,7 @@ import { SessionProvider } from 'next-auth/react';
 import { auth } from '@/auth';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://m1h0.com'),
+  metadataBase: new URL('https://example.com'),
   title: 'advena',
   description: 'advena is ...',
 };
@@ -43,7 +43,6 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await auth();
-  console.info('root layout session: ', session);
 
   return (
     <html
@@ -61,7 +60,7 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body className="antialiased">
+      <body className="antialiased overscroll-none">
         <SessionProvider session={session}>
           <ThemeProvider
             attribute="class"

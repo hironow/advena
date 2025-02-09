@@ -1,5 +1,8 @@
 import uuid
 from datetime import UTC, datetime, timedelta, tzinfo
+from zoneinfo import ZoneInfo
+
+JST = ZoneInfo("Asia/Tokyo")
 
 
 def new_id() -> str:

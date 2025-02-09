@@ -4,8 +4,11 @@ import { getAdminAuth } from '@/lib/firebase/admin';
 import { signInSchema } from '@/lib/zod';
 import type { DefaultSession, Session } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
-import { addUserAdmin, getUserByFirebaseUidAdmin } from '@/lib/firestore/admin';
-import type { User } from '@/lib/firestore/types';
+import {
+  addUserAdmin,
+  getUserByFirebaseUidAdmin,
+} from '@/lib/firestore/admin-db';
+import type { User } from '@/lib/firestore/generated/entity_user';
 
 interface ExtendedSession extends Session {
   user: {
@@ -29,11 +32,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           const adminAuth = getAdminAuth();
 
           const { idToken } = await signInSchema.parseAsync(credentials);
-          console.info('got idToken: ', idToken);
           const decoded = await adminAuth.verifyIdToken(idToken);
-          console.info('decoded: ', decoded);
 
-          // NOTE: ここでfirebaseのauth uidを使ってユーザーを取得/作成する
+          // NOTE: firebase auth uidを使ってユーザーを一意に識別する
           let userInFirestore: User | null = null;
           userInFirestore = await getUserByFirebaseUidAdmin(decoded.uid);
           if (userInFirestore === null) {
@@ -41,11 +42,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             await addUserAdmin(decoded.uid);
             userInFirestore = await getUserByFirebaseUidAdmin(decoded.uid);
           }
-
+          // NOTE: 以降、userIdはサービス内で付与したuuidを使い、基本的にfirebase auth uidは使わない
           return {
             ...decoded,
-            id: userInFirestore?.id,
-            uid: decoded.uid,
+            id: userInFirestore?.id, // firestore user uuid
+            uid: decoded.uid, // firebase auth uid (not uuid)
           };
         } catch (error) {
           console.error('Error during authorization:', error);

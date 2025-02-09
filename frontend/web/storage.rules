@@ -1,16 +1,18 @@
 rules_version = '2';
-
-// Craft rules based on data in your Firestore database
-// allow write: if firestore.get(
-//    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
 service firebase.storage {
+  function isSignedIn() {
+    return request.auth != null;
+  }
+
   match /b/{bucket}/o {
-    function isSignedIn() {
-      return request.auth != null;
+    // /private 以下は一切のアクセスを禁止
+    match /private/{allPaths=**} {
+      allow read, write: if false;
     }
 
-    match /{allPaths=**} {
-      allow read: if false;
+    // /public 以下は認証済みユーザーに対して read のみ許可
+    match /public/{allPaths=**} {
+      allow read: if isSignedIn();
       allow write: if false;
     }
   }

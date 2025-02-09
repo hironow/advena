@@ -10,7 +10,10 @@ import {
   type TileSetName,
 } from './tileset';
 
-// bird1が見えないので、clock1に変更
+interface CustomCSSProperties extends React.CSSProperties {
+  WebkitUserDrag?: string; // 追加
+  userDrag?: string; // 追加
+}
 
 interface TileProps {
   tile: TileSetName;
@@ -23,27 +26,38 @@ interface TileProps {
 const Tile: React.FC<TileProps> = ({ tile, x, y, layer, flip }) => {
   const { pxX, pxY } = getTilePosition(x, y, layer);
 
-  let img_style = {};
+  const img_style: CustomCSSProperties = {
+    WebkitTouchCallout: 'none',
+    WebkitUserDrag: 'none',
+    userDrag: 'none',
+    WebkitUserSelect: 'none',
+    userSelect: 'none',
+  };
   if (flip) {
-    img_style = {
-      transform: 'scaleX(-1)',
-    };
+    img_style.transform = 'scaleX(-1)';
   }
 
+  const div_style: CustomCSSProperties = {
+    position: 'absolute',
+    // 原点(0, 0)は左上なので、左上を中心に配置するためにオフセット
+    left: pxX, // 右にx座標
+    top: pxY, // 下にy座標
+    width: TILE_IMG_WIDTH * TILE_SCALE,
+    height: TILE_IMG_HEIGHT * TILE_SCALE,
+    // Imageの中心を原点(0, 0)へ (tile画像の下揃え中央が基準点になる)
+    transform: 'translate(-50%, -100%)',
+    // 長押し、強押しでの画像保存を禁止
+    WebkitTouchCallout: 'none',
+    // dragも禁止
+    WebkitUserDrag: 'none',
+    userDrag: 'none',
+    // 選択時のハイライトを禁止
+    WebkitUserSelect: 'none',
+    userSelect: 'none',
+  };
+
   return (
-    <div
-      key={`tile-${x}-${y}`}
-      style={{
-        position: 'absolute',
-        // 原点(0, 0)は左上なので、左上を中心に配置するためにオフセット
-        left: pxX, // 右にx座標
-        top: pxY, // 下にy座標
-        width: TILE_IMG_WIDTH * TILE_SCALE,
-        height: TILE_IMG_HEIGHT * TILE_SCALE,
-        // Imageの中心を原点(0, 0)へ (tile画像の下揃え中央が基準点になる)
-        transform: 'translate(-50%, -100%)',
-      }}
-    >
+    <div key={`tile-${x}-${y}`} style={div_style}>
       <Image
         className="tile object-contain"
         src={`/assets/city_game_tileset/${tile}`}

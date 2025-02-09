@@ -87,10 +87,6 @@ export function MessageEditor({
               return;
             }
 
-            // await deleteTrailingMessages({
-            //   id: messageId,
-            // });
-
             setMessages((messages) => {
               const index = messages.findIndex((m) => m.id === message.id);
 

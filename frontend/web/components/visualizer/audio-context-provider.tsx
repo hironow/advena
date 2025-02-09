@@ -10,17 +10,29 @@ import React, {
 
 interface AudioContextValue {
   audioCtx: AudioContext | null;
-  freqData: Uint8Array | null; // マイクの周波数スペクトル
+  analyser: AnalyserNode | null;
+  freqData: Uint8Array | null;
   micAllowed: boolean;
-  initAudio: () => Promise<void>;
+  /**
+   * @param mediaElement 渡された場合、その音源を analyser に接続します（既に接続済みなら何もしません）
+   * @param options.useMic true を指定すると、mediaElement がない場合にマイク入力を利用
+   */
+  initAudio: (
+    mediaElement?: HTMLMediaElement,
+    options?: { useMic?: boolean },
+  ) => Promise<void>;
 }
 
 const AudioContextState = createContext<AudioContextValue>({
   audioCtx: null,
+  analyser: null,
   freqData: null,
   micAllowed: false,
   initAudio: async () => {},
 });
+
+// 接続済みの mediaElement を管理（同じ要素を複数回接続しないように）
+const connectedMediaElements = new WeakSet<HTMLMediaElement>();
 
 export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -33,59 +45,69 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
   const dataArrayRef = useRef<Uint8Array | null>(null);
   const rafIdRef = useRef<number | null>(null);
 
-  /**
-   * ユーザ操作で呼んでもらう想定
-   *  - AudioContext作成
-   *  - マイクをgetUserMedia
-   *  - AnalyserNodeに接続
-   *  - requestAnimationFrameで周波数データを取得
-   */
-  const initAudio = async () => {
-    if (audioCtx) return; // 既に初期化済みなら何もしない
-
-    try {
+  const initAudio = async (
+    mediaElement?: HTMLMediaElement,
+    options?: { useMic?: boolean },
+  ) => {
+    // AudioContext が未生成なら生成
+    if (!audioCtx) {
       const AC = window.AudioContext || (window as any).webkitAudioContext;
       if (!AC) throw new Error('AudioContext not supported');
 
       const ctx = new AC();
       setAudioCtx(ctx);
 
-      // アナライザ
+      // AnalyserNode の作成
       const analyser = ctx.createAnalyser();
-      analyser.fftSize = 512; // 2の乗数
+      analyser.fftSize = 256;
       analyser.smoothingTimeConstant = 0.85;
       analyserRef.current = analyser;
 
-      // マイク
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      setMicAllowed(true);
-      const micSource = ctx.createMediaStreamSource(stream);
-      micSource.connect(analyser);
+      // 接続先は一旦 analyser → destination（すべての音源が混ざって出力される）
+      analyser.connect(ctx.destination);
 
-      // もしマイク音をスピーカーに出したくないなら analyser→ctx.destination は繋がない
-      // analyser.connect(ctx.destination);
-
-      // 周波数取得用バッファ
-      const bufferLength = analyser.frequencyBinCount; // 256
+      // 周波数データ用バッファ
+      const bufferLength = analyser.frequencyBinCount;
       dataArrayRef.current = new Uint8Array(bufferLength);
 
-      // 周期的にgetByteFrequencyData()で取得
+      // 周期的に周波数データを取得
       const tick = () => {
         if (!analyserRef.current || !dataArrayRef.current) return;
         analyserRef.current.getByteFrequencyData(dataArrayRef.current);
-
-        // 周波数データをStateに反映
         setFreqData(new Uint8Array(dataArrayRef.current));
         rafIdRef.current = requestAnimationFrame(tick);
       };
       tick();
-    } catch (err) {
-      console.error(err);
-      setMicAllowed(false);
+    }
+
+    // AudioContext が既にある場合、渡された mediaElement を接続
+    if (audioCtx && mediaElement && !connectedMediaElements.has(mediaElement)) {
+      try {
+        const source = audioCtx.createMediaElementSource(mediaElement);
+        source.connect(analyserRef.current!);
+        connectedMediaElements.add(mediaElement);
+      } catch (err) {
+        console.error('Error connecting media element:', err);
+      }
+    }
+
+    // オプションでマイク入力を利用（mediaElement が無い場合のみ）
+    if (!mediaElement && options?.useMic && audioCtx) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+        });
+        setMicAllowed(true);
+        const micSource = audioCtx.createMediaStreamSource(stream);
+        micSource.connect(analyserRef.current!);
+      } catch (err) {
+        console.error(err);
+        setMicAllowed(false);
+      }
     }
   };
 
-  // cleanup
+  // クリーンアップ処理
   useEffect(() => {
     return () => {
       if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
@@ -97,6 +119,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
     <AudioContextState.Provider
       value={{
         audioCtx,
+        analyser: analyserRef.current,
         freqData,
         micAllowed,
         initAudio,

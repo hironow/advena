@@ -35,27 +35,18 @@ function createFirebaseClientApp(): ReturnType<typeof initializeClientApp> {
 
 export const app = createFirebaseClientApp();
 
-/**
- * Firestore
- */
 export const db: Firestore = getFirestore(app);
 if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === 'true') {
   connectFirestoreEmulator(db, '127.0.0.1', 8080);
   console.info('[Firebase] Using Firestore emulator');
 }
 
-/**
- * Auth
- */
 export const auth: Auth = getAuth(app);
 if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === 'true') {
   connectAuthEmulator(auth, 'http://127.0.0.1:9099');
   console.info('[Firebase] Using Auth emulator');
 }
 
-/**
- * Storage
- */
 export const storage = getStorage(app);
 if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === 'true') {
   connectStorageEmulator(storage, '127.0.0.1', 9199);

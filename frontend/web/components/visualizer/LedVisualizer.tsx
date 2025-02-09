@@ -1,13 +1,18 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import type React from 'react';
+import { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 import { useAudioContextState } from './audio-context-provider';
+import type { RadioShow } from '@/lib/firestore/generated/entity_radio_show';
 
-const LedVisualizer: React.FC<{ width?: number; height?: number }> = ({
-  width = 600,
-  height = 300,
-}) => {
+// NOTE: hydrationエラーが起きやすいので注意
+
+const LedVisualizer: React.FC<{
+  radioShow?: RadioShow;
+  width?: number;
+  height?: number;
+}> = ({ width = 280, height = 70 }) => {
   const { freqData } = useAudioContextState();
   const svgRef = useRef<SVGSVGElement>(null);
   const initedRef = useRef(false);
