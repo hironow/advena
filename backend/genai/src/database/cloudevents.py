@@ -26,7 +26,7 @@ def create_cloud_event_body(
     :return: CloudEvent の辞書オブジェクト
     """
     # 環境変数からプロジェクトIDを取得（無い場合はデフォルト値を設定）
-    project_id = os.environ.get("GOOGLE_CLOUD_PROJECT", "")
+    project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
     # ISO 8601 形式のUTC時刻（末尾に "Z" を付与）
     time_iso = datetime.now(UTC).isoformat() + "Z"
 
@@ -64,5 +64,7 @@ def send_cloud_event(endpoint: str, event_body: dict[str, Any]) -> None:
             logger.error(
                 f"[ERROR] Failed to send CloudEvent: {response.status_code} {response.reason_phrase}"
             )
+
+        logger.info(f"[INFO] Response: {response.text}")
     except Exception as e:
         logger.error(f"[ERROR] Exception while sending CloudEvent: {e}")

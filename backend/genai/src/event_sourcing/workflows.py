@@ -80,6 +80,12 @@ def exec_fetch_rss_and_oai_pmh_workflow(
     target_url: str, prefix_dir: str, suffix_dir: str
 ) -> None:
     """RSS、API系をcallしてGCSにキャッシュ、ラジオ番組作成が可能な最終1ファイルをGCSにアップロードする。ラジオ番組が作成開始される。"""
+    logger.info("start exec_run_agent_and_tts_workflow ...")
+    if target_url == "":
+        raise ValueError("target_url is empty.")
+    if prefix_dir == "" or suffix_dir == "":
+        raise ValueError("prefix_dir or suffix_dir is empty.")
+
     utcnow = get_now()
     cached_xml = get_closest_cached_rss_file(utcnow, prefix_dir, suffix_dir)
 
@@ -196,38 +202,49 @@ def exec_run_agent_and_tts_workflow(
     radio_show_masterdata_url: str,
     exec_date: datetime | None = None,
 ) -> None:
+    logger.info("start exec_run_agent_and_tts_workflow ...")
     if radio_show_masterdata_url == "":
         raise ValueError("radio_show_masterdata_url is empty.")
+    # target_datetime が timezone-aware かつ JST であるかをチェック
+    if exec_date is not None and exec_date.tzinfo is None:
+        raise ValueError("target_datetime must be timezone-aware and in JST timezone.")
     if exec_date is not None and exec_date.tzinfo != JST:
-        raise ValueError("exec_date must be in JST timezone.")
+        raise ValueError("target_datetime must be in JST timezone.")
 
     # ここで、ラジオ番組のスクリプトを作成する
     mst_json = get_json_file(radio_show_masterdata_url)
     mst_books_loaded = MstBooks.model_validate_json(mst_json)
+    logger.info("Success to load masterdata json.")
 
     exec_date = exec_date or datetime.now(JST)
     mst_map = mst_books_loaded.root
-    _, current, _ = split_books(mst_map, exec_date)
-
-    # 件数
-    logger.info(f"current: {len(current)} 件")
+    past, current, future = split_books(mst_map, exec_date)
+    logger.info("Success to split books.")
+    logger.info(f"past: {len(past)}, current: {len(current)}, future: {len(future)}")
 
     llm_context = ""
     for _, mst_book in current.items():
         book_prompt = convert_to_book_prompt(mst_book)
         llm_context += book_prompt + "\n"
-
     logger.info(f"llm_context: {llm_context}")
 
+    logger.info("start agent call ...")
     radio_agent = agent.get_agent()
     result = agent.call_agent(radio_agent, llm_context)
-    logger.info(f"result: {result}")
+    logger.info(f"agent call result: {result}")
 
     script = agent.extract_script_block(result)
     if script is None:
         raise ValueError("script が取得できませんでした。")
 
-    logger.info(f"script: {script}")
+    logger.info(f"radio show script: {script}")
+
+    # gcsにscriptを保存する
+    # 今はlocalに保存する
+    fn = "script.txt"
+    with open(fn, "w", encoding="utf-8") as f:
+        f.write(script)
+        logger.info(f"{fn} にスクリプトを書き込みました。")
 
     # ここで、ラジオ番組の音声データを作成する
     recorded = tts_google.synthesize(script)
@@ -238,7 +255,7 @@ def exec_run_agent_and_tts_workflow(
     public_url = put_tts_audio_file(radio_show_id, bs)
 
     # created に更新
-    radio_show.update_audio_url(radio_show_id, public_url)
+    radio_show.update_audio_url(radio_show_id, public_url, "todo.txt")
 
     return
 
@@ -302,7 +319,7 @@ def split_books(
     # target_datetime が timezone-aware かつ JST であるかをチェック
     if target_datetime.tzinfo is None:
         raise ValueError("target_datetime must be timezone-aware and in JST timezone.")
-    if target_datetime.tzinfo != ZoneInfo("Asia/Tokyo"):
+    if target_datetime.tzinfo != JST:
         raise ValueError("target_datetime must be in JST timezone.")
 
     target_datetime = target_datetime or datetime.now(JST)

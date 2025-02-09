@@ -43,6 +43,7 @@ class RadioShow(RadioShowId):
     status: Literal["creating"] | Literal["created"]
     masterdata_url: str
     audio_url: str | None = None
+    script_url: str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -230,7 +231,9 @@ def new(masterdata_url: str) -> RadioShow:
     return radio_show
 
 
-def update_audio_url(radio_show_id: str, audio_url: str) -> None:
+def update_audio_and_script_url(
+    radio_show_id: str, audio_url: str, script_url: str
+) -> None:
     """
     ラジオショーの audio_url を更新する。
     """
@@ -239,6 +242,7 @@ def update_audio_url(radio_show_id: str, audio_url: str) -> None:
     ref.update(
         {
             "audio_url": audio_url,
+            "script_url": script_url,
             "status": "created",
             "updated_at": now,
         }
