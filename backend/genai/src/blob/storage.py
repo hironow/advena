@@ -2,7 +2,6 @@ import io
 import os
 from datetime import datetime
 from typing import Any, BinaryIO
-from zoneinfo import ZoneInfo
 
 from google.cloud import storage  # type: ignore
 
