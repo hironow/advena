@@ -32,6 +32,9 @@ MASTERDATA_DIR = f"{PRIVATE_DIR}/masterdata"
 RADIO_SHOW_AUDIO_DIR = f"{PUBLIC_DIR}/radio_show_audio"
 RADIO_SHOW_SCRIPT_DIR = f"{PUBLIC_DIR}/radio_show_script"
 
+XML_LATEST_ALL_DIR_BASE = "latest_all"
+XML_KEYWORD_DIR_BASE = "keyword"
+
 ISBN_DIR = "isbn"
 JP_E_CODE_DIR = "jp_e_code"
 
@@ -45,22 +48,14 @@ def _get_bucket() -> storage.Bucket:
     return bucket
 
 
-def _upload_blob(
+def _upload_blob_file(
     blob_path: str,
     file: BinaryIO,
     metadata: dict[str, Any],
     content_type: str,
     acl: str | None = None,
 ) -> str:
-    """
-    共通のアップロード処理。
-    :param blob_path: GCS上のオブジェクトパス（例: "public/radio_show_audio/xxxx.mp3"）
-    :param file: アップロードするファイルオブジェクト
-    :param metadata: カスタムメタデータ
-    :param content_type: MIME タイプ
-    :param acl: 必要に応じたアクセスコントロール（例: "publicRead"）
-    :return: アップロードしたオブジェクトの公開 URL
-    """
+    """ファイルを GCS にアップロードし、公開 URL を返す。"""
     bucket = _get_bucket()
     blob = bucket.blob(blob_path)
     blob.metadata = metadata
@@ -78,12 +73,39 @@ def _upload_blob(
     return blob.public_url
 
 
+def _upload_blob_string(
+    blob_path: str,
+    s: str,
+    metadata: dict[str, Any],
+    content_type: str,
+    acl: str | None = None,
+) -> str:
+    """文字列を GCS にアップロードし、公開 URL を返す。"""
+    bucket = _get_bucket()
+    blob = bucket.blob(blob_path)
+    blob.metadata = metadata
+
+    logger.info(f"Uploading file to GCS: {blob_path}")
+    logger.info(f"Metadata: {metadata}")
+    try:
+        if acl:
+            blob.upload_from_string(s, content_type=content_type, predefined_acl=acl)
+        else:
+            blob.upload_from_string(s, content_type=content_type)
+    except Exception:
+        logger.error(f"Failed to upload string to GCS: {blob_path}", exc_info=True)
+        raise
+    return blob.public_url
+
+
 def put_tts_audio_file(signature: str, file: BinaryIO) -> str:
     """
     TTS後の音声ファイルを GCS にアップロードし、公開 URL を返す。
     キャッシュの有効期限は 7 日間。
     アップロード先: public/radio_show_audio/<signature>.mp3
     """
+    if signature == "":
+        raise ValueError("signature should not be empty.")
     blob_path = f"{RADIO_SHOW_AUDIO_DIR}/{signature}.mp3"
     metadata = {
         "Cache-Control": "public, max-age=604800",  # 7日間
@@ -92,18 +114,22 @@ def put_tts_audio_file(signature: str, file: BinaryIO) -> str:
     }
     # 先頭へ
     file.seek(0)
-    return _upload_blob(
+    return _upload_blob_file(
         blob_path, file, metadata, content_type="audio/mpeg", acl="publicRead"
     )
 
 
-def put_rss_xml_file(signature: str, prefix_dir: str, file: BinaryIO) -> str:
+def put_rss_xml_file(
+    signature: str, prefix_dir: str, file: BinaryIO, suffix_dir: str = "non"
+) -> str:
     """
     RSS XML ファイルを GCS にアップロードし、公開 URL を返す。
     キャッシュの有効期限は 5 分間。
     アップロード先: private/rss/(latest_all|keyword_X)/<signature>.xml
     """
-    blob_path = f"{RSS_RAW_DIR}/{prefix_dir}/{signature}.xml"
+    if signature == "" or prefix_dir == "":
+        raise ValueError("signature should not be empty.")
+    blob_path = f"{RSS_RAW_DIR}/{prefix_dir}_{suffix_dir}/{signature}.xml"
     metadata = {
         "Cache-Control": "public, max-age=300",  # 5分間
         "content-type": "application/xml; charset=utf-8",
@@ -111,7 +137,7 @@ def put_rss_xml_file(signature: str, prefix_dir: str, file: BinaryIO) -> str:
     }
     # 先頭へ
     file.seek(0)
-    return _upload_blob(blob_path, file, metadata, content_type="application/xml")
+    return _upload_blob_file(blob_path, file, metadata, content_type="application/xml")
 
 
 def put_oai_pmh_json(signature: str, prefix_dir: str, json_str: str) -> str:
@@ -120,16 +146,17 @@ def put_oai_pmh_json(signature: str, prefix_dir: str, json_str: str) -> str:
     キャッシュの有効期限は 5 分間。
     アップロード先: private/oai_pmh/(isbn|jp_e_code)/<signature>.json
     """
+    if signature == "" or json_str == "" or prefix_dir == "":
+        raise ValueError("signature should not be empty.")
     blob_path = f"{OAI_PMH_RAW_DIR}/{prefix_dir}/{signature}.json"
     metadata = {
         "Cache-Control": "public, max-age=300",  # 5分間
         "content-type": "application/json; charset=utf-8",
         "custom_time": get_now().isoformat(),
     }
-    json_bytes = json_str.encode("utf-8")
-    file = io.BytesIO(json_bytes)
-    file.seek(0)
-    return _upload_blob(blob_path, file, metadata, content_type="application/json")
+    return _upload_blob_string(
+        blob_path, json_str, metadata, content_type="application/json"
+    )
 
 
 def put_combined_json_file(signature: str, json_str: str) -> str:
@@ -138,24 +165,30 @@ def put_combined_json_file(signature: str, json_str: str) -> str:
     キャッシュの有効期限は 5 分間。
     アップロード先: private/masterdata/<signature>.json
     """
+    if signature == "" or json_str == "":
+        raise ValueError("signature should not be empty.")
     blob_path = f"{MASTERDATA_DIR}/{signature}.json"
     metadata = {
         "Cache-Control": "public, max-age=300",  # 5分間
         "content-type": "application/json; charset=utf-8",
         "custom_time": get_now().isoformat(),
     }
-    json_bytes = json_str.encode("utf-8")
-    file = io.BytesIO(json_bytes)
-    file.seek(0)
-    return _upload_blob(blob_path, file, metadata, content_type="application/json")
+    return _upload_blob_string(
+        blob_path, json_str, metadata, content_type="application/json"
+    )
 
 
 def get_closest_cached_rss_file(
-    target_utc: datetime, prefix_dir: str
+    target_utc: datetime, prefix_dir: str, suffix_dir: str = "non"
 ) -> io.BytesIO | None:
     """指定日のキャッシュされた RSS ファイルを取得する。prefix_dir は private/rss 以下のディレクトリ名。"""
+    if prefix_dir == "":
+        raise ValueError("target_isbn and prefix_dir should not be empty.")
+    if target_utc is None:
+        raise ValueError("target_utc should not be None.")
+
     bucket = _get_bucket()
-    prefix_base = f"{RSS_RAW_DIR}/{prefix_dir}"
+    prefix_base = f"{RSS_RAW_DIR}/{prefix_dir}_{suffix_dir}"
     # ソートはできないので、日までが同じものを全て取得してから、チェックする
     # ex: "private/rss/latest_all/20250209"
     search_prefix = prefix_base + "/" + target_utc.strftime("%Y%m%d")
@@ -197,6 +230,9 @@ def get_closest_cached_rss_file(
 def get_closest_cached_oai_pmh_file(
     target_isbn: str, prefix_dir: str
 ) -> io.BytesIO | None:
+    if target_isbn == "" or prefix_dir == "":
+        raise ValueError("target_isbn and prefix_dir should not be empty.")
+
     bucket = _get_bucket()
     prefix_base = f"{OAI_PMH_RAW_DIR}/{prefix_dir}"
     # ソートはできないので、同じものを取得してから、作成日チェックして、7日以内のものを取得する

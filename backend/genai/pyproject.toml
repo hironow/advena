@@ -21,6 +21,7 @@ dependencies = [
     "lmnr[all]>=0.4.55",
     "pillow>=11.1.0",
     "pydantic>=2.10.5",
+    "ratelimit>=2.2.1",
     "sickle>=0.7.0",
     "smolagents[litellm]>=1.7.0",
     "tenacity>=9.0.0",

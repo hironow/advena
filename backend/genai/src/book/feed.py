@@ -1,10 +1,39 @@
 from datetime import UTC, datetime
 from typing import Any, Callable
 
-import feedparser
-from pydantic import BaseModel, Extra
+import feedparser  # type: ignore
+import httpx
+from pydantic import BaseModel
+from ratelimit import limits, sleep_and_retry  # type: ignore
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
 
 from src.logger import logger
+
+# レート制限の設定（例: 1分間に最大60回＝1秒あたり1回）
+CALLS_PER_MINUTE = 60
+ONE_MINUTE = 60  # 秒
+
+
+@sleep_and_retry
+@limits(calls=CALLS_PER_MINUTE, period=ONE_MINUTE)
+@retry(
+    wait=wait_exponential(multiplier=1, min=2, max=60),  # 最初は2秒、最大60秒まで待機
+    stop=stop_after_attempt(5),  # 最大5回の試行
+    retry=retry_if_exception_type(
+        httpx.HTTPStatusError
+    ),  # 任意の例外が発生したらリトライ
+)
+def fetch_rss(url: str) -> str:
+    """httpx を使って RSS フィードを取得する関数。"""
+    response = httpx.get(url, timeout=30)  # タイムアウトは 30 秒
+    response.raise_for_status()
+    raw_xml = response.text
+    return raw_xml
 
 
 def parse_rss(raw_xml: str) -> tuple[feedparser.FeedParserDict, datetime | None]:
@@ -15,14 +44,15 @@ def parse_rss(raw_xml: str) -> tuple[feedparser.FeedParserDict, datetime | None]
 
     戻り値は、パース結果の feedparser オブジェクトと、更新日時を表す datetime オブジェクト（存在する場合）。
     """
-    feed = feedparser.parse(raw_xml)
+    feed = feedparser.parse(raw_xml)  # type: ignore
     # updated_parsed がなければ published_parsed を使用
-    last_build_date_struct = feed.feed.get(
-        "updated_parsed", feed.feed.get("published_parsed")
+    last_build_date_struct = feed.feed.get(  # type: ignore
+        "updated_parsed",
+        feed.feed.get("published_parsed"),  # type: ignore
     )
     if last_build_date_struct:
         # time.struct_time（9要素）の先頭6要素 (year, month, day, hour, minute, second) から datetime を生成
-        last_build_date = datetime(*last_build_date_struct[:6], tzinfo=UTC)
+        last_build_date = datetime(*last_build_date_struct[:6], tzinfo=UTC)  # type: ignore
     else:
         logger.warning("RSS フィードの更新日時が取得できませんでした。")
         last_build_date = None

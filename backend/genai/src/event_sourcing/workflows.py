@@ -23,42 +23,52 @@
 
 import io
 import json
+from datetime import datetime
 from typing import Any
 from zoneinfo import ZoneInfo
 
-import feedparser
-import httpx
+import feedparser  # type: ignore
+from pydantic import BaseModel, RootModel
 
 from src.blob.storage import (
     ISBN_DIR,
     JP_E_CODE_DIR,
+    XML_LATEST_ALL_DIR_BASE,
     get_closest_cached_oai_pmh_file,
     get_closest_cached_rss_file,
     put_oai_pmh_json,
     put_rss_xml_file,
 )
-from src.book.book import latest_all
-from src.book.feed import convert_to_entry_item, parse_rss
+from src.book.book import latest_all, thumbnail
+from src.book.feed import convert_to_entry_item, fetch_rss, parse_rss
 from src.book.oai_pmh import get_metadata_by_isbn, get_metadata_by_jp_e_code
 from src.logger import logger
 from src.utils import get_now
 
 
-def exec_rss_workflow(target_url: str, prefix_dir: str) -> None:
+class MstBook(BaseModel):
+    title: str
+    link: str
+    thumbnail_link: str
+    published: datetime
+    metadata: dict[str, Any] = {}
+
+
+class MstBooks(RootModel[dict[str, MstBook]]):
+    pass
+
+
+def exec_fetch_rss_and_oai_pmh_workflow(
+    target_url: str, prefix_dir: str, suffix_dir: str
+) -> None:
     """RSSを取得してGCSにアップロードする"""
     utcnow = get_now()
-    jstnow = utcnow.astimezone(ZoneInfo("Asia/Tokyo"))
-    target_signature = f"{jstnow.strftime('%Y%m%d_%H%M%S_0900')}.xml"
-    logger.info(f"RSSフィードを '{target_signature}' あたりから取得します。")
-
-    cached_xml = get_closest_cached_rss_file(utcnow, prefix_dir)
+    cached_xml = get_closest_cached_rss_file(utcnow, prefix_dir, suffix_dir)
 
     feed: feedparser.FeedParserDict
     if cached_xml is None:
         # キャッシュが見つからなかった場合は、リクエストを送信する
-        response = httpx.get(target_url)
-        response.raise_for_status()
-        raw_xml = response.text
+        raw_xml: str = fetch_rss(url=target_url)
 
         feed, last_build_date = parse_rss(raw_xml)
         if last_build_date is None:
@@ -66,19 +76,24 @@ def exec_rss_workflow(target_url: str, prefix_dir: str) -> None:
 
         # UTC -> JST
         last_build_date = last_build_date.astimezone(ZoneInfo("Asia/Tokyo"))
-        cache_signature = f"{last_build_date.strftime('%Y%m%d_%H%M%S_0900')}.xml"
+        cache_signature = f"{last_build_date.strftime('%Y%m%d_%H%M%S_0900')}"
         # cache upload
         bs_xml = io.BytesIO(raw_xml.encode("utf-8"))
-        logger.info(f"RSSフィードを '{cache_signature}' にアップロードします。")
-        result_url = put_rss_xml_file(cache_signature, "latest_all", bs_xml)
+        result_url = put_rss_xml_file(
+            signature=cache_signature,
+            prefix_dir=XML_LATEST_ALL_DIR_BASE,
+            file=bs_xml,
+            suffix_dir=suffix_dir,
+        )
         logger.info(f"RSSフィードを '{result_url}' にキャッシュしました。")
     else:
-        logger.info("キャッシュからRSSフィードを取得します。")
         raw_xml = cached_xml.read().decode("utf-8")
         feed, last_build_date = parse_rss(raw_xml)
         logger.info("キャッシュからRSSフィードを取得しました。")
 
-    for entry in feed.get("entries", []):
+    # keyはlink
+    mst_map: dict[str, MstBook] = {}
+    for entry in feed.get("entries", []):  # type: ignore
         if entry is None:
             continue
 
@@ -88,12 +103,13 @@ def exec_rss_workflow(target_url: str, prefix_dir: str) -> None:
         # oai_pmh から書誌情報を取得する
 
         metadata: dict[str, Any] = {}
-        if item.isbn:
+        thumbnail_link: str = ""
+        if item.isbn != "":
+            thumbnail_link = thumbnail(item.isbn)
             cached_metadata = get_closest_cached_oai_pmh_file(item.isbn, ISBN_DIR)
             if cached_metadata is None:
                 metadata = get_metadata_by_isbn(item.isbn)
                 # cacheする
-                logger.info("isbn metadata をキャッシュします")
                 metadata_json_str = json.dumps(metadata, ensure_ascii=False, indent=2)
                 put_oai_pmh_json(
                     item.isbn,
@@ -102,38 +118,61 @@ def exec_rss_workflow(target_url: str, prefix_dir: str) -> None:
                 )
                 logger.info("isbn metadata をキャッシュしました")
             else:
-                logger.info(f"cached isbn data found: {item.isbn}")
                 metadata = json.loads(cached_metadata.read().decode("utf-8"))
-        elif item.jp_e_code:
+                logger.info("キャッシュからisbn metadataを取得しました。")
+        elif item.jp_e_code != "":
+            thumbnail_link = thumbnail(item.jp_e_code)
             cached_metadata = get_closest_cached_oai_pmh_file(
                 item.jp_e_code, JP_E_CODE_DIR
             )
             if cached_metadata is None:
                 metadata = get_metadata_by_jp_e_code(item.jp_e_code)
                 # cacheする
-                logger.info("jp_e_code metadata をキャッシュします")
                 metadata_json_str = json.dumps(metadata, ensure_ascii=False, indent=2)
                 put_oai_pmh_json(
-                    item.isbn,
+                    item.jp_e_code,
                     JP_E_CODE_DIR,
                     metadata_json_str,
                 )
                 logger.info("jp_e_code metadata をキャッシュしました")
             else:
-                logger.info(f"cached jp_e_code data found: {item.isbn}")
                 metadata = json.loads(cached_metadata.read().decode("utf-8"))
+                logger.info("キャッシュからjp_e_code metadataを取得しました。")
+        else:
+            logger.error(f"isbn または jp_e_code が取得できませんでした。: {item}")
 
-        logger.info(f"metadata: {metadata}")
+        # mapに格納
+        mst_map[item.link] = MstBook(
+            title=item.title,
+            link=item.link,
+            thumbnail_link=thumbnail_link,
+            published=item.published or utcnow,
+            metadata=metadata,
+        )
 
-        # metadataをjsonにする
-        # metadata_json = json.dumps(metadata, ensure_ascii=False)
-        # logger.info(f"metadata: {metadata_json}")
+    # ここで、entryMapを使って、combined masterdataを作成する
+    # 作成したcombined masterdataをGCSにアップロードする
+    # entityMapをまずはそのままjsonにしてみる
+    mst_books = MstBooks(mst_map)
+    mst_books_json = mst_books.model_dump_json(indent=2)
+    # 適当なファイルへ
+    with open("./combined_masterdata.json", "w", encoding="utf-8") as f:
+        f.write(mst_books_json)
+        logger.info("combined_masterdata.json に書き込みました。")
 
-        break
+    # 読み込みテスト
+    with open("./combined_masterdata.json", "r", encoding="utf-8") as f:
+        json_data = f.read()
+        mst_books_loaded = MstBooks.model_validate_json(json_data)
+        logger.info(f"mst_books_loaded: {mst_books_loaded}")
+
+        dumped_mst_books = mst_books_loaded.model_dump()
+        # 件数を表示したい
+        logger.info(f"mst_books_loaded: {len(dumped_mst_books.keys())} 件")
 
 
 if __name__ == "__main__":
     # RSSを取得してOAI-PMHを取得して、GCSにアップロードする
-    url = latest_all(10)
+    url = latest_all(size=1000)
     print(url)
-    exec_rss_workflow(url, "latest_all")
+    exec_fetch_rss_and_oai_pmh_workflow(url, "latest_all", "1000")

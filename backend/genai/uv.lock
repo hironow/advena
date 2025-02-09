@@ -470,6 +470,7 @@ dependencies = [
     { name = "lmnr", extra = ["all"] },
     { name = "pillow" },
     { name = "pydantic" },
+    { name = "ratelimit" },
     { name = "sickle" },
     { name = "smolagents", extra = ["litellm"] },
     { name = "tenacity" },
@@ -506,6 +507,7 @@ requires-dist = [
     { name = "lmnr", extras = ["all"], specifier = ">=0.4.55" },
     { name = "pillow", specifier = ">=11.1.0" },
     { name = "pydantic", specifier = ">=2.10.5" },
+    { name = "ratelimit", specifier = ">=2.2.1" },
     { name = "sickle", specifier = ">=0.7.0" },
     { name = "smolagents", extras = ["litellm"], specifier = ">=1.7.0" },
     { name = "tenacity", specifier = ">=9.0.0" },
@@ -1072,8 +1074,8 @@ wheels = [
 
 [[package]]
 name = "litellm"
-version = "1.60.8"
-source = { git = "https://github.com/BerriAI/litellm.git?rev=main#88093608e39ddbbe963cc46e217a38834c166b6c" }
+version = "1.60.9"
+source = { git = "https://github.com/BerriAI/litellm.git?rev=main#e25806d0702a9d05cc5a7bfda85bb38747a375ed" }
 dependencies = [
     { name = "aiohttp" },
     { name = "click" },
@@ -2269,6 +2271,12 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/14/0d/e2c3b43bbce3cf6bd97c840b46088a3031085179e596d4929729d8d68270/PyYAML-6.0.2-cp313-cp313-win32.whl", hash = "sha256:bc2fa7c6b47d6bc618dd7fb02ef6fdedb1090ec036abab80d4681424b84c1183", size = 140527 },
     { url = "https://files.pythonhosted.org/packages/fa/de/02b54f42487e3d3c6efb3f89428677074ca7bf43aae402517bc7cca949f3/PyYAML-6.0.2-cp313-cp313-win_amd64.whl", hash = "sha256:8388ee1976c416731879ac16da0aff3f63b286ffdd57cdeb95f3f2e085687563", size = 156446 },
 ]
+
+[[package]]
+name = "ratelimit"
+version = "2.2.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ab/38/ff60c8fc9e002d50d48822cc5095deb8ebbc5f91a6b8fdd9731c87a147c9/ratelimit-2.2.1.tar.gz", hash = "sha256:af8a9b64b821529aca09ebaf6d8d279100d766f19e90b5059ac6a718ca6dee42", size = 5251 }
 
 [[package]]
 name = "referencing"

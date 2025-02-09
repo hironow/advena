@@ -1,18 +1,41 @@
 from typing import Any
 
+from ratelimit import limits, sleep_and_retry
 from sickle import Sickle  # type: ignore
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
 
 from .book import JPRO_REPOSITORY, OAI_PMH_URL_BASE
 
 sickle_client = Sickle(OAI_PMH_URL_BASE)
 
 
+# 例: 1分間に最大60回の呼び出し（1秒に1回）に制限
+CALLS = 120
+PERIOD = 60  # 秒
+
+
+@sleep_and_retry
+@limits(calls=CALLS, period=PERIOD)
+@retry(
+    wait=wait_exponential(
+        multiplier=1, min=2, max=60
+    ),  # 失敗時は最初2秒、最大60秒まで待機
+    stop=stop_after_attempt(5),  # 最大5回までリトライ
+    retry=retry_if_exception_type(Exception),  # 例外が発生した場合にリトライ
+)
 def _get_metadata_by_identifier(repository: str, identifier: str) -> dict[str, Any]:
+    if repository == "" or identifier == "":
+        raise ValueError("repository and identifier should not be empty")
     identifier = f"oai:ndlsearch.ndl.go.jp:{repository}-I{identifier}"
     # dcndl が情報が多いのでそちらを利用
-    record = sickle_client.GetRecord(metadataPrefix="dcndl", identifier=identifier)
-    metadata = record.metadata
-    return metadata
+    record = sickle_client.GetRecord(metadataPrefix="dcndl", identifier=identifier)  # type: ignore
+    metadata = record.metadata  # type: ignore
+    return metadata  # type: ignore
 
 
 def get_metadata_by_isbn(
