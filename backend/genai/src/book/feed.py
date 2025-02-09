@@ -1,20 +1,17 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Callable
 
-import feedparser  # type: ignore
-import httpx
+import feedparser
+from pydantic import BaseModel, Extra
+
+from src.logger import logger
 
 
-def _fetch_rss(url: str) -> str:
-    response = httpx.get(url)
-    response.raise_for_status()  # ステータスコードが 200 以外の場合は例外を発生
-    return response.text
-
-
-def parse_rss(raw_xml: str):
+def parse_rss(raw_xml: str) -> tuple[feedparser.FeedParserDict, datetime | None]:
     """
     生の XML 文字列から feedparser を使って RSS フィードをパースし、
     更新日時（updated_parsed または published_parsed）を取得する関数。
+    返り値の時刻は必ずUTCとして扱う。
 
     戻り値は、パース結果の feedparser オブジェクトと、更新日時を表す datetime オブジェクト（存在する場合）。
     """
@@ -25,18 +22,85 @@ def parse_rss(raw_xml: str):
     )
     if last_build_date_struct:
         # time.struct_time（9要素）の先頭6要素 (year, month, day, hour, minute, second) から datetime を生成
-        last_build_date = datetime(*last_build_date_struct[:6])
-        print("Raw lastBuildDate:", last_build_date_struct)
-        print("Datetime lastBuildDate:", last_build_date)
+        last_build_date = datetime(*last_build_date_struct[:6], tzinfo=UTC)
     else:
-        print("更新日時が見つかりませんでした。")
+        logger.warning("RSS フィードの更新日時が取得できませんでした。")
         last_build_date = None
     return feed, last_build_date
 
 
-def _generate_filename_from_date(dt: datetime) -> str:
-    """datetime オブジェクトから、ファイル名として使用可能なフォーマット（YYYYMMDD_HHMMSS.xml）を生成する関数。"""
-    return dt.strftime("%Y%m%d_%H%M%S.xml")
+class FeedEntry(BaseModel):
+    title: str = ""
+    title_detail: dict[str, Any] = {}
+    links: list[dict[str, Any]] = []
+    link: str = ""
+    summary: str = ""
+    summary_detail: dict[str, Any] = {}
+    id: str = ""
+    guidislink: bool = False
+    tags: list[dict[str, Any]] = []
+    published: datetime | None = None
+    # このデータ用の追加フィールド
+    repo: str = ""
+    isbn: str = ""
+    jp_e_code: str = ""
+
+    class Config:
+        # feedparser のデータは想定外のキーも持つので許容する
+        extra = "allow"
+
+
+def convert_to_entry_item(feed: feedparser.FeedParserDict) -> FeedEntry:
+    """feedparser.FeedParserDict を FeedEntry に変換する関数。"""
+    # published_parseを使ってutc datetimeに変換
+    published_date = None
+    published_parsed = feed.get("published_parsed")
+    published_date = datetime(*published_parsed[:6], tzinfo=UTC)
+
+    # linkの末尾を取り出し `https://ndlsearch.ndl.go.jp/books/R100000137-I9784798073972`
+    # `R100000137-I9784798073972` のように 13桁をISBN
+    # `R100000137-I09D154490010d0000000` のように 20桁をJP-eコード
+    # として取り出す I が先頭についているので取り除くことに注意
+    link_id: str = feed.get("id", "")
+    repo = ""
+    isbn = ""
+    jp_e_code = ""
+    if link_id != "":
+        last_part = link_id.split("/")[-1]
+        parts = last_part.split("-")
+        if len(parts) == 2:
+            parts[1] = parts[1]
+            repo = parts[0]
+            signature = parts[1][1:]  # 先頭の1文字(I)を取り除く
+            if len(signature) == 13:  # ISBN
+                isbn = signature
+            elif len(signature) == 20:  # JP-eコード
+                jp_e_code = signature
+
+    data: dict[str, Any] = {
+        "title": feed.get("title", ""),
+        "title_detail": feed.get("title_detail", {}),
+        "links": feed.get("links", []),
+        "link": feed.get("link", ""),
+        "summary": feed.get("summary", ""),
+        "summary_detail": feed.get("summary_detail", {}),
+        "id": feed.get("id", ""),
+        "guidislink": feed.get("guidislink", False),
+        "tags": feed.get("tags", []),
+        "published": published_date,
+        "repo": repo,
+        "isbn": isbn,
+        "jp_e_code": jp_e_code,
+    }
+
+    # 厳密にすると今後の変更に追随できないので `construct` でゆるい型チェックにする
+    return FeedEntry.construct(**data)
+
+
+def generate_filename_from_date(dt: datetime) -> str:
+    """datetime オブジェクトから、ファイル名として使用可能なフォーマット（YYYYMMDD_HHMMSS.xml）を生成する関数。この時刻ファイル名なので、JST時刻を使用する。"""
+    dt = dt.astimezone(timezone("Asia/Tokyo"))
+    return dt.strftime("%Y%m%d_%H%M%S_0900.xml")
 
 
 def fetch_and_cache_rss(url: str) -> None:
@@ -56,7 +120,7 @@ def fetch_and_cache_rss(url: str) -> None:
     if last_build_date is None:
         last_build_date = datetime.now()
 
-    filename = _generate_filename_from_date(last_build_date)
+    filename = generate_filename_from_date(last_build_date)
 
     # XML をファイルに保存（UTF-8 エンコード推奨）
     with open(filename, "w", encoding="utf-8") as f:

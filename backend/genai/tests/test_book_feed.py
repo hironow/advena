@@ -5,9 +5,9 @@ import pytest
 
 from src.book.feed import (
     _fetch_rss,
-    _generate_filename_from_date,
     _parse_rss_from_file,
     fetch_and_cache_rss,
+    generate_filename_from_date,
     parse_rss,
 )
 
@@ -42,7 +42,7 @@ def dummy_get(url: str, **kwargs):
 
 def test_generate_filename_from_date():
     dt = datetime(2025, 2, 8, 15, 45, 0)
-    filename = _generate_filename_from_date(dt)
+    filename = generate_filename_from_date(dt)
     # 生成されるファイル名は "YYYYMMDD_HHMMSS.xml" 形式
     assert filename == "20250208_154500.xml"
 
