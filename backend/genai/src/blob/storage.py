@@ -6,6 +6,7 @@ from zoneinfo import ZoneInfo
 
 from google.cloud import storage  # type: ignore
 
+from src import blob
 from src.logger import logger
 from src.utils import get_diff_days, get_now
 
@@ -55,7 +56,7 @@ def _upload_blob_file(
     metadata: dict[str, Any],
     content_type: str,
     acl: str | None = None,
-) -> str:
+) -> storage.Blob:
     """ファイルを GCS にアップロードし、公開 URL を返す。"""
     bucket = _get_bucket()
     blob = bucket.blob(blob_path)
@@ -71,7 +72,7 @@ def _upload_blob_file(
     except Exception:
         logger.error(f"Failed to upload file to GCS: {blob_path}", exc_info=True)
         raise
-    return blob.public_url
+    return blob
 
 
 def _upload_blob_string(
@@ -80,7 +81,7 @@ def _upload_blob_string(
     metadata: dict[str, Any],
     content_type: str,
     acl: str | None = None,
-) -> str:
+) -> storage.Blob:
     """文字列を GCS にアップロードし、公開 URL を返す。"""
     bucket = _get_bucket()
     blob = bucket.blob(blob_path)
@@ -96,10 +97,10 @@ def _upload_blob_string(
     except Exception:
         logger.error(f"Failed to upload string to GCS: {blob_path}", exc_info=True)
         raise
-    return blob.public_url
+    return blob
 
 
-def put_tts_audio_file(signature: str, file: BinaryIO) -> str:
+def put_tts_audio_file(signature: str, file: BinaryIO) -> storage.Blob:
     """
     TTS後の音声ファイルを GCS にアップロードし、公開 URL を返す。
     キャッシュの有効期限は 7 日間。
@@ -122,7 +123,7 @@ def put_tts_audio_file(signature: str, file: BinaryIO) -> str:
 
 def put_rss_xml_file(
     last_build_date: datetime, prefix_dir: str, file: BinaryIO, suffix_dir: str = "non"
-) -> str:
+) -> storage.Blob:
     """
     RSS XML ファイルを GCS にアップロードし、公開 URL を返す。
     キャッシュの有効期限は 5 分間。
@@ -149,7 +150,7 @@ def put_rss_xml_file(
     return _upload_blob_file(blob_path, file, metadata, content_type="application/xml")
 
 
-def put_oai_pmh_json(signature: str, prefix_dir: str, json_str: str) -> str:
+def put_oai_pmh_json(signature: str, prefix_dir: str, json_str: str) -> storage.Blob:
     """
     OAI-PMH 用の JSON ファイルを GCS にアップロードし、公開 URL を返す。
     キャッシュの有効期限は 5 分間。
@@ -168,7 +169,7 @@ def put_oai_pmh_json(signature: str, prefix_dir: str, json_str: str) -> str:
     )
 
 
-def put_combined_json_file(signature: str, json_str: str) -> str:
+def put_combined_json_file(signature: str, json_str: str) -> storage.Blob:
     """
     Masterdata ファイル (JSON) を GCS にアップロードし、公開 URL を返す。
     キャッシュの有効期限は 5 分間。
@@ -292,18 +293,18 @@ def get_closest_cached_oai_pmh_file(
     return bs
 
 
-def get_json_file(url: str) -> str:
+def get_json_file(blob_path: str) -> str:
     """
     Masterdata ファイル (JSON) を GCS から取得する。
     URL は private/masterdata/<signature>.json とする。
     """
-    if url == "":
+    if blob_path == "":
         raise ValueError("url should not be empty.")
     bucket = _get_bucket()
-    blob = bucket.blob(url)
+    blob = bucket.blob(blob_path)
     try:
         json_str = blob.download_as_string()
     except Exception:
-        logger.error(f"Failed to download string from GCS: {url}", exc_info=True)
+        logger.error(f"Failed to download string from GCS: {blob_path}", exc_info=True)
         raise
     return json_str.decode("utf-8")

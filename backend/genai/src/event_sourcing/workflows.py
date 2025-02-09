@@ -101,13 +101,13 @@ def exec_fetch_rss_and_oai_pmh_workflow(
         last_build_date = last_build_date.astimezone(ZoneInfo("Asia/Tokyo"))
         # cache upload
         bs_xml = io.BytesIO(raw_xml.encode("utf-8"))
-        result_url = put_rss_xml_file(
+        cached_url = put_rss_xml_file(
             last_build_date=last_build_date,
             prefix_dir=XML_LATEST_ALL_DIR_BASE,
             file=bs_xml,
             suffix_dir=suffix_dir,
-        )
-        logger.info(f"RSSフィードを '{result_url}' にキャッシュしました。")
+        ).public_url
+        logger.info(f"RSSフィードを '{cached_url}' にキャッシュしました。")
     else:
         raw_xml = cached_xml.read().decode("utf-8")
         feed, last_build_date = parse_rss(raw_xml)
@@ -137,12 +137,12 @@ def exec_fetch_rss_and_oai_pmh_workflow(
                 metadata = get_metadata_by_isbn(item.isbn)
                 # cacheする
                 metadata_json_str = json.dumps(metadata, ensure_ascii=False, indent=2)
-                put_oai_pmh_json(
+                cashed_url = put_oai_pmh_json(
                     item.isbn,
                     ISBN_DIR,
                     metadata_json_str,
-                )
-                logger.info("isbn metadata をキャッシュしました")
+                ).public_url
+                logger.info(f"isbn metadata を {cashed_url} にキャッシュしました")
             else:
                 metadata = json.loads(cached_metadata.read().decode("utf-8"))
                 logger.info("キャッシュからisbn metadataを取得しました。")
@@ -155,12 +155,12 @@ def exec_fetch_rss_and_oai_pmh_workflow(
                 metadata = get_metadata_by_jp_e_code(item.jp_e_code)
                 # cacheする
                 metadata_json_str = json.dumps(metadata, ensure_ascii=False, indent=2)
-                put_oai_pmh_json(
+                cached_url = put_oai_pmh_json(
                     item.jp_e_code,
                     JP_E_CODE_DIR,
                     metadata_json_str,
-                )
-                logger.info("jp_e_code metadata をキャッシュしました")
+                ).public_url
+                logger.info(f"jp_e_code metadata {cached_url} にキャッシュしました")
             else:
                 metadata = json.loads(cached_metadata.read().decode("utf-8"))
                 logger.info("キャッシュからjp_e_code metadataを取得しました。")
@@ -185,11 +185,11 @@ def exec_fetch_rss_and_oai_pmh_workflow(
     # entityMapをまずはそのままjsonにしてみる
     mst_books = MstBooks(mst_map)
     mst_books_json_str = mst_books.model_dump_json(indent=2)
-    result_url = put_combined_json_file(rss_sig, mst_books_json_str)
-    logger.info(f"combined masterdata を '{result_url}' にアップロードしました。")
+    result_blob = put_combined_json_file(rss_sig, mst_books_json_str)
+    logger.info(f"combined masterdata を '{result_blob.name}' にアップロードしました。")
 
     # Firestore recordをここで creating で作成する
-    creating = radio_show.new(result_url)
+    creating = radio_show.new(result_blob.name)
     logger.info(f"[COMMAND] radio_show.new creating: {creating}")
 
     # 後続処理はeventarcが行う
@@ -252,7 +252,7 @@ def exec_run_agent_and_tts_workflow(
         raise ValueError("recorded が取得できませんでした。")
 
     bs = io.BytesIO(recorded.audio_content)
-    public_url = put_tts_audio_file(radio_show_id, bs)
+    public_url = put_tts_audio_file(radio_show_id, bs).public_url
 
     # created に更新
     radio_show.update_audio_url(radio_show_id, public_url, "todo.txt")

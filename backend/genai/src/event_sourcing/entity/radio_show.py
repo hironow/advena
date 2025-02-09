@@ -41,7 +41,9 @@ class RadioShow(RadioShowId):
 
     # ラジオショー固有のフィールド例
     status: Literal["creating"] | Literal["created"]
-    masterdata_url: str
+    # masterdataは非公開なので blob path で管理
+    masterdata_blob_path: str
+    # public url は公開されるのでそのまま保持
     audio_url: str | None = None
     script_url: str | None = None
 
@@ -194,7 +196,7 @@ def get_by_field(field: str, value: Any) -> RadioShow | None:
     return None
 
 
-def new(masterdata_url: str) -> RadioShow:
+def new(masterdata_blob_path: str) -> RadioShow:
     """
     新規ラジオショーを作成する。
     """
@@ -204,7 +206,7 @@ def new(masterdata_url: str) -> RadioShow:
         version=RadioShow.__current_version__,
         created_at=utils.get_now(),
         status="creating",
-        masterdata_url=masterdata_url,
+        masterdata_blob_path=masterdata_blob_path,
     )
     try:
         doc_ref: DocumentReference = db.collection(RadioShow.__collection__).document(

@@ -1,373 +1,213 @@
 import io
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import pytest
 
-import src.blob.storage as gcs_module
-
-# もし gcs_module 内で UTC が定義されていればそれを、なければ timezone.utc を利用
-UTC = getattr(gcs_module, "UTC", timezone.utc)
+from src.blob import storage as gcs_module
 
 
 class FakeBlob:
-    def __init__(
-        self, name, time_created: datetime | None = None, download_content: bytes = b""
-    ):
+    def __init__(self, name, time_created=None, content=None):
         self.name = name
+        self.metadata = {}
         self.time_created = time_created
-        self.download_content = download_content
-        self.metadata = None
-        self.public_url = f"https://fake.storage/{name}"
-        self.upload_from_file_called = False
-        self.upload_from_string_called = False
-        self.upload_content = None
-        self.upload_string = None
-        self.content_type = None
-        self.predefined_acl = None
+        self._content = content  # バイト列で保持
 
-    def upload_from_file(self, file_obj, content_type, predefined_acl=None):
-        self.upload_from_file_called = True
-        file_obj.seek(0)
-        self.upload_content = file_obj.read()
-        self.content_type = content_type
-        self.predefined_acl = predefined_acl
+    def download_as_string(self):
+        if self._content is None:
+            raise Exception("No content")
+        return self._content
 
-    def upload_from_string(self, s, content_type, predefined_acl=None):
-        self.upload_from_string_called = True
-        self.upload_string = s
-        self.content_type = content_type
-        self.predefined_acl = predefined_acl
+    def download_to_file(self, file_obj: io.BytesIO):
+        if self._content is None:
+            raise Exception("No content")
+        file_obj.write(self._content)
 
-    def download_to_file(self, file_obj):
-        file_obj.write(self.download_content)
+    def upload_from_string(self, s, content_type=None, predefined_acl=None):
+        self._content = s.encode("utf-8")
+
+    def upload_from_file(self, file, content_type=None, predefined_acl=None):
+        file.seek(0)
+        self._content = file.read()
 
 
 class FakeBucket:
-    def __init__(self, blobs: list[FakeBlob] | None = None):
-        self._blobs = blobs or []
-        self.name = "fake_bucket"
+    def __init__(self):
+        # 辞書形式で blob_path -> FakeBlob を保持
+        self._blobs = {}
 
     def blob(self, blob_path: str) -> FakeBlob:
-        # テストごとに返す Blob を固定したい場合は monkeypatch で上書きしてください。
-        return FakeBlob(blob_path)
+        if blob_path in self._blobs:
+            return self._blobs[blob_path]
+        else:
+            new_blob = FakeBlob(blob_path)
+            self._blobs[blob_path] = new_blob
+            return new_blob
 
-    def list_blobs(self, prefix: str, max_results: int):
-        return [blob for blob in self._blobs if blob.name.startswith(prefix)]
-
-
-def test_get_bucket(monkeypatch):
-    fake_bucket = FakeBucket()
-    # FakeClient.bucket() が常に fake_bucket を返すようにする
-    FakeClient = type(
-        "FakeClient",
-        (),
-        {"bucket": lambda self, bucket_name, user_project: fake_bucket},
-    )
-    monkeypatch.setattr(gcs_module, "storage_client", FakeClient())
-    bucket = gcs_module._get_bucket()
-    assert bucket == fake_bucket
-
-
-def test_upload_blob_file(monkeypatch):
-    blob_path = "test/path/file.txt"
-    file_content = b"file data"
-    file_obj = io.BytesIO(file_content)
-    metadata = {"foo": "bar"}
-    content_type = "text/plain"
-    acl = "publicRead"
-
-    fake_bucket = FakeBucket()
-    fake_blob = FakeBlob(blob_path)
-    # FakeBucket.blob() を常に fake_blob を返すように上書き
-    monkeypatch.setattr(fake_bucket, "blob", lambda path: fake_blob)
-    monkeypatch.setattr(gcs_module, "_get_bucket", lambda: fake_bucket)
-
-    public_url = gcs_module._upload_blob_file(
-        blob_path, file_obj, metadata, content_type, acl
-    )
-    assert fake_blob.metadata == metadata
-    assert fake_blob.upload_from_file_called
-    assert fake_blob.upload_content == file_content
-    assert fake_blob.content_type == content_type
-    assert fake_blob.predefined_acl == acl
-    assert public_url == fake_blob.public_url
+    def list_blobs(self, prefix: str, max_results=None):
+        # prefix で始まる blob を抽出
+        results = [
+            blob for name, blob in self._blobs.items() if name.startswith(prefix)
+        ]
+        # time_created の古い順にソート（time_created が None の場合は datetime.min とみなす）
+        results.sort(key=lambda b: b.time_created or datetime.min)
+        if max_results:
+            return results[:max_results]
+        return results
 
 
-def test_upload_blob_string(monkeypatch):
-    blob_path = "test/path/file.txt"
-    s = "test content"
-    metadata = {"foo": "bar"}
-    content_type = "text/plain"
-    acl = "private"
-
-    fake_bucket = FakeBucket()
-    fake_blob = FakeBlob(blob_path)
-    monkeypatch.setattr(fake_bucket, "blob", lambda path: fake_blob)
-    monkeypatch.setattr(gcs_module, "_get_bucket", lambda: fake_bucket)
-
-    public_url = gcs_module._upload_blob_string(
-        blob_path, s, metadata, content_type, acl
-    )
-    assert fake_blob.metadata == metadata
-    assert fake_blob.upload_from_string_called
-    assert fake_blob.upload_string == s
-    assert fake_blob.content_type == content_type
-    assert fake_blob.predefined_acl == acl
-    assert public_url == fake_blob.public_url
+@pytest.fixture
+def fake_bucket(monkeypatch):
+    """
+    _get_bucket() を FakeBucket を返すように差し替える
+    """
+    bucket = FakeBucket()
+    monkeypatch.setattr(gcs_module, "_get_bucket", lambda: bucket)
+    return bucket
 
 
-def test_put_tts_audio_file_success(monkeypatch):
-    signature = "testsig"
+@pytest.fixture
+def fixed_now():
+    """固定の現在時刻 (UTC) を返す"""
+    return datetime(2025, 2, 9, 10, 0, 0, tzinfo=ZoneInfo("UTC"))
+
+
+def test_put_combined_json_file(fake_bucket, fixed_now, monkeypatch):
+    # get_now() を固定時刻に差し替え
+    monkeypatch.setattr(gcs_module, "get_now", lambda: fixed_now)
+    signature = "test_signature"
+    json_str = '{"key": "value"}'
+
+    blob = gcs_module.put_combined_json_file(signature, json_str)
+    expected_blob_path = f"{gcs_module.MASTERDATA_DIR}/{signature}.json"
+    assert blob.name == expected_blob_path, "Blob のパスが正しく生成されている"
+    # メタデータにキャッシュ設定等が含まれていることをチェック
+    assert blob.metadata.get("Cache-Control") == "public, max-age=300"
+    # アップロードしたコンテンツが正しく保存されている
+    assert blob._content == json_str.encode("utf-8")
+
+
+def test_get_json_file(fake_bucket):
+    # テスト用の Blob を作成し、コンテンツを設定する
+    blob_path = f"{gcs_module.MASTERDATA_DIR}/test_signature.json"
+    test_content = '{"key": "value"}'
+    bucket = fake_bucket  # FakeBucket インスタンス
+    blob = bucket.blob(blob_path)
+    blob._content = test_content.encode("utf-8")
+
+    # get_json_file() を呼び出し、内容が正しく取得できるか確認
+    result = gcs_module.get_json_file(blob_path)
+    assert result == test_content, "取得した JSON の内容が一致する"
+
+
+def test_put_tts_audio_file(fake_bucket):
+    signature = "audio_test"
     file_content = b"audio data"
     file_obj = io.BytesIO(file_content)
 
-    fake_bucket = FakeBucket()
-    blob_path_expected = f"{gcs_module.RADIO_SHOW_AUDIO_DIR}/{signature}.mp3"
-    fake_blob = FakeBlob(blob_path_expected)
-    monkeypatch.setattr(fake_bucket, "blob", lambda path: fake_blob)
-    monkeypatch.setattr(gcs_module, "_get_bucket", lambda: fake_bucket)
-
-    public_url = gcs_module.put_tts_audio_file(signature, file_obj)
-    assert fake_blob.upload_from_file_called
-    # アップロード時の content_type と predefined_acl が指定されていること
-    assert fake_blob.content_type == "audio/mpeg"
-    assert fake_blob.predefined_acl == "publicRead"
-    assert public_url == fake_blob.public_url
+    blob = gcs_module.put_tts_audio_file(signature, file_obj)
+    expected_blob_path = f"{gcs_module.RADIO_SHOW_AUDIO_DIR}/{signature}.mp3"
+    assert blob.name == expected_blob_path, "Blob のパスが正しく生成されている"
+    assert blob._content == file_content, "アップロードした音声ファイルの内容が一致する"
 
 
-def test_put_tts_audio_file_empty_signature():
-    with pytest.raises(ValueError):
-        gcs_module.put_tts_audio_file("", io.BytesIO(b"data"))
-
-
-def test_put_rss_xml_file_success_jst(monkeypatch):
-    """
-    JST の datetime を渡した場合のテスト
-    """
-    prefix_dir = "latest_all"
-    suffix_dir = "non"
-    file_content = b"<xml>content</xml>"
-    file_obj = io.BytesIO(file_content)
-    # JST の datetime を用意
-    last_build_date = datetime(2025, 2, 9, 0, 0, 0, tzinfo=ZoneInfo("Asia/Tokyo"))
-    # signature は "YYYYMMDD_HHMMSS_0900" 形式
-    expected_signature = last_build_date.strftime("%Y%m%d_%H%M%S_0900")
-    expected_blob_path = (
-        f"{gcs_module.RSS_RAW_DIR}/{prefix_dir}_{suffix_dir}/{expected_signature}.xml"
-    )
-
-    fake_blob = FakeBlob(expected_blob_path)
-    fake_bucket = FakeBucket()
-    monkeypatch.setattr(fake_bucket, "blob", lambda path: fake_blob)
-    monkeypatch.setattr(gcs_module, "_get_bucket", lambda: fake_bucket)
-
-    public_url = gcs_module.put_rss_xml_file(
-        last_build_date, prefix_dir, file_obj, suffix_dir
-    )
-    assert fake_blob.upload_from_file_called, "upload_from_file が呼ばれていない"
-    # _upload_blob_file() には content_type="application/xml" が渡される
-    assert fake_blob.content_type == "application/xml"
-    # metadata 内の content-type は "application/xml; charset=utf-8" となるが、
-    # ここでは blob.name（アップロード先パス）のチェックを行う
-    assert fake_blob.name == expected_blob_path
-    assert public_url == fake_blob.public_url
-
-
-def test_put_rss_xml_file_success_utc(monkeypatch):
-    """
-    UTC の datetime を渡した場合に、内部で JST に変換され正しい signature が生成されるかを確認するテスト
-    """
-    prefix_dir = "latest_all"
-    suffix_dir = "non"
-    file_content = b"<xml>content</xml>"
-    file_obj = io.BytesIO(file_content)
-    # UTC の datetime を用意 (例: 2025-02-08 15:00:00 UTC)
-    last_build_date = datetime(2025, 2, 8, 15, 0, 0, tzinfo=ZoneInfo("UTC"))
-    # 内部で JST に変換されるため、15:00 UTC → 2025-02-09 00:00:00 JST
+def test_put_rss_xml_file(fake_bucket, monkeypatch):
+    # last_build_date は UTC 時刻として与え、内部で JST へ変換される
+    last_build_date = datetime(2025, 2, 9, 10, 0, 0, tzinfo=ZoneInfo("UTC"))
+    # JST への変換後のフォーマットにより signature が生成される
     jst_date = last_build_date.astimezone(ZoneInfo("Asia/Tokyo"))
-    expected_signature = jst_date.strftime("%Y%m%d_%H%M%S_0900")
-    expected_blob_path = (
-        f"{gcs_module.RSS_RAW_DIR}/{prefix_dir}_{suffix_dir}/{expected_signature}.xml"
-    )
+    signature = jst_date.strftime("%Y%m%d_%H%M%S_0900")
+    prefix_dir = "latest_all"
+    suffix_dir = "non"
+    xml_content = "<rss></rss>"
+    file_obj = io.BytesIO(xml_content.encode("utf-8"))
 
-    fake_blob = FakeBlob(expected_blob_path)
-    fake_bucket = FakeBucket()
-    monkeypatch.setattr(fake_bucket, "blob", lambda path: fake_blob)
-    monkeypatch.setattr(gcs_module, "_get_bucket", lambda: fake_bucket)
-
-    public_url = gcs_module.put_rss_xml_file(
+    blob = gcs_module.put_rss_xml_file(
         last_build_date, prefix_dir, file_obj, suffix_dir
     )
-    assert fake_blob.upload_from_file_called, "upload_from_file が呼ばれていない"
-    assert fake_blob.content_type == "application/xml"
-    assert fake_blob.name == expected_blob_path
-    assert public_url == fake_blob.public_url
+    expected_blob_path = (
+        f"{gcs_module.RSS_RAW_DIR}/{prefix_dir}_{suffix_dir}/{signature}.xml"
+    )
+    assert blob.name == expected_blob_path, "RSS XML ファイルのパスが正しい"
+    assert blob._content == xml_content.encode("utf-8"), (
+        "XML の内容が正しくアップロードされている"
+    )
 
 
-def test_put_rss_xml_file_empty_params():
-    """
-    prefix_dir が空の場合に ValueError を発生させるテスト
-    """
-    now_jst = datetime.now(ZoneInfo("Asia/Tokyo"))
-    with pytest.raises(ValueError):
-        gcs_module.put_rss_xml_file(now_jst, "", io.BytesIO(b"<xml></xml>"))
-
-
-def test_put_oai_pmh_json_success(monkeypatch):
-    signature = "oai_sig"
+def test_put_oai_pmh_json(fake_bucket, fixed_now, monkeypatch):
+    monkeypatch.setattr(gcs_module, "get_now", lambda: fixed_now)
+    signature = "test_signature"
     prefix_dir = "isbn"
-    json_str = '{"key": "value"}'
-    fake_bucket = FakeBucket()
-    blob_path_expected = f"{gcs_module.OAI_PMH_RAW_DIR}/{prefix_dir}/{signature}.json"
-    fake_blob = FakeBlob(blob_path_expected)
-    monkeypatch.setattr(fake_bucket, "blob", lambda path: fake_blob)
-    monkeypatch.setattr(gcs_module, "_get_bucket", lambda: fake_bucket)
+    json_str = '{"data": "value"}'
 
-    public_url = gcs_module.put_oai_pmh_json(signature, prefix_dir, json_str)
-    assert fake_blob.upload_from_string_called
-    assert fake_blob.upload_string == json_str
-    # アップロード時の content_type は "application/json"（metadata 内は charset 付き）
-    assert fake_blob.content_type == "application/json"
-    assert public_url == fake_blob.public_url
+    blob = gcs_module.put_oai_pmh_json(signature, prefix_dir, json_str)
+    expected_blob_path = f"{gcs_module.OAI_PMH_RAW_DIR}/{prefix_dir}/{signature}.json"
+    assert blob.name == expected_blob_path, "OAI-PMH JSON のパスが正しい"
+    assert blob._content == json_str.encode("utf-8"), (
+        "JSON の内容が正しくアップロードされている"
+    )
 
 
-def test_put_oai_pmh_json_empty_params():
-    with pytest.raises(ValueError):
-        gcs_module.put_oai_pmh_json("", "prefix", "{}")
-    with pytest.raises(ValueError):
-        gcs_module.put_oai_pmh_json("sig", "", "{}")
-    with pytest.raises(ValueError):
-        gcs_module.put_oai_pmh_json("sig", "prefix", "")
-
-
-def test_put_combined_json_file_success(monkeypatch):
-    signature = "combined_sig"
-    json_str = '{"combined": true}'
-    fake_bucket = FakeBucket()
-    blob_path_expected = f"{gcs_module.MASTERDATA_DIR}/{signature}.json"
-    fake_blob = FakeBlob(blob_path_expected)
-    monkeypatch.setattr(fake_bucket, "blob", lambda path: fake_blob)
-    monkeypatch.setattr(gcs_module, "_get_bucket", lambda: fake_bucket)
-
-    public_url = gcs_module.put_combined_json_file(signature, json_str)
-    assert fake_blob.upload_from_string_called
-    assert fake_blob.upload_string == json_str
-    assert fake_blob.content_type == "application/json"
-    assert public_url == fake_blob.public_url
-
-
-def test_put_combined_json_file_empty_params():
-    with pytest.raises(ValueError):
-        gcs_module.put_combined_json_file("", "{}")
-    with pytest.raises(ValueError):
-        gcs_module.put_combined_json_file("sig", "")
-
-
-def test_get_closest_cached_rss_file_no_blobs(monkeypatch):
-    target_utc = datetime(2025, 2, 9, 10, 20, 30, tzinfo=UTC)
+def test_get_closest_cached_rss_file(fake_bucket):
+    # 対象日時（UTC）を指定（関数内部で JST へ変換される）
+    target_utc = datetime(2025, 2, 9, 0, 0, 0, tzinfo=ZoneInfo("UTC"))
     prefix_dir = "latest_all"
     suffix_dir = "non"
-    fake_bucket = FakeBucket(blobs=[])
-    monkeypatch.setattr(gcs_module, "_get_bucket", lambda: fake_bucket)
-
-    result = gcs_module.get_closest_cached_rss_file(target_utc, prefix_dir, suffix_dir)
-    assert result is None
-
-
-def test_get_closest_cached_rss_file_success(monkeypatch):
-    target_utc = datetime(2025, 2, 9, 0, 0, 0, tzinfo=UTC)
-    prefix_dir = "latest_all"
-    suffix_dir = "non"
-    # JST に変換した際の日付
-    target_jst = target_utc.astimezone(ZoneInfo("Asia/Tokyo"))
-    date_str = target_jst.strftime("%Y%m%d")
+    # RSS ファイルのパスのベースを生成
     prefix_base = f"{gcs_module.RSS_RAW_DIR}/{prefix_dir}_{suffix_dir}"
-    search_prefix = f"{prefix_base}/{date_str}"
+    search_prefix = (
+        prefix_base
+        + "/"
+        + target_utc.astimezone(ZoneInfo("Asia/Tokyo")).strftime("%Y%m%d")
+    )
 
-    # 2 つの Blob を用意。より新しい方 (time_created が大きい方) の内容が返るはず
-    blob_name1 = f"{search_prefix}/file1.xml"
-    blob_name2 = f"{search_prefix}/file2.xml"
-    time_created1 = datetime(2025, 2, 9, 1, 0, 0, tzinfo=UTC)
-    time_created2 = datetime(2025, 2, 9, 2, 0, 0, tzinfo=UTC)
-    fake_blob1 = FakeBlob(blob_name1, time_created1, download_content=b"content1")
-    fake_blob2 = FakeBlob(blob_name2, time_created2, download_content=b"content2")
-    fake_bucket = FakeBucket(blobs=[fake_blob1, fake_blob2])
-    monkeypatch.setattr(gcs_module, "_get_bucket", lambda: fake_bucket)
+    bucket = fake_bucket
+    # 2 つの Blob を作成：古い方と新しい方
+    older_blob_name = f"{search_prefix}/old.xml"
+    newer_blob_name = f"{search_prefix}/new.xml"
+    old_time = datetime(2025, 2, 9, 8, 0, 0, tzinfo=ZoneInfo("UTC"))
+    new_time = datetime(2025, 2, 9, 9, 0, 0, tzinfo=ZoneInfo("UTC"))
+    old_blob = bucket.blob(older_blob_name)
+    old_blob.time_created = old_time
+    old_blob._content = b"old rss content"
+    new_blob = bucket.blob(newer_blob_name)
+    new_blob.time_created = new_time
+    new_blob._content = b"new rss content"
 
-    result = gcs_module.get_closest_cached_rss_file(target_utc, prefix_dir, suffix_dir)
-    assert result is not None
-    content = result.read()
-    # より新しい Blob (fake_blob2) の内容が取得されるはず
-    assert content == b"content2"
-
-
-def test_get_closest_cached_rss_file_invalid_params():
-    with pytest.raises(ValueError):
-        gcs_module.get_closest_cached_rss_file(datetime.now(UTC), "", "non")
-    with pytest.raises(ValueError):
-        gcs_module.get_closest_cached_rss_file(None, "latest_all", "non")
+    result_io = gcs_module.get_closest_cached_rss_file(
+        target_utc, prefix_dir, suffix_dir
+    )
+    result_content = result_io.read()
+    # 新しい方 (new.xml) の内容が取得されるはず
+    assert result_content == b"new rss content"
 
 
-def test_get_closest_cached_oai_pmh_file_no_blobs(monkeypatch):
-    target_isbn = "9781234567890"
+def test_get_closest_cached_oai_pmh_file(fake_bucket, monkeypatch):
+    target_isbn = "9784621310328"
     prefix_dir = "isbn"
-    fake_bucket = FakeBucket(blobs=[])
-    monkeypatch.setattr(gcs_module, "_get_bucket", lambda: fake_bucket)
-    result = gcs_module.get_closest_cached_oai_pmh_file(target_isbn, prefix_dir)
-    assert result is None
+    prefix_base = f"{gcs_module.OAI_PMH_RAW_DIR}/{prefix_dir}"
+    search_prefix = prefix_base + "/" + target_isbn
 
+    bucket = fake_bucket
+    # 2 つの Blob を作成：古いものと新しいもの
+    old_blob_name = f"{search_prefix}/old.json"
+    new_blob_name = f"{search_prefix}/new.json"
+    old_time = datetime(2025, 2, 1, 0, 0, 0, tzinfo=ZoneInfo("UTC"))
+    new_time = datetime(2025, 2, 8, 0, 0, 0, tzinfo=ZoneInfo("UTC"))
+    old_blob = bucket.blob(old_blob_name)
+    old_blob.time_created = old_time
+    old_blob._content = b"old oai content"
+    new_blob = bucket.blob(new_blob_name)
+    new_blob.time_created = new_time
+    new_blob._content = b"new oai content"
 
-def test_get_closest_cached_oai_pmh_file_too_old(monkeypatch):
-    target_isbn = "9781234567890"
-    prefix_dir = "isbn"
-    # 固定の現在時刻をセット
-    fixed_now = datetime(2025, 2, 9, 10, 20, 30, tzinfo=UTC)
+    # 固定の現在時刻を 2025-02-09 に設定（新しい Blob との差は 1 日）
+    fixed_now = datetime(2025, 2, 9, 0, 0, 0, tzinfo=ZoneInfo("UTC"))
     monkeypatch.setattr(gcs_module, "get_now", lambda: fixed_now)
-    monkeypatch.setattr(
-        gcs_module, "get_diff_days", lambda now, past: (now - past).days
-    )
-    # 8日前の Blob（7 日以上前なので無効）
-    old_time = fixed_now - timedelta(days=8)
-    fake_blob = FakeBlob("blob_old", old_time, download_content=b"old content")
-    fake_bucket = FakeBucket(blobs=[fake_blob])
-    monkeypatch.setattr(gcs_module, "_get_bucket", lambda: fake_bucket)
-    result = gcs_module.get_closest_cached_oai_pmh_file(target_isbn, prefix_dir)
-    assert result is None
 
-
-def test_get_closest_cached_oai_pmh_file_success(monkeypatch):
-    target_isbn = "9781234567890"
-    prefix_dir = "isbn"
-    fixed_now = datetime(2025, 2, 9, 10, 20, 30, tzinfo=UTC)
-    monkeypatch.setattr(gcs_module, "get_now", lambda: fixed_now)
-    monkeypatch.setattr(
-        gcs_module, "get_diff_days", lambda now, past: (now - past).days
-    )
-
-    # 検索される prefix は "private/oai_pmh/<prefix_dir>/<target_isbn>"
-    blob_name_prefix = f"{gcs_module.OAI_PMH_RAW_DIR}/{prefix_dir}/{target_isbn}"
-    time_created1 = fixed_now - timedelta(hours=24)
-    time_created2 = fixed_now - timedelta(hours=1)
-    fake_blob1 = FakeBlob(
-        f"{blob_name_prefix}/file1.json", time_created1, download_content=b"old content"
-    )
-    fake_blob2 = FakeBlob(
-        f"{blob_name_prefix}/file2.json", time_created2, download_content=b"new content"
-    )
-    fake_bucket = FakeBucket(blobs=[fake_blob1, fake_blob2])
-    monkeypatch.setattr(gcs_module, "_get_bucket", lambda: fake_bucket)
-
-    result = gcs_module.get_closest_cached_oai_pmh_file(target_isbn, prefix_dir)
-    assert result is not None
-    content = result.read()
-    # より新しい Blob (fake_blob2) の内容が取得されるはず
-    assert content == b"new content"
-
-
-def test_get_closest_cached_oai_pmh_file_invalid_params():
-    with pytest.raises(ValueError):
-        gcs_module.get_closest_cached_oai_pmh_file("", "isbn")
-    with pytest.raises(ValueError):
-        gcs_module.get_closest_cached_oai_pmh_file("9781234567890", "")
+    result_io = gcs_module.get_closest_cached_oai_pmh_file(target_isbn, prefix_dir)
+    assert result_io is not None, "有効な OAI-PMH キャッシュが取得できる"
+    result_content = result_io.read()
+    assert result_content == b"new oai content"

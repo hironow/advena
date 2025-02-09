@@ -36,7 +36,7 @@ def test_radio_get_migrate_minimal_document():
         "id": radio_show_id,
         "created_at": datetime(2020, 1, 1),
         "status": "creating",
-        "masterdata_url": "https://example.com/masterdata",
+        "masterdata_blob_path": "https://example.com/masterdata",
         # version, updated_at, は未設定
     }
     doc_ref = db.collection(RadioShow.__collection__).document(radio_show_id)
@@ -69,7 +69,7 @@ def test_radio_update():
         "id": radio_show_id,
         "created_at": datetime(2020, 1, 1),
         "status": "creating",
-        "masterdata_url": "https://example.com/masterdata",
+        "masterdata_blob_path": "https://example.com/masterdata",
     }
     doc_ref = db.collection(RadioShow.__collection__).document(radio_show_id)
     doc_ref.set(minimal_doc)
@@ -101,7 +101,7 @@ def test_radio_get_by_field_single():
         "id": radio_show_id,
         "created_at": datetime(2020, 1, 1),
         "status": "creating",
-        "masterdata_url": "https://example.com/masterdata",
+        "masterdata_blob_path": "https://example.com/masterdata",
     }
     db.collection(RadioShow.__collection__).document(radio_show_id).set(minimal_doc)
 
@@ -127,7 +127,7 @@ def test_radio_get_by_field_multiple(caplog):
             "id": radio_show_id,
             "created_at": datetime(2020, 1, 1),
             "status": "creating",
-            "masterdata_url": "https://example.com/masterdata",
+            "masterdata_blob_path": "https://example.com/masterdata",
         }
         db.collection(RadioShow.__collection__).document(radio_show_id).set(minimal_doc)
 

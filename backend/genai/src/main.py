@@ -6,12 +6,12 @@ from cloudevents.http import from_http  # type: ignore
 from fastapi import FastAPI, Request, Response
 from pydantic import BaseModel
 
-from src.blob.storage import XML_LATEST_ALL_DIR_BASE
-from src.book.book import latest_all
+from src import utils
+from src.blob import storage
+from src.book import book
 from src.database.firestore import db
 from src.event_sourcing import workflows
 from src.logger import logger
-from src.utils import get_now, is_valid_uuid
 
 
 @asynccontextmanager
@@ -43,7 +43,7 @@ async def add_user(request: Request):
     document = event.get("document")
     event_id = event.get("id")
 
-    now = get_now()
+    now = utils.get_now()
 
     logger.info(f"{event_id}: start adding a document: {document}")
     # FIXME: 抽象化できていないので、修正が必要
@@ -55,7 +55,7 @@ async def add_user(request: Request):
     users, user_id = document.split("/")
     logger.info(f"{event_id}: start adding collection: {users} in a user: {user_id}")
 
-    if not is_valid_uuid(user_id):
+    if not utils.is_valid_uuid(user_id):
         logger.error(f"{event_id}: invalid user_id: {user_id}")
         return Response(content="invalid user_id", status_code=400)
 
@@ -83,53 +83,58 @@ async def add_user(request: Request):
 @app.post("/add_radio_show")
 async def add_radio_show(request: Request):
     """[COMMAND] creating radio_show"""
-    # cloud event からのリクエストを受け取る
-    body = await request.body()
-    event = from_http(request.headers, body)  # type: ignore
-    logger.info(f"event: {event}")
-    document = event.get("document")
-    event_id = event.get("id")
+    try:
+        # cloud event からのリクエストを受け取る
+        body = await request.body()
+        event = from_http(request.headers, body)  # type: ignore
+        logger.info(f"event: {event}")
+        document = event.get("document")
+        event_id = event.get("id")
 
-    now = get_now()
+        now = utils.get_now()
 
-    logger.info(f"{event_id}: start adding a document: {document}")
-    # FIXME: 抽象化できていないので、修正が必要
-    # document は "radio_shows/{radioShowId}" の形式であると想定
-    if "/" not in document or document.count("/") != 1:
-        logger.error(f"{event_id}: invalid document: {document}")
-        return Response(content="invalid document", status_code=400)
+        logger.info(f"{event_id}: start adding a document: {document}")
+        # FIXME: 抽象化できていないので、修正が必要
+        # document は "radio_shows/{radioShowId}" の形式であると想定
+        if "/" not in document or document.count("/") != 1:
+            logger.error(f"{event_id}: invalid document: {document}")
+            return Response(content="invalid document", status_code=400)
 
-    radio_shows, radio_show_id = document.split("/")
-    logger.info(
-        f"{event_id}: start adding collection: {radio_shows} in a radio_show: {radio_show_id}"
-    )
+        radio_shows, radio_show_id = document.split("/")
+        logger.info(
+            f"{event_id}: start adding collection: {radio_shows} in a radio_show: {radio_show_id}"
+        )
 
-    if not is_valid_uuid(radio_show_id):
-        logger.error(f"{event_id}: invalid radio_show_id: {radio_show_id}")
-        return Response(content="invalid radio_show_id", status_code=400)
+        if not utils.is_valid_uuid(radio_show_id):
+            logger.error(f"{event_id}: invalid radio_show_id: {radio_show_id}")
+            return Response(content="invalid radio_show_id", status_code=400)
 
-    # firestoreから取得
-    doc = db.collection(radio_shows).document(radio_show_id).get()
-    if not doc.exists:
-        logger.error(f"{event_id}: radio_show {radio_show_id} is not found")
-        return Response(content="radio_show not found", status_code=404)
+        # firestoreから取得
+        doc = db.collection(radio_shows).document(radio_show_id).get()
+        logger.info(f"{event_id}: doc: {doc.to_dict()}")
+        if not doc.exists:
+            logger.error(f"{event_id}: radio_show {radio_show_id} is not found")
+            return Response(content="radio_show not found", status_code=404)
 
-    if doc.get("status") == "created":
-        logger.error(f"{event_id}: radio_show {radio_show_id} is already created")
-        return Response(content="radio_show already created", status_code=204)
+        if doc.get("status") == "created":
+            logger.error(f"{event_id}: radio_show {radio_show_id} is already created")
+            return Response(content="radio_show already created", status_code=204)
 
-    # start workflow
-    masterdata_url = doc.get("masterdata_url", "")
-    logger.info("masterdata_url: %s", masterdata_url)
-    workflows.exec_run_agent_and_tts_workflow(
-        radio_show_id,
-        masterdata_url,
-    )
+        # start workflow
+        masterdata_url = doc.get("masterdata_url")
+        logger.info("masterdata_url: %s", masterdata_url)
+        workflows.exec_run_agent_and_tts_workflow(
+            radio_show_id,
+            masterdata_url,
+        )
 
-    logger.info(
-        f"{event_id}: finished adding a radio_show for {radio_show_id} as created"
-    )
-    return Response(content="finished", status_code=204)
+        logger.info(
+            f"{event_id}: finished adding a radio_show for {radio_show_id} as created"
+        )
+        return Response(content="finished", status_code=204)
+    except Exception as e:
+        logger.error(f"error: {e}")
+        return Response(content="error + {e}", status_code=500)
 
 
 class AsyncTaskBody(BaseModel):
@@ -152,9 +157,9 @@ async def async_task(body: AsyncTaskBody):
 
     if body.kind == KIND_LATEST_ALL:
         # start latest_all workflow
-        url = latest_all()
+        url = book.latest_all()
         workflows.exec_fetch_rss_and_oai_pmh_workflow(
-            url, XML_LATEST_ALL_DIR_BASE, "test"
+            url, storage.XML_LATEST_ALL_DIR_BASE, "test"
         )
     elif body.kind == KIND_LATEST_WITH_KEYWORDS_BY_USER:
         # start latest_with_keywords_by_user for each user workflow
