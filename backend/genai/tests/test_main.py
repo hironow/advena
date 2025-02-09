@@ -24,11 +24,12 @@ def patch_from_http(monkeypatch):
     monkeypatch.setattr(main_module, "from_http", fake_from_http)
 
 
-# workflowsのmock
+# /async_task 内で利用されるワークフロー関数をパッチする
 @pytest.fixture(autouse=True)
-def patch_workflows(monkeypatch):
+def patch_exec_fetch_workflow(monkeypatch):
     def fake_exec_fetch_rss_and_oai_pmh_workflow(url, prefix, suffix, broadcasted_at):
-        pass
+        # ダミー処理（実際のワークフロー処理は行わない）
+        return None
 
     monkeypatch.setattr(
         main_module.workflows,
@@ -37,12 +38,14 @@ def patch_workflows(monkeypatch):
     )
 
 
+# /add_radio_show 内で利用されるワークフロー関数をパッチする
 @pytest.fixture(autouse=True)
-def patch_workflows(monkeypatch):
+def patch_exec_run_agent_workflow(monkeypatch):
     def fake_exec_run_agent_and_tts_workflow(
         radio_show_id, masterdata_blob_path, broadcasted_at
     ):
-        pass
+        # ダミー処理
+        return None
 
     monkeypatch.setattr(
         main_module.workflows,
@@ -79,7 +82,13 @@ def test_add_radio_show(monkeypatch):
     dummy_id = str(uuid4())
     # ラジオ番組ドキュメントは空ではなく、何かしらのフィールドを入れて作成する
     radio_show_doc = db.collection("radio_shows").document(dummy_id)
-    radio_show_doc.set({"status": "creating"})
+    radio_show_doc.set(
+        {
+            "status": "creating",
+            "masterdata_blob_path": "dummy/path",
+            "broadcasted_at": datetime.now(),
+        }
+    )
 
     # when
     payload = {"id": "event1", "document": "radio_shows/" + dummy_id}

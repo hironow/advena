@@ -130,8 +130,16 @@ async def add_radio_show(request: Request):
 
         # start workflow
         masterdata_blob_path: str = doc.get("masterdata_blob_path")
+        if masterdata_blob_path is None:
+            logger.error(f"{event_id}: masterdata_blob_path is not found")
+            return Response(content="masterdata_blob_path not found", status_code=400)
+
         broadcasted_at: datetime | None = doc.get("broadcasted_at")
-        if broadcasted_at:
+        if broadcasted_at is None:
+            logger.error(f"{event_id}: broadcasted_at is not found")
+            return Response(content="broadcasted_at not found", status_code=400)
+
+        if broadcasted_at is not None:
             # UTC前提
             broadcasted_at = broadcasted_at.replace(tzinfo=ZoneInfo("UTC"))
         logger.info("masterdata_blob_path: %s", masterdata_blob_path)
@@ -147,7 +155,7 @@ async def add_radio_show(request: Request):
         )
         return Response(content="finished", status_code=204)
     except Exception as e:
-        logger.error(f"error: {e}")
+        logger.error(f"/add_radio_show endpoint error: {e}")
         return Response(content="error", status_code=500)
 
 

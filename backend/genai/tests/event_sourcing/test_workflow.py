@@ -193,8 +193,8 @@ def test_no_metadata():
         published=datetime(2020, 1, 1, 12, 0, 0),
         metadata={},
     )
-    expected = "title:Test Book\nsummary:A book for testing.\nmetadata:\n"
-    result = convert_to_book_prompt(book)
+    expected = "1冊目 title:Test Book\nsummary:A book for testing.\nmetadata:\n"
+    result = convert_to_book_prompt(book, 1)
     assert result == expected
 
 
@@ -209,8 +209,8 @@ def test_metadata_string():
         published=datetime(2020, 1, 1, 0, 0, 0),
         metadata={"author": "John Doe"},
     )
-    expected = "title:String Test\nsummary:Testing string metadata\nmetadata:\n* author: John Doe\n"
-    result = convert_to_book_prompt(book)
+    expected = "1冊目 title:String Test\nsummary:Testing string metadata\nmetadata:\n* author: John Doe\n"
+    result = convert_to_book_prompt(book, 1)
     assert result == expected
 
 
@@ -225,10 +225,8 @@ def test_metadata_string_empty():
         published=datetime(2020, 1, 1, 0, 0, 0),
         metadata={"author": ""},
     )
-    expected = (
-        "title:Empty String Test\nsummary:Testing empty string metadata\nmetadata:\n"
-    )
-    result = convert_to_book_prompt(book)
+    expected = "1冊目 title:Empty String Test\nsummary:Testing empty string metadata\nmetadata:\n"
+    result = convert_to_book_prompt(book, 1)
     assert result == expected
 
 
@@ -243,8 +241,8 @@ def test_metadata_list():
         published=datetime(2020, 1, 1, 0, 0, 0),
         metadata={"tags": ["fiction", "novel"]},
     )
-    expected = "title:List Test\nsummary:Testing list metadata\nmetadata:\n* tags: fiction, novel\n"
-    result = convert_to_book_prompt(book)
+    expected = "1冊目 title:List Test\nsummary:Testing list metadata\nmetadata:\n* tags: fiction, novel\n"
+    result = convert_to_book_prompt(book, 1)
     assert result == expected
 
 
@@ -259,8 +257,10 @@ def test_metadata_list_empty():
         published=datetime(2020, 1, 1, 0, 0, 0),
         metadata={"tags": []},
     )
-    expected = "title:Empty List Test\nsummary:Testing empty list metadata\nmetadata:\n"
-    result = convert_to_book_prompt(book)
+    expected = (
+        "1冊目 title:Empty List Test\nsummary:Testing empty list metadata\nmetadata:\n"
+    )
+    result = convert_to_book_prompt(book, 1)
     assert result == expected
 
 
@@ -275,10 +275,8 @@ def test_metadata_list_all_none():
         published=datetime(2020, 1, 1, 0, 0, 0),
         metadata={"tags": [None, None]},
     )
-    expected = (
-        "title:List All None\nsummary:Testing list with all None values\nmetadata:\n"
-    )
-    result = convert_to_book_prompt(book)
+    expected = "1冊目 title:List All None\nsummary:Testing list with all None values\nmetadata:\n"
+    result = convert_to_book_prompt(book, 1)
     assert result == expected
 
 
@@ -294,8 +292,8 @@ def test_metadata_dict():
         metadata={"info": {"pages": 300, "publisher": "XYZ"}},
     )
     # dict の出力は {k:v} の順序が定義された順序で出力されるため、ここではリテラルで定義した順序を前提としています。
-    expected = "title:Dict Test\nsummary:Testing dict metadata\nmetadata:\n* info: pages:300,publisher:XYZ\n"
-    result = convert_to_book_prompt(book)
+    expected = "1冊目 title:Dict Test\nsummary:Testing dict metadata\nmetadata:\n* info: pages:300,publisher:XYZ\n"
+    result = convert_to_book_prompt(book, 1)
     assert result == expected
 
 
@@ -310,8 +308,10 @@ def test_metadata_dict_empty():
         published=datetime(2020, 1, 1, 0, 0, 0),
         metadata={"info": {}},
     )
-    expected = "title:Empty Dict Test\nsummary:Testing empty dict metadata\nmetadata:\n"
-    result = convert_to_book_prompt(book)
+    expected = (
+        "1冊目 title:Empty Dict Test\nsummary:Testing empty dict metadata\nmetadata:\n"
+    )
+    result = convert_to_book_prompt(book, 1)
     assert result == expected
 
 
@@ -331,8 +331,8 @@ def test_skipped_keys():
         },
     )
     # "bibRecordCategory" と "publicationPlace" はスキップされ、"genre" のみ出力される
-    expected = "title:Skipped Keys Test\nsummary:Testing skipped keys in metadata\nmetadata:\n* genre: Science Fiction\n"
-    result = convert_to_book_prompt(book)
+    expected = "1冊目 title:Skipped Keys Test\nsummary:Testing skipped keys in metadata\nmetadata:\n* genre: Science Fiction\n"
+    result = convert_to_book_prompt(book, 1)
     assert result == expected
 
 
@@ -353,14 +353,14 @@ def test_multiple_metadata_keys_sorted():
     )
     # キーは "author", "tags", "year" の順にソートされる
     expected = (
-        "title:Multiple Metadata Test\n"
+        "1冊目 title:Multiple Metadata Test\n"
         "summary:Testing multiple metadata keys sorted\n"
         "metadata:\n"
         "* author: Alice\n"
         "* tags: Fiction, Drama\n"
         "* year: 2020\n"
     )
-    result = convert_to_book_prompt(book)
+    result = convert_to_book_prompt(book, 1)
     assert result == expected
 
 
@@ -376,8 +376,8 @@ def test_metadata_with_none_value():
         metadata={"rating": None, "review": "Good book"},
     )
     # "rating" は None なのでスキップされ、"review" のみ出力される
-    expected = "title:None Value Test\nsummary:Testing metadata with None value\nmetadata:\n* review: Good book\n"
-    result = convert_to_book_prompt(book)
+    expected = "1冊目 title:None Value Test\nsummary:Testing metadata with None value\nmetadata:\n* review: Good book\n"
+    result = convert_to_book_prompt(book, 1)
     assert result == expected
 
 
@@ -392,8 +392,8 @@ def test_metadata_unsupported_type(caplog):
         published=datetime(2020, 1, 1, 0, 0, 0),
         metadata={"pages": 300},  # int 型は対応外
     )
-    expected = "title:Unsupported Type Test\nsummary:Testing unsupported metadata type\nmetadata:\n"
-    result = convert_to_book_prompt(book)
+    expected = "1冊目 title:Unsupported Type Test\nsummary:Testing unsupported metadata type\nmetadata:\n"
+    result = convert_to_book_prompt(book, 1)
     assert result == expected
     # ログに「metadata に未対応の型が含まれています: 300」が記録されていることを確認
     assert any(

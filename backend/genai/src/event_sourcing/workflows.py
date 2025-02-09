@@ -343,7 +343,7 @@ def convert_to_book_prompt(mst_book: MstBook, number: int) -> str:
             case _:
                 logger.warning(f"metadata に未対応の型が含まれています: {mdata}")
 
-    return f"{number}番 title:{title}\nsummary:{summary}\nmetadata:\n{metadata_str}"
+    return f"{number}冊目 title:{title}\nsummary:{summary}\nmetadata:\n{metadata_str}"
 
 
 def split_books(
