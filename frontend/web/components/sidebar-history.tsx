@@ -125,15 +125,7 @@ export function SidebarHistory({
     );
   }
 
-  const groupRadioShowsByDate = (
-    radioShows: RadioShow[],
-  ): {
-    today: RadioShow[];
-    yesterday: RadioShow[];
-    lastWeek: RadioShow[];
-    lastMonth: RadioShow[];
-    older: RadioShow[];
-  } => {
+  const groupRadioShowsByDate = (radioShows: RadioShow[]): any => {
     const now = new Date();
     const oneWeekAgo = subWeeks(now, 1);
     const oneMonthAgo = subMonths(now, 1);
@@ -170,7 +162,7 @@ export function SidebarHistory({
         lastWeek: [],
         lastMonth: [],
         older: [],
-      },
+      } as any,
     );
   };
 
