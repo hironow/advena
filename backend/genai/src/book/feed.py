@@ -4,19 +4,8 @@ from typing import Any
 import feedparser  # type: ignore
 import httpx
 from pydantic import BaseModel
-from ratelimit import limits, sleep_and_retry  # type: ignore
-from tenacity import (
-    retry,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_exponential,
-)
 
 from src.logger import logger
-
-# レート制限の設定（例: 1分間に最大60回＝1秒あたり1回）
-CALLS_PER_MINUTE = 60  # 回
-ONE_MINUTE = 60  # 秒
 
 
 def fetch_rss(url: str) -> str:
@@ -26,9 +15,11 @@ def fetch_rss(url: str) -> str:
         response.raise_for_status()
         raw_xml = response.text
         return raw_xml
-    except httpx.HTTPError as exc:
-        logger.error(f"HTTP Exception for {exc.request.url} - {exc}")
-        return ""
+    except Exception as e:
+        logger.error(f"RSS フィードの取得に失敗しました: {url}")
+        logger.error(e)
+        raise e
+        l
 
 
 def parse_rss(raw_xml: str) -> tuple[feedparser.FeedParserDict, datetime | None]:

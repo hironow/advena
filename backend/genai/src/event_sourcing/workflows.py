@@ -23,6 +23,7 @@
 
 import io
 import json
+import time
 from datetime import UTC, datetime
 from typing import Any
 
@@ -193,6 +194,9 @@ def exec_fetch_rss_and_oai_pmh_workflow(
             published=item.published or utcnow,
             metadata=metadata,
         )
+
+        # 最大1000件でアクセス集中するため一定時間待つ
+        time.sleep(0.1)
 
     # ここで、entryMapを使って、combined masterdataを作成する
     rss_sig = last_build_date.strftime("%Y%m%d_%H%M%S_0900")
