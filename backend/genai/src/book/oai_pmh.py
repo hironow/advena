@@ -1,6 +1,6 @@
 from typing import Any
 
-from ratelimit import limits, sleep_and_retry
+from ratelimit import limits
 from sickle import Sickle
 from sickle.oaiexceptions import OAIError
 from tenacity import (
@@ -20,7 +20,6 @@ CALLS = 120
 PERIOD = 60  # 秒
 
 
-@sleep_and_retry
 @limits(calls=CALLS, period=PERIOD)
 @retry(
     wait=wait_exponential(
