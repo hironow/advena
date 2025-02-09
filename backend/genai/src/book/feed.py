@@ -30,7 +30,7 @@ ONE_MINUTE = 60  # 秒
 )
 def fetch_rss(url: str) -> str:
     """httpx を使って RSS フィードを取得する関数。"""
-    response = httpx.get(url, timeout=30)  # タイムアウトは 30 秒
+    response = httpx.get(url, timeout=300)  # タイムアウトは 300 秒 = 5 分
     response.raise_for_status()
     raw_xml = response.text
     return raw_xml

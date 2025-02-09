@@ -101,6 +101,7 @@ def exec_fetch_rss_and_oai_pmh_workflow(
         logger.error(f"RSS フィードのキャッシュ取得に失敗しました: {e}")
         cached_xml = None
 
+    logger.info(f"start fetch_rss: {target_url}")
     feed: feedparser.FeedParserDict
     if cached_xml is None:
         # キャッシュが見つからなかった場合は、リクエストを送信する
