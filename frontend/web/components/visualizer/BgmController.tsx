@@ -4,6 +4,7 @@ import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { useAudioContextState } from './audio-context-provider';
 import { Button } from '../ui/button';
+import { PlayIcon, StopIcon } from '../icons';
 
 type Props = {
   src: string; // BGM音源のURL
@@ -70,14 +71,20 @@ const BgmController: React.FC<Props> = ({ src }) => {
     }
   };
 
+  const running = !!sourceRef.current;
+
   return (
     <div>
-      <Button onClick={handlePlay} disabled={!audioBuffer}>
-        Play BGM
-      </Button>{' '}
-      <Button onClick={handleStop} disabled={!sourceRef.current}>
-        Stop BGM
-      </Button>
+      {!running && (
+        <Button onClick={handlePlay} disabled={!audioBuffer}>
+          <PlayIcon />
+        </Button>
+      )}
+      {running && (
+        <Button onClick={handleStop} disabled={!sourceRef.current}>
+          <StopIcon />
+        </Button>
+      )}
     </div>
   );
 };
