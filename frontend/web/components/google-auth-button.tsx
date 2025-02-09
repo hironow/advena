@@ -9,7 +9,7 @@ import {
 import { useGoogleAuth } from '@/hooks/use-google-auth';
 import { Button } from '@/components/ui/button';
 
-export default function AuthButton() {
+export default function GoogleAuthButton() {
   const { data: session, status } = useSession();
   const isLoggedIn = status === 'authenticated';
   const { signInWithPopup, signOut } = useGoogleAuth();
@@ -44,7 +44,7 @@ export default function AuthButton() {
   };
 
   return (
-    <Button onClick={handleClick}>
+    <Button size={'sm'} variant="destructive" onClick={handleClick}>
       {isLoggedIn ? 'Sign Out' : 'Sign In with Google'}
     </Button>
   );

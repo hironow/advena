@@ -9,6 +9,7 @@ import { PlusIcon } from './icons';
 import { useSidebar } from './ui/sidebar';
 import { memo } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import GoogleAuthButton from './google-auth-button';
 
 function PureChatHeader() {
   const router = useRouter();
@@ -21,23 +22,11 @@ function PureChatHeader() {
       <SidebarToggle />
 
       {(!open || windowWidth < 768) && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              className="order-2 md:order-1 md:px-2 px-2 md:h-fit ml-auto md:ml-0"
-              onClick={() => {
-                router.push('/');
-                router.refresh();
-              }}
-            >
-              <PlusIcon />
-              {/* TODO: ここにloginボタン */}
-              <span className="md:sr-only">New Chat</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>New Chat</TooltipContent>
-        </Tooltip>
+        <div className="order-2 md:order-1 md:px-2 px-2 md:h-fit ml-auto md:ml-0">
+          <div className="md:sr-only">
+            <GoogleAuthButton />
+          </div>
+        </div>
       )}
     </header>
   );
