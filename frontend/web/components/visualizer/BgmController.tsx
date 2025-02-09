@@ -78,7 +78,11 @@ const BgmController: React.FC<Props> = ({ src }) => {
 
   return (
     <div>
-      <Button onClick={handleToggle} disabled={!audioBuffer}>
+      <Button
+        variant={'destructive'}
+        onClick={handleToggle}
+        disabled={!audioBuffer}
+      >
         {isPlaying ? <StopIcon /> : <PlayIcon />}
       </Button>
     </div>
