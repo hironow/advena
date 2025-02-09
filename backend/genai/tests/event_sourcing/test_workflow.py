@@ -3,7 +3,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from src.event_sourcing.workflows import MstBook, split_books
+from src.event_sourcing.workflows import MstBook, convert_to_book_prompt, split_books
 
 
 def test_split_books_classification():
@@ -180,3 +180,223 @@ def test_split_books_target_timezone_error():
     books = {}
     with pytest.raises(ValueError, match="target_datetime must be in JST timezone"):
         split_books(books, target_datetime)
+
+
+def test_no_metadata():
+    book = MstBook(
+        title="Test Book",
+        summary="A book for testing.",
+        isbn="1234567890",
+        jp_e_code="jp_test",
+        link="http://example.com",
+        thumbnail_link="http://example.com/thumbnail",
+        published=datetime(2020, 1, 1, 12, 0, 0),
+        metadata={},
+    )
+    expected = "title:Test Book\nsummary:A book for testing.\nmetadata:\n"
+    result = convert_to_book_prompt(book)
+    assert result == expected
+
+
+def test_metadata_string():
+    book = MstBook(
+        title="String Test",
+        summary="Testing string metadata",
+        isbn="111",
+        jp_e_code="code",
+        link="http://example.com",
+        thumbnail_link="http://example.com/thumbnail",
+        published=datetime(2020, 1, 1, 0, 0, 0),
+        metadata={"author": "John Doe"},
+    )
+    expected = "title:String Test\nsummary:Testing string metadata\nmetadata:\n* author: John Doe\n"
+    result = convert_to_book_prompt(book)
+    assert result == expected
+
+
+def test_metadata_string_empty():
+    book = MstBook(
+        title="Empty String Test",
+        summary="Testing empty string metadata",
+        isbn="222",
+        jp_e_code="code",
+        link="http://example.com",
+        thumbnail_link="http://example.com/thumbnail",
+        published=datetime(2020, 1, 1, 0, 0, 0),
+        metadata={"author": ""},
+    )
+    expected = (
+        "title:Empty String Test\nsummary:Testing empty string metadata\nmetadata:\n"
+    )
+    result = convert_to_book_prompt(book)
+    assert result == expected
+
+
+def test_metadata_list():
+    book = MstBook(
+        title="List Test",
+        summary="Testing list metadata",
+        isbn="333",
+        jp_e_code="code",
+        link="http://example.com",
+        thumbnail_link="http://example.com/thumbnail",
+        published=datetime(2020, 1, 1, 0, 0, 0),
+        metadata={"tags": ["fiction", "novel"]},
+    )
+    expected = "title:List Test\nsummary:Testing list metadata\nmetadata:\n* tags: fiction, novel\n"
+    result = convert_to_book_prompt(book)
+    assert result == expected
+
+
+def test_metadata_list_empty():
+    book = MstBook(
+        title="Empty List Test",
+        summary="Testing empty list metadata",
+        isbn="444",
+        jp_e_code="code",
+        link="http://example.com",
+        thumbnail_link="http://example.com/thumbnail",
+        published=datetime(2020, 1, 1, 0, 0, 0),
+        metadata={"tags": []},
+    )
+    expected = "title:Empty List Test\nsummary:Testing empty list metadata\nmetadata:\n"
+    result = convert_to_book_prompt(book)
+    assert result == expected
+
+
+def test_metadata_list_all_none():
+    book = MstBook(
+        title="List All None",
+        summary="Testing list with all None values",
+        isbn="555",
+        jp_e_code="code",
+        link="http://example.com",
+        thumbnail_link="http://example.com/thumbnail",
+        published=datetime(2020, 1, 1, 0, 0, 0),
+        metadata={"tags": [None, None]},
+    )
+    expected = (
+        "title:List All None\nsummary:Testing list with all None values\nmetadata:\n"
+    )
+    result = convert_to_book_prompt(book)
+    assert result == expected
+
+
+def test_metadata_dict():
+    book = MstBook(
+        title="Dict Test",
+        summary="Testing dict metadata",
+        isbn="666",
+        jp_e_code="code",
+        link="http://example.com",
+        thumbnail_link="http://example.com/thumbnail",
+        published=datetime(2020, 1, 1, 0, 0, 0),
+        metadata={"info": {"pages": 300, "publisher": "XYZ"}},
+    )
+    # dict の出力は {k:v} の順序が定義された順序で出力されるため、ここではリテラルで定義した順序を前提としています。
+    expected = "title:Dict Test\nsummary:Testing dict metadata\nmetadata:\n* info: pages:300,publisher:XYZ\n"
+    result = convert_to_book_prompt(book)
+    assert result == expected
+
+
+def test_metadata_dict_empty():
+    book = MstBook(
+        title="Empty Dict Test",
+        summary="Testing empty dict metadata",
+        isbn="777",
+        jp_e_code="code",
+        link="http://example.com",
+        thumbnail_link="http://example.com/thumbnail",
+        published=datetime(2020, 1, 1, 0, 0, 0),
+        metadata={"info": {}},
+    )
+    expected = "title:Empty Dict Test\nsummary:Testing empty dict metadata\nmetadata:\n"
+    result = convert_to_book_prompt(book)
+    assert result == expected
+
+
+def test_skipped_keys():
+    book = MstBook(
+        title="Skipped Keys Test",
+        summary="Testing skipped keys in metadata",
+        isbn="888",
+        jp_e_code="code",
+        link="http://example.com",
+        thumbnail_link="http://example.com/thumbnail",
+        published=datetime(2020, 1, 1, 0, 0, 0),
+        metadata={
+            "bibRecordCategory": "Some Category",
+            "publicationPlace": "Tokyo",
+            "genre": "Science Fiction",
+        },
+    )
+    # "bibRecordCategory" と "publicationPlace" はスキップされ、"genre" のみ出力される
+    expected = "title:Skipped Keys Test\nsummary:Testing skipped keys in metadata\nmetadata:\n* genre: Science Fiction\n"
+    result = convert_to_book_prompt(book)
+    assert result == expected
+
+
+def test_multiple_metadata_keys_sorted():
+    book = MstBook(
+        title="Multiple Metadata Test",
+        summary="Testing multiple metadata keys sorted",
+        isbn="999",
+        jp_e_code="code",
+        link="http://example.com",
+        thumbnail_link="http://example.com/thumbnail",
+        published=datetime(2020, 1, 1, 0, 0, 0),
+        metadata={
+            "year": "2020",
+            "author": "Alice",
+            "tags": ["Fiction", "Drama"],
+        },
+    )
+    # キーは "author", "tags", "year" の順にソートされる
+    expected = (
+        "title:Multiple Metadata Test\n"
+        "summary:Testing multiple metadata keys sorted\n"
+        "metadata:\n"
+        "* author: Alice\n"
+        "* tags: Fiction, Drama\n"
+        "* year: 2020\n"
+    )
+    result = convert_to_book_prompt(book)
+    assert result == expected
+
+
+def test_metadata_with_none_value():
+    book = MstBook(
+        title="None Value Test",
+        summary="Testing metadata with None value",
+        isbn="1010",
+        jp_e_code="code",
+        link="http://example.com",
+        thumbnail_link="http://example.com/thumbnail",
+        published=datetime(2020, 1, 1, 0, 0, 0),
+        metadata={"rating": None, "review": "Good book"},
+    )
+    # "rating" は None なのでスキップされ、"review" のみ出力される
+    expected = "title:None Value Test\nsummary:Testing metadata with None value\nmetadata:\n* review: Good book\n"
+    result = convert_to_book_prompt(book)
+    assert result == expected
+
+
+def test_metadata_unsupported_type(caplog):
+    book = MstBook(
+        title="Unsupported Type Test",
+        summary="Testing unsupported metadata type",
+        isbn="1111",
+        jp_e_code="code",
+        link="http://example.com",
+        thumbnail_link="http://example.com/thumbnail",
+        published=datetime(2020, 1, 1, 0, 0, 0),
+        metadata={"pages": 300},  # int 型は対応外
+    )
+    expected = "title:Unsupported Type Test\nsummary:Testing unsupported metadata type\nmetadata:\n"
+    result = convert_to_book_prompt(book)
+    assert result == expected
+    # ログに「metadata に未対応の型が含まれています: 300」が記録されていることを確認
+    assert any(
+        "metadata に未対応の型が含まれています: 300" in record.message
+        for record in caplog.records
+    )
