@@ -18,6 +18,7 @@ import {
   ScriptDisplay,
   ScriptDisplayModal,
 } from '@/components/visualizer/ScriptDisplayModal';
+import { BooksDisplayModal } from '@/components/visualizer/BooksDisplayModal';
 
 // SSRオフにしてD3を使う
 const LedVisualizer = dynamic(
@@ -50,20 +51,22 @@ export default function Page() {
   const currentRadioShow = radioShows.find((rs) => rs.id === showRadioShowId);
   const hasAudio = !!currentRadioShow?.audio_url;
   const audioPublicUrl = currentRadioShow?.audio_url;
-  const scriptPublicUrl = currentRadioShow?.script_url;
 
   return (
     <>
       <div className="flex flex-col min-w-0 h-dvh bg-background">
         <ChatHeader />
         <div>
-          {/* 本が横一連に並んでいるUI */}
+          {/* TODO: 本が横一連に並んでいるUI */}
           {/* <Bookshelf radioShow={currentRadioShow} /> */}
+          {currentRadioShow && (
+            <BooksDisplayModal radioShow={currentRadioShow} />
+          )}
         </div>
 
         <IsometricWorld />
 
-        {/* scriptの表示部分をモーダルとして実装 */}
+        {/* script表示をModalとして実装 */}
         <div className="fixed left-6 rounded-xl p-6 flex flex-col gap-8 leading-relaxed text-center max-w-xl mx-auto">
           {currentRadioShow && (
             <ScriptDisplayModal radioShow={currentRadioShow} />
@@ -80,10 +83,9 @@ export default function Page() {
           </div>
         </div>
 
-        {/* 中央真下に浮かせる */}
+        {/* 可視化は中央真下に浮かせる */}
         <div className="w-full flex justify-center items-center">
-          <div className="fixed bottom-6 p-2">
-            {/* footerで固定したエリアに再生系と可視化系を積み上げる */}
+          <div className="fixed bottom-2 p-2">
             <LedVisualizer radioShow={currentRadioShow} />
           </div>
         </div>

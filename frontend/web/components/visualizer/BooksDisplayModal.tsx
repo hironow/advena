@@ -8,25 +8,25 @@ import { Button } from '../ui/button';
 import { CrossIcon } from '../icons';
 import { Card } from '../ui/card';
 import { DotGothic16 } from 'next/font/google';
+import Link from 'next/link';
+import { LinkIcon } from 'lucide-react';
 
 const dotGothic16 = DotGothic16({
   weight: '400',
   subsets: ['latin'],
 });
 
-interface ScriptDisplayModalProps {
+interface BooksDisplayModalProps {
   radioShow: RadioShow;
 }
 
-export const ScriptDisplayModal: FC<ScriptDisplayModalProps> = ({
+export const BooksDisplayModal: FC<BooksDisplayModalProps> = ({
   radioShow,
 }) => {
   // モーダルの開閉状態
   const [isOpen, setIsOpen] = useState(false);
   // テキスト内容の状態管理
   const [content, setContent] = useState<string>('');
-  // 読み込み状態
-  const [loading, setLoading] = useState(false);
   // エラー状態
   const [error, setError] = useState<string>('');
 
@@ -39,32 +39,24 @@ export const ScriptDisplayModal: FC<ScriptDisplayModalProps> = ({
     setError('');
   };
 
-  // モーダルが開いたら radioShow.script_public_url にリクエストしてテキストを取得する
-  useEffect(() => {
-    if (isOpen && radioShow?.script_url) {
-      setLoading(true);
-      fetch(radioShow.script_url)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`HTTP error: ${response.statusText}`);
-          }
-          return response.text();
-        })
-        .then((text) => {
-          setContent(text);
-          setLoading(false);
-        })
-        .catch((err) => {
-          setError(err.message);
-          setLoading(false);
-        });
-    }
-  }, [isOpen, radioShow]);
+  const books = radioShow.books;
+  const booksDisplay = books?.map((book) => {
+    return (
+      <div key={book.url} className="flex items-center gap-2">
+        <div>{book.title}</div>
+        {/* 外部リンク 別たぶで開く */}
+        <Link href={book.url} target="_blank" rel="noopener noreferrer">
+          <LinkIcon />
+        </Link>
+        <div>{book.isbn !== '' ? book.isbn : book.jp_e_code}</div>
+      </div>
+    );
+  });
 
   return (
     <>
       {/* モーダルを開くボタン */}
-      <Button onClick={openModal}>Show Script</Button>
+      <Button onClick={openModal}>Show Books</Button>
 
       {isOpen && (
         // モーダル全体のラッパー（画面全体を覆う）
@@ -82,18 +74,17 @@ export const ScriptDisplayModal: FC<ScriptDisplayModalProps> = ({
               </Button>
             </div>
             <div>
-              {loading && <p>読み込み中...</p>}
               {error && <p className="text-red-500">エラー: {error}</p>}
-              {!loading && !error && (
+              {!error && (
                 // <pre> タグで改行や空白もそのまま表示
-                <pre
+                <div
                   className="whitespace-pre-wrap"
                   style={{
                     fontFamily: dotGothic16.style.fontFamily,
                   }}
                 >
-                  {content}
-                </pre>
+                  {booksDisplay}
+                </div>
               )}
             </div>
           </Card>
