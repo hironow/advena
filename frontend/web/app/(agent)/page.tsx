@@ -13,6 +13,8 @@ import { AudioProvider } from '@/components/visualizer/audio-context-provider';
 import IsometricWorld from '@/components/isometric/IsometricWorld';
 import CustomAudioController from '@/components/visualizer/RadioController';
 
+const bgms = ['/assets/bgm/bgm1.mp3', '/assets/bgm/bgm2.mp3'];
+
 // SSRオフで D3 を使う
 const LedVisualizer = dynamic(
   () => import('@/components/visualizer/LedVisualizer'),
@@ -31,8 +33,14 @@ export default function Page() {
 function PageContent() {
   const showRadioShowId = useAtomValue<string | null>(currentRadioShowIdAtom);
   const radioShows = useAtomValue<RadioShow[]>(radioShowsAtom);
+
+  // 現在のラジオ番組を変数に保持
   const currentRadioShow = radioShows.find((rs) => rs.id === showRadioShowId);
+  // 現在のラジオ番組の音声URLを取得
   const audioPublicUrl = currentRadioShow?.audio_url;
+
+  // BGMをランダムに選択
+  const bgm = bgms[Math.floor(Math.random() * bgms.length)];
 
   return (
     <>
@@ -55,6 +63,9 @@ function PageContent() {
         />
 
         <div className="fixed top-18 right-6 flex flex-col gap-4 items-end">
+          <div className="flex flex-col gap-2">
+            <BgmController src={bgm} />
+          </div>
           {currentRadioShow && (
             <>
               <BooksDisplayModal radioShow={currentRadioShow} />
@@ -62,18 +73,20 @@ function PageContent() {
             </>
           )}
           <div className="flex flex-col gap-2">
-            <BgmController src="/assets/bgm/bgm1.mp3" />
-          </div>
-          <div className="flex flex-col gap-2">
-            {audioPublicUrl && <CustomAudioController src={audioPublicUrl} />}
+            {currentRadioShow && audioPublicUrl && (
+              <CustomAudioController src={audioPublicUrl} />
+            )}
           </div>
         </div>
 
-        <div className="w-full flex justify-center items-center">
-          <div className="fixed bottom-2 p-2">
-            <LedVisualizer radioShow={currentRadioShow} />
+        {currentRadioShow && audioPublicUrl && (
+          <div className="w-full flex justify-center items-center">
+            <div className="fixed bottom-2 p-2">
+              {/* FIXME: うまく可視化されないのでpending */}
+              {false && <LedVisualizer />}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </>
   );

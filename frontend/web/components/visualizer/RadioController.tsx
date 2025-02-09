@@ -1,38 +1,98 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { useAudioContextState } from '@/components/visualizer/audio-context-provider';
 import { PauseIcon, RadioTowerIcon } from 'lucide-react';
 
-const CustomAudioController: React.FC<{ src: string }> = ({ src }) => {
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+const RadioAudioController: React.FC<{ src: string }> = ({ src }) => {
+  const { audioCtx, analyser, initAudio } = useAudioContextState();
 
-  const togglePlayback = async () => {
-    if (!audioRef.current) return;
+  // AudioContext が未初期化ならここで初期化（マイクは使わない）
+  useEffect(() => {
+    if (!audioCtx) {
+      initAudio(undefined, { useMic: false }).catch(console.error);
+    }
+  }, [audioCtx, initAudio]);
+
+  // AudioBuffer を保持
+  const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null);
+  // 再生中の状態を管理
+  const [isPlaying, setIsPlaying] = useState(false);
+  // 再生中の AudioBufferSourceNode を参照
+  const sourceRef = useRef<AudioBufferSourceNode | null>(null);
+
+  // Radio の取得と decode
+  useEffect(() => {
+    if (!audioCtx) return; // AudioContext 初期化待ち
+    let cancelled = false;
+
+    const loadBgm = async () => {
+      try {
+        const resp = await fetch(src);
+        const arrayBuf = await resp.arrayBuffer();
+        const decoded = await audioCtx.decodeAudioData(arrayBuf);
+        if (!cancelled) {
+          setAudioBuffer(decoded);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    loadBgm();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [src, audioCtx]);
+
+  // 再生／停止の切替処理
+  const handleToggle = () => {
+    if (!audioCtx || !audioBuffer) return;
 
     if (isPlaying) {
-      // 再生中なら一時停止する
-      audioRef.current.pause();
+      // 再生中なら停止
+      if (sourceRef.current) {
+        sourceRef.current.stop();
+        sourceRef.current.disconnect();
+        sourceRef.current = null;
+      }
       setIsPlaying(false);
     } else {
-      // 再生していなければ再生する
-      try {
-        await audioRef.current.play();
-        setIsPlaying(true);
-      } catch (error) {
-        console.error('Audio playback error:', error);
+      // 新しい AudioBufferSourceNode を作成して接続
+      const source = audioCtx.createBufferSource();
+      source.buffer = audioBuffer;
+      source.loop = false; // ループ再生する場合は true に変更
+
+      // 再生終了時の処理
+      source.onended = () => {
+        source.disconnect();
+        sourceRef.current = null;
+        setIsPlaying(false);
+      };
+
+      // AudioContextProvider 側で作成した analyser に接続（あれば）
+      if (analyser) {
+        source.connect(analyser);
+      } else {
+        source.connect(audioCtx.destination);
       }
+
+      source.start(0);
+      sourceRef.current = source;
+      setIsPlaying(true);
     }
   };
 
   return (
     <div>
-      {/* crossOrigin 属性を付与して CORS 対策 */}
-      <audio ref={audioRef} crossOrigin="anonymous" src={src} hidden />
-      <Button onClick={togglePlayback}>
+      <Button
+        variant={'destructive'}
+        onClick={handleToggle}
+        disabled={!audioBuffer}
+      >
         {isPlaying ? <PauseIcon /> : <RadioTowerIcon />}
       </Button>
     </div>
   );
 };
 
-export default CustomAudioController;
+export default RadioAudioController;
