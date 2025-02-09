@@ -192,10 +192,9 @@ def split_books(
     """
     mst_books の各項目の published を target_datetime の日付と比較し、
     過去日、当日、未来日に分類して返す。
-    target_datetime が None の場合は datetime.now() を使用する。
-    published が不正な場合は、その項目はスキップする。
+    published が None の場合は、その項目はスキップする。
     """
-    # 比較の基準となる日付（date 部分のみで比較）
+    # 基準となる日付（date 部分のみで比較）
     target_datetime = target_datetime or datetime.now()
 
     past = {}
