@@ -1,8 +1,15 @@
 [
   {
-    "origin": ["http://localhost:3000"],
-    "method": ["GET"],
-    "responseHeader": ["Content-Type"],
+    "origin": [
+      "http://localhost:3000",
+      "https://frontend-advena-38358387786.us-central1.run.app"
+    ],
+    "method": [
+      "GET"
+    ],
+    "responseHeader": [
+      "Content-Type"
+    ],
     "maxAgeSeconds": 3600
   }
 ]

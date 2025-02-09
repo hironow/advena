@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 from typing import Any, BinaryIO
 
-from google.cloud import storage  # type: ignore
+from google.cloud import storage as gcs
 
 from src.logger import logger
 from src.utils import JST, get_diff_days, get_now
@@ -19,7 +19,7 @@ else:
 
 
 # プロジェクトが設定されている場合は project 引数を渡してクライアントを生成
-storage_client = storage.Client(project=gcp_project)
+storage_client = gcs.Client(project=gcp_project)
 
 # GCS上での論理ディレクトリ構造（リーディングスラッシュは含めない）
 PRIVATE_DIR = "private"
@@ -39,13 +39,12 @@ ISBN_DIR = "isbn"
 JP_E_CODE_DIR = "jp_e_code"
 
 
-def _get_bucket() -> storage.Bucket:
+def _get_bucket() -> gcs.Bucket:
     """GCSのバケットを取得する。"""
     # 1つの bucket のみでの運用を想定（user_project の指定は必要に応じて）
     logger.info(f"target bucket: {storage_bucket}")
-    bucket = storage_client.bucket(bucket_name=storage_bucket, user_project=gcp_project)
-    logger.info(f"Get bucket: {bucket.name}")
-    return bucket
+    b = storage_client.bucket(bucket_name=storage_bucket, user_project=gcp_project)
+    return b
 
 
 def _upload_blob_file(
@@ -54,10 +53,9 @@ def _upload_blob_file(
     metadata: dict[str, Any],
     content_type: str,
     acl: str | None = None,
-) -> storage.Blob:
+) -> gcs.Blob:
     """ファイルを GCS にアップロードし、公開 URL を返す。"""
-    bucket = _get_bucket()
-    blob = bucket.blob(blob_path)
+    blob = _get_bucket().blob(blob_path)
     blob.metadata = metadata
 
     logger.info(f"Uploading file to GCS: {blob_path}")
@@ -79,10 +77,9 @@ def _upload_blob_string(
     metadata: dict[str, Any],
     content_type: str,
     acl: str | None = None,
-) -> storage.Blob:
+) -> gcs.Blob:
     """文字列を GCS にアップロードし、公開 URL を返す。"""
-    bucket = _get_bucket()
-    blob = bucket.blob(blob_path)
+    blob = _get_bucket().blob(blob_path)
     blob.metadata = metadata
 
     logger.info(f"Uploading file to GCS: {blob_path}")
@@ -98,7 +95,7 @@ def _upload_blob_string(
     return blob
 
 
-def put_tts_script_file(signature: str, script: str) -> storage.Blob:
+def put_tts_script_file(signature: str, script: str) -> gcs.Blob:
     """
     TTS後のスクリプトファイルを GCS にアップロードし、公開 URL を返す。
     キャッシュの有効期限は 7 日間。
@@ -112,12 +109,13 @@ def put_tts_script_file(signature: str, script: str) -> storage.Blob:
         "content-type": "text/plain; charset=utf-8",
         "custom_time": get_now().isoformat(),
     }
+    logger.info("start uploading script file to GCS")
     return _upload_blob_string(
         blob_path, script, metadata, content_type="text/plain", acl="publicRead"
     )
 
 
-def put_tts_audio_file(signature: str, file: BinaryIO) -> storage.Blob:
+def put_tts_audio_file(signature: str, file: BinaryIO) -> gcs.Blob:
     """
     TTS後の音声ファイルを GCS にアップロードし、公開 URL を返す。
     キャッシュの有効期限は 7 日間。
@@ -133,6 +131,7 @@ def put_tts_audio_file(signature: str, file: BinaryIO) -> storage.Blob:
     }
     # 先頭へ
     file.seek(0)
+    logger.info("start uploading audio file to GCS")
     return _upload_blob_file(
         blob_path, file, metadata, content_type="audio/mpeg", acl="publicRead"
     )
@@ -140,7 +139,7 @@ def put_tts_audio_file(signature: str, file: BinaryIO) -> storage.Blob:
 
 def put_rss_xml_file(
     last_build_date: datetime, prefix_dir: str, file: BinaryIO, suffix_dir: str = "non"
-) -> storage.Blob:
+) -> gcs.Blob:
     """
     RSS XML ファイルを GCS にアップロードし、公開 URL を返す。
     キャッシュの有効期限は 5 分間。
@@ -164,10 +163,11 @@ def put_rss_xml_file(
     }
     # 先頭へ
     file.seek(0)
+    logger.info("start uploading RSS file to GCS")
     return _upload_blob_file(blob_path, file, metadata, content_type="application/xml")
 
 
-def put_oai_pmh_json(signature: str, prefix_dir: str, json_str: str) -> storage.Blob:
+def put_oai_pmh_json(signature: str, prefix_dir: str, json_str: str) -> gcs.Blob:
     """
     OAI-PMH 用の JSON ファイルを GCS にアップロードし、公開 URL を返す。
     キャッシュの有効期限は 5 分間。
@@ -181,12 +181,13 @@ def put_oai_pmh_json(signature: str, prefix_dir: str, json_str: str) -> storage.
         "content-type": "application/json; charset=utf-8",
         "custom_time": get_now().isoformat(),
     }
+    logger.info("start uploading OAI-PMH file to GCS")
     return _upload_blob_string(
         blob_path, json_str, metadata, content_type="application/json"
     )
 
 
-def put_combined_json_file(signature: str, json_str: str) -> storage.Blob:
+def put_combined_json_file(signature: str, json_str: str) -> gcs.Blob:
     """
     Masterdata ファイル (JSON) を GCS にアップロードし、公開 URL を返す。
     キャッシュの有効期限は 5 分間。
@@ -200,6 +201,7 @@ def put_combined_json_file(signature: str, json_str: str) -> storage.Blob:
         "content-type": "application/json; charset=utf-8",
         "custom_time": get_now().isoformat(),
     }
+    logger.info("start uploading masterdata file to GCS")
     return _upload_blob_string(
         blob_path, json_str, metadata, content_type="application/json"
     )
@@ -224,7 +226,7 @@ def get_closest_cached_rss_file(
     search_prefix = prefix_base + "/" + target_jst.strftime("%Y%m%d")
 
     logger.info(f"searching for cached RSS files...: {search_prefix}")
-    blobs: list[storage.Blob] = list(
+    blobs = list(
         bucket.list_blobs(
             prefix=search_prefix,
             max_results=10,
@@ -235,7 +237,7 @@ def get_closest_cached_rss_file(
         return None
 
     # 同日の中で最も新しいファイルを有効なキャッシュとする
-    newest_blob: storage.Blob | None = None
+    newest_blob: gcs.Blob | None = None
     for blob in blobs:
         logger.info(f"blob name: {blob.name}")
         if newest_blob is None:
@@ -270,7 +272,7 @@ def get_closest_cached_oai_pmh_file(
     search_prefix = prefix_base + "/" + target_isbn
 
     logger.info(f"searching for cached OAI-PMH files...: {search_prefix}")
-    blobs: list[storage.Blob] = list(
+    blobs = list(
         bucket.list_blobs(
             prefix=search_prefix,
             max_results=10,
@@ -282,7 +284,7 @@ def get_closest_cached_oai_pmh_file(
 
     # 7日以内を有効なキャッシュとする
     utcnow = get_now()
-    newest_blob: storage.Blob | None = None
+    newest_blob: gcs.Blob | None = None
     for blob in blobs:
         logger.info(f"blob name: {blob.name}")
         if newest_blob is None:
