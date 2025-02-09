@@ -32,9 +32,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           const adminAuth = getAdminAuth();
 
           const { idToken } = await signInSchema.parseAsync(credentials);
-          console.info('got idToken: ', idToken);
           const decoded = await adminAuth.verifyIdToken(idToken);
-          console.info('decoded: ', decoded);
 
           // NOTE: firebase auth uidを使ってユーザーを一意に識別する
           let userInFirestore: User | null = null;

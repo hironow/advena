@@ -38,7 +38,7 @@ export function Bookshelf({ radioShow }: { radioShow?: RadioShow }) {
   const books = radioShow?.books || [];
 
   const handleSelectBook = useCallback((book: RadioShowBook) => {
-    console.log('Selected book:', book.url);
+    // console.log('Selected book:', book.url);
     // 必要に応じて外部リンクへの遷移処理などを追加
   }, []);
 

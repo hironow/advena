@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import type React from 'react';
+import { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 import { useAudioContextState } from './audio-context-provider';
 import type { RadioShow } from '@/lib/firestore/generated/entity_radio_show';
 
 const LedVisualizer: React.FC<{
-  radioShow: RadioShow | undefined;
+  radioShow?: RadioShow;
   width?: number;
   height?: number;
 }> = ({ width = 280, height = 70 }) => {

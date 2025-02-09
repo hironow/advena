@@ -78,7 +78,10 @@ export const ScriptDisplayModal: FC<ScriptDisplayModalProps> = ({
           />
           {/* モーダル本体 */}
           <Card className="relative z-10 w-full max-w-xl p-6 overflow-auto max-h-[80vh]">
-            <div className="flex justify-end">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className={`text-xl font-bold ${dotGothic16.className}`}>
+                Script
+              </h2>
               <Button variant="ghost" onClick={closeModal}>
                 <CrossIcon />
               </Button>

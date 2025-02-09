@@ -6,7 +6,6 @@ import { useParams, usePathname, useRouter } from 'next/navigation';
 import type { User } from 'next-auth';
 import { memo, useEffect, useState } from 'react';
 import { toast } from 'sonner';
-
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -88,7 +87,8 @@ export function SidebarHistory({
 
   const handleRadioShowClick = (radioShow: RadioShow) => {
     setCurrentRadioShowId(radioShow.id);
-    console.info('radio show clicked', radioShow);
+    // sidebarを閉じる
+    setOpenMobile(false);
   };
 
   if (!user) {

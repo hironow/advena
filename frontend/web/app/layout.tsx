@@ -43,7 +43,6 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await auth();
-  console.info('root layout session: ', session);
 
   return (
     <html

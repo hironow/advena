@@ -4,7 +4,6 @@ import { AppSidebar } from '@/components/app-sidebar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 
 import Script from 'next/script';
-import { AudioProvider } from '@/components/visualizer/audio-context-provider';
 import { useSession } from 'next-auth/react';
 import { useEffect } from 'react';
 import {
@@ -25,7 +24,6 @@ export default function Layout({
   const userId = session?.user?.id;
 
   const isLoggedIn = status === 'authenticated';
-  console.info('isLoggedIn', isLoggedIn);
 
   const [user, setUser] = useAtom<User | null>(userAtom);
   const [radioShows, setRadioShows] = useAtom<RadioShow[]>(radioShowsAtom);
@@ -34,7 +32,7 @@ export default function Layout({
     if (!userId) return;
 
     const unsubscribeUser = getUserSnapshot(userId, (data) => {
-      console.info('[snapshot changed] user', data);
+      console.debug('[snapshot changed][user]');
       setUser(data);
     });
 
@@ -47,7 +45,7 @@ export default function Layout({
     if (!userId) return;
 
     const unsubscribeRadioShows = getRadioShowsSnapshot((data) => {
-      console.info('[snapshot changed] radio shows', data);
+      console.debug('[snapshot changed][radio_shows]');
       setRadioShows(data);
     });
 
@@ -65,12 +63,10 @@ export default function Layout({
         src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"
         strategy="beforeInteractive"
       />
-      <AudioProvider>
-        <SidebarProvider defaultOpen={!isCollapsed}>
-          <AppSidebar user={user || undefined} radioShows={radioShows} />
-          <SidebarInset>{children}</SidebarInset>
-        </SidebarProvider>
-      </AudioProvider>
+      <SidebarProvider defaultOpen={!isCollapsed}>
+        <AppSidebar user={user || undefined} radioShows={radioShows} />
+        <SidebarInset>{children}</SidebarInset>
+      </SidebarProvider>
     </>
   );
 }
