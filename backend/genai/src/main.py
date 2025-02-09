@@ -169,6 +169,7 @@ async def async_task(body: AsyncTaskBody):
     if body.kind == KIND_LATEST_ALL:
         # dataには `broadcasted_at` が含まれる場合がある
         broadcasted_at: datetime | None = None
+        size = 100  # default size
         if body.data:
             broadcasted_at_str = body.data.get("broadcasted_at")
             if broadcasted_at_str:
@@ -180,9 +181,10 @@ async def async_task(body: AsyncTaskBody):
                     dt = dt.astimezone(ZoneInfo("UTC"))
                 broadcasted_at = dt
                 logger.info(f"broadcasted_at: {broadcasted_at}")
+            size = int(body.data.get("size", 100))
 
         # start latest_all workflow
-        url = book.latest_all()
+        url = book.latest_all(size=size)
         workflows.exec_fetch_rss_and_oai_pmh_workflow(
             url, storage.XML_LATEST_ALL_DIR_BASE, "test", broadcasted_at
         )
