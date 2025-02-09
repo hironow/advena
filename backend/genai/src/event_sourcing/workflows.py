@@ -253,6 +253,10 @@ def exec_run_agent_and_tts_workflow(
     logger.info("Success to split books.")
     logger.info(f"past: {len(past)}, current: {len(current)}, future: {len(future)}")
 
+    if len(current) == 0:
+        logger.error(f"{exec_date} に放送可能な書籍がありませんでした。")
+        return
+
     # agent: prompting
     # 与えるcontextの順番を一律にするために、keyでソートする
     save_books: list[entity_radio_show.RadioShowBook] = []
@@ -298,7 +302,6 @@ def exec_run_agent_and_tts_workflow(
     audio_public_url = audio_blob.public_url
 
     # created に更新
-
     entity_radio_show.publish(
         radio_show_id,
         audio_public_url,
@@ -306,7 +309,6 @@ def exec_run_agent_and_tts_workflow(
         save_books,
         broadcasted_at=exec_date_jst,
     )
-
     return
 
 
