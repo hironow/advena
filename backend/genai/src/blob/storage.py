@@ -90,6 +90,8 @@ def put_tts_audio_file(signature: str, file: BinaryIO) -> str:
         "content-type": "audio/mpeg",  # ※ メタデータとしての指定は任意
         "custom_time": get_now().isoformat(),
     }
+    # 先頭へ
+    file.seek(0)
     return _upload_blob(
         blob_path, file, metadata, content_type="audio/mpeg", acl="publicRead"
     )
@@ -99,7 +101,7 @@ def put_rss_xml_file(signature: str, prefix_dir: str, file: BinaryIO) -> str:
     """
     RSS XML ファイルを GCS にアップロードし、公開 URL を返す。
     キャッシュの有効期限は 5 分間。
-    アップロード先: private/rss/<signature>.xml
+    アップロード先: private/rss/(latest_all|keyword_X)/<signature>.xml
     """
     blob_path = f"{RSS_RAW_DIR}/{prefix_dir}/{signature}.xml"
     metadata = {
@@ -107,25 +109,30 @@ def put_rss_xml_file(signature: str, prefix_dir: str, file: BinaryIO) -> str:
         "content-type": "application/xml; charset=utf-8",
         "custom_time": get_now().isoformat(),
     }
+    # 先頭へ
+    file.seek(0)
     return _upload_blob(blob_path, file, metadata, content_type="application/xml")
 
 
-def put_oai_pmh_json_file(signature: str, prefix_dir: str, file: BinaryIO) -> str:
+def put_oai_pmh_json(signature: str, prefix_dir: str, json_str: str) -> str:
     """
     OAI-PMH 用の JSON ファイルを GCS にアップロードし、公開 URL を返す。
     キャッシュの有効期限は 5 分間。
-    アップロード先: private/oai_pmh/<signature>.json
+    アップロード先: private/oai_pmh/(isbn|jp_e_code)/<signature>.json
     """
-    blob_path = f"{OAI_PMH_RAW_DIR}/{signature}.json"
+    blob_path = f"{OAI_PMH_RAW_DIR}/{prefix_dir}/{signature}.json"
     metadata = {
         "Cache-Control": "public, max-age=300",  # 5分間
         "content-type": "application/json; charset=utf-8",
         "custom_time": get_now().isoformat(),
     }
+    json_bytes = json_str.encode("utf-8")
+    file = io.BytesIO(json_bytes)
+    file.seek(0)
     return _upload_blob(blob_path, file, metadata, content_type="application/json")
 
 
-def put_combined_json_file(signature: str, file: BinaryIO) -> str:
+def put_combined_json_file(signature: str, json_str: str) -> str:
     """
     Masterdata ファイル (JSON) を GCS にアップロードし、公開 URL を返す。
     キャッシュの有効期限は 5 分間。
@@ -137,6 +144,9 @@ def put_combined_json_file(signature: str, file: BinaryIO) -> str:
         "content-type": "application/json; charset=utf-8",
         "custom_time": get_now().isoformat(),
     }
+    json_bytes = json_str.encode("utf-8")
+    file = io.BytesIO(json_bytes)
+    file.seek(0)
     return _upload_blob(blob_path, file, metadata, content_type="application/json")
 
 
@@ -161,7 +171,7 @@ def get_closest_cached_rss_file(
         logger.info("No cached RSS files found.")
         return None
 
-    # 同日の中で最も新しいファイルを取得
+    # 同日の中で最も新しいファイルを有効なキャッシュとする
     newest_blob: storage.Blob | None = None
     for blob in blobs:
         logger.info(f"blob name: {blob.name}")
@@ -175,7 +185,7 @@ def get_closest_cached_rss_file(
         logger.info("No cached RSS files found.")
         return None
 
-    logger.info(f"Found closest cached RSS file: {newest_blob}")
+    logger.info(f"Found closest cached RSS file: {newest_blob.name}")
 
     bs = io.BytesIO()
     newest_blob.download_to_file(bs)
@@ -197,14 +207,14 @@ def get_closest_cached_oai_pmh_file(
     blobs: list[storage.Blob] = list(
         bucket.list_blobs(
             prefix=search_prefix,
-            max_results=1,
+            max_results=10,
         )
     )
     if not blobs:
         logger.info("No cached OAI-PMH files found.")
         return None
 
-    # 7日以内のファイルを取得
+    # 7日以内を有効なキャッシュとする
     utcnow = get_now()
     newest_blob: storage.Blob | None = None
     for blob in blobs:
@@ -225,7 +235,7 @@ def get_closest_cached_oai_pmh_file(
         logger.info("Cached OAI-PMH file is too old.")
         return None
 
-    logger.info(f"Found closest cached OAI-PMH file: {newest_blob}")
+    logger.info(f"Found closest cached OAI-PMH file: {newest_blob.name}")
 
     bs = io.BytesIO()
     newest_blob.download_to_file(bs)

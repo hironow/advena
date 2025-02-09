@@ -34,7 +34,7 @@ from src.blob.storage import (
     JP_E_CODE_DIR,
     get_closest_cached_oai_pmh_file,
     get_closest_cached_rss_file,
-    put_oai_pmh_json_file,
+    put_oai_pmh_json,
     put_rss_xml_file,
 )
 from src.book.book import latest_all
@@ -46,8 +46,6 @@ from src.utils import get_now
 
 def exec_rss_workflow(target_url: str, prefix_dir: str) -> None:
     """RSSを取得してGCSにアップロードする"""
-    # TODO: 対象のURLがキャッシュされている可能性があり、本日時点のRSSがあるかを確認する
-
     utcnow = get_now()
     jstnow = utcnow.astimezone(ZoneInfo("Asia/Tokyo"))
     target_signature = f"{jstnow.strftime('%Y%m%d_%H%M%S_0900')}.xml"
@@ -78,8 +76,8 @@ def exec_rss_workflow(target_url: str, prefix_dir: str) -> None:
         logger.info("キャッシュからRSSフィードを取得します。")
         raw_xml = cached_xml.read().decode("utf-8")
         feed, last_build_date = parse_rss(raw_xml)
+        logger.info("キャッシュからRSSフィードを取得しました。")
 
-    logger.info(f"feed: {feed.keys()}")
     for entry in feed.get("entries", []):
         if entry is None:
             continue
@@ -96,12 +94,11 @@ def exec_rss_workflow(target_url: str, prefix_dir: str) -> None:
                 metadata = get_metadata_by_isbn(item.isbn)
                 # cacheする
                 logger.info("isbn metadata をキャッシュします")
-                metadata_json = json.dumps(metadata, ensure_ascii=False)
-                bs_json = io.BytesIO(metadata_json.encode("utf-8"))
-                put_oai_pmh_json_file(
+                metadata_json_str = json.dumps(metadata, ensure_ascii=False, indent=2)
+                put_oai_pmh_json(
                     item.isbn,
                     ISBN_DIR,
-                    bs_json,
+                    metadata_json_str,
                 )
                 logger.info("isbn metadata をキャッシュしました")
             else:
@@ -115,12 +112,11 @@ def exec_rss_workflow(target_url: str, prefix_dir: str) -> None:
                 metadata = get_metadata_by_jp_e_code(item.jp_e_code)
                 # cacheする
                 logger.info("jp_e_code metadata をキャッシュします")
-                metadata_json = json.dumps(metadata, ensure_ascii=False)
-                bs_json = io.BytesIO(metadata_json.encode("utf-8"))
-                put_oai_pmh_json_file(
+                metadata_json_str = json.dumps(metadata, ensure_ascii=False, indent=2)
+                put_oai_pmh_json(
                     item.isbn,
                     JP_E_CODE_DIR,
-                    bs_json,
+                    metadata_json_str,
                 )
                 logger.info("jp_e_code metadata をキャッシュしました")
             else:
@@ -130,14 +126,14 @@ def exec_rss_workflow(target_url: str, prefix_dir: str) -> None:
         logger.info(f"metadata: {metadata}")
 
         # metadataをjsonにする
-        metadata_json = json.dumps(metadata, ensure_ascii=False)
+        # metadata_json = json.dumps(metadata, ensure_ascii=False)
         # logger.info(f"metadata: {metadata_json}")
 
         break
 
 
 if __name__ == "__main__":
-    # RSSを取得してGCSにアップロードする
+    # RSSを取得してOAI-PMHを取得して、GCSにアップロードする
     url = latest_all(10)
     print(url)
     exec_rss_workflow(url, "latest_all")
