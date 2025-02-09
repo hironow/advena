@@ -1,8 +1,6 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useRef } from 'react';
-import { useAudioContextState } from '@/components/visualizer/audio-context-provider';
 import { ChatHeader } from '@/components/chat-header';
 import { useAtomValue } from 'jotai';
 import type { RadioShow } from '@/lib/firestore/generated/entity_radio_show';
@@ -21,29 +19,23 @@ const LedVisualizer = dynamic(
   { ssr: false },
 );
 
+// ページ全体を AudioProvider でラップする
 export default function Page() {
+  return (
+    <AudioProvider>
+      <PageContent />
+    </AudioProvider>
+  );
+}
+
+function PageContent() {
   const showRadioShowId = useAtomValue<string | null>(currentRadioShowIdAtom);
   const radioShows = useAtomValue<RadioShow[]>(radioShowsAtom);
   const currentRadioShow = radioShows.find((rs) => rs.id === showRadioShowId);
   const audioPublicUrl = currentRadioShow?.audio_url;
 
-  // audio 要素の ref
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const { initAudio } = useAudioContextState();
-
-  // ユーザ操作（例：スタートボタン押下）で AudioContext を初期化し、audio 要素を接続
-  const handleStart = async () => {
-    if (audioRef.current) {
-      await initAudio(audioRef.current);
-      // ユーザ操作により自動再生が許可されている前提
-      audioRef.current.play().catch(console.error);
-    } else {
-      await initAudio();
-    }
-  };
-
   return (
-    <AudioProvider>
+    <>
       <div className="relative flex flex-col min-w-0 h-dvh bg-background">
         <ChatHeader />
 
@@ -83,6 +75,6 @@ export default function Page() {
           </div>
         </div>
       </div>
-    </AudioProvider>
+    </>
   );
 }

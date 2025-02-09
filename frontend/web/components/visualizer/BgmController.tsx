@@ -3,14 +3,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAudioContextState } from './audio-context-provider';
 import { Button } from '../ui/button';
-import { PlayIcon, StopIcon } from '../icons';
+import { StopIcon } from '../icons';
 import { MusicIcon } from 'lucide-react';
 
-type Props = {
-  src: string; // BGM 音源の URL
-};
-
-const BgmController: React.FC<Props> = ({ src }) => {
+const BgmController: React.FC<{ src: string }> = ({ src }) => {
   const { audioCtx, analyser, initAudio } = useAudioContextState();
 
   // AudioContext が未初期化ならここで初期化（マイクは使わない）
