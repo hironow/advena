@@ -1,7 +1,4 @@
-from datetime import datetime
 from urllib.parse import urlencode
-
-from pydantic import BaseModel
 
 # 国立国会図書館サーチの RSS フィード
 RSS_URL_BASE = "https://ndlsearch.ndl.go.jp/rss/ndls/bib.xml"
@@ -21,18 +18,7 @@ OAI_PMH_URL_BASE = "https://ndlsearch.ndl.go.jp/api/oaipmh"
 # see: https://ndlsearch.ndl.go.jp/help/api/provider
 JPRO_REPOSITORY = "R100000137"
 
-# memo: I9784621310328 の I のあとが 13桁 であれば ISBN 、20桁であれば JP-eコード とみなせる？
-
-
-class FeedItem(BaseModel):
-    title: str
-    link: str
-    description: str
-    guid_url: str
-    guid_isPermaLink: bool
-    guid: str
-    category: str
-    pubDate: datetime
+# NOTE: I9784621310328 の I のあとが 13桁 であれば ISBN 、20桁であれば JP-eコード とみなす
 
 
 def thumbnail(isbn_or_jpecode: str) -> str:
@@ -44,7 +30,6 @@ def thumbnail(isbn_or_jpecode: str) -> str:
     # ISBN は 13 桁でハイフン区切りなし。JP-eコードは 20 桁で区切りなし
     if len(isbn_or_jpecode) not in (13, 20):
         raise ValueError("ISBN or JP-eCode should be 13 or 20 digits")
-
     return f"{THUMBNAIL_URL_BASE}{isbn_or_jpecode}.jpg"
 
 
@@ -61,8 +46,8 @@ def latest_all(size: int = 10) -> str:
     <category>図書</category>
     <pubDate>Sat, 21 Dec 2024 18:46:00 +0900</pubDate>
     """
-    if size > 10:
-        size = 10
+    if size > 1000:
+        size = 1000
     if size < 1:
         size = 1
 
@@ -82,15 +67,15 @@ def latest_all(size: int = 10) -> str:
     return f"{RSS_URL_BASE}?{query_string}"
 
 
-def latest_with_keywords(keywords: list[str], size: int = 10) -> str:
+def latest_with_keywords(keywords: list[str], size: int = 1000) -> str:
     """最新の資料をキーワードで検索するための URL を生成する
     期待する URL query string は:
     ?cs=bib&display=panel&from=0&size=20&keyword=AI%20LLM%20%E3%82%A8%E3%83%B3%E3%82%B8%E3%83%8B%E3%82%A2&f-ht=ndl&f-ht=library
 
     NOTE: keywordの順序で返り値は変わらないことを期待する
     """
-    if size > 10:
-        size = 10
+    if size > 1000:
+        size = 1000
     if size < 1:
         size = 1
 

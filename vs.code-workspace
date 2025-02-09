@@ -19,5 +19,10 @@
 	],
 	"settings": {
 		"vsicons.presets.angular": true
+	},
+	"extensions": {
+		"recommendations": [
+			"tailscale.vscode-tailscale"
+		]
 	}
 }

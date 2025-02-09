@@ -9,6 +9,7 @@ import type { RadioShow } from '@/lib/firestore/generated/entity_radio_show';
 // const sourcesAtom = atom<Source[]>([]);
 // const notesAtom = atom<Note[]>([]);
 // const notebooksAtom = atom<Notebook[]>([]);
+const currentRadioShowIdAtom = atom<string | null>(null);
 const userAtom = atom<User | null>(null);
 const radioShowsAtom = atom<RadioShow[]>([]);
 // const messageAtom = atom('');
@@ -35,4 +36,5 @@ export {
   //   sourcesAtom,
   userAtom,
   radioShowsAtom,
+  currentRadioShowIdAtom,
 };

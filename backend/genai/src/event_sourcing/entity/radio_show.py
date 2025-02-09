@@ -1,3 +1,5 @@
+import base64
+import json
 from datetime import datetime
 from typing import Any, Callable, Literal
 
@@ -10,13 +12,25 @@ from google.cloud.firestore import (
 )
 from pydantic import BaseModel
 
-from src.database.firestore import db
+from src import utils
+from src.book import book
+from src.book.book import thumbnail
+from src.database import cloudevents
+from src.database.firestore import db, use_emulator
 from src.logger import logger
 
 
 # RadioShowId は id のみを持つモデル
 class RadioShowId(BaseModel):
     id: str
+
+
+class RadioShowBook(BaseModel):
+    title: str
+    url: str
+    thumbnail_url: str
+    isbn: str
+    jp_e_code: str
 
 
 # ---------------------------------------------------------------------------
@@ -29,55 +43,40 @@ class RadioShow(RadioShowId):
     """
 
     __collection__ = "radio_shows"  # 作成後は変更不可
-    __current_version__ = 2
+    __current_version__ = 1
 
     version: int
     created_at: datetime
     updated_at: datetime | None = None
 
     # ラジオショー固有のフィールド例
-    radio_show_id: str  # ドキュメントIDと同一でもよい
-    title: str
-    host: str
-    # ここでは、クライアントは "draft" 状態で最低限の情報のみを登録すると仮定する
-    status: Literal["draft"] | Literal["published"]
-    # 追加オプションフィールド
-    description: str | None = None
+    status: Literal["creating"] | Literal["created"]
+    # masterdataは非公開なので blob path で管理
+    masterdata_blob_path: str
+    # 過去日の指定をしたいときは datetime で作成時に指定する
+    broadcasted_at: datetime | None = None
+    # public url は公開されるのでそのまま保持
+    audio_url: str | None = None
+    script_url: str | None = None
+    # book
+    book_count: int = 0
+    books: list[RadioShowBook] = []
 
 
 # ---------------------------------------------------------------------------
 # 各バージョン間のマイグレーション処理
 # ---------------------------------------------------------------------------
 def radio_migrate_from_0_to_1(doc: dict[str, Any]) -> dict[str, Any]:
+    """バージョン 0 → 1 のマイグレーション:
+    - version を 1 にセットする。
     """
-    バージョン 0 → 1 のマイグレーション:
-      - 必要なオプショナルフィールドに対して、デフォルト値を補完する。
-      - status が "draft" なら "published" に変更する。
-      - version を 1 にセットする。
-    """
-    if doc.get("status") == "draft":
-        doc["status"] = "published"
-    doc.setdefault("updated_at", None)
-    doc.setdefault("description", "")
     doc["version"] = 1
-    return doc
-
-
-def radio_migrate_from_1_to_2(doc: dict[str, Any]) -> dict[str, Any]:
-    """
-    バージョン 1 → 2 のマイグレーション:
-      - title に対して、存在しない場合は "Untitled Show" を設定（例）。
-      - version を 2 にセットする。
-    """
-    doc.setdefault("title", "Untitled Show")
-    doc["version"] = 2
     return doc
 
 
 # バージョンごとのマイグレーション関数の登録
 MIGRATIONS: dict[int, Callable[[dict[str, Any]], dict[str, Any]]] = {
     0: radio_migrate_from_0_to_1,
-    1: radio_migrate_from_1_to_2,
 }
 
 
@@ -209,3 +208,66 @@ def get_by_field(field: str, value: Any) -> RadioShow | None:
     elif len(docs) > 1:
         logger.error(f"Multiple documents found for {field} {value}.")
     return None
+
+
+def new(masterdata_blob_path: str, broadcasted_at: datetime | None) -> RadioShow:
+    """
+    新規ラジオショーを作成する。
+    """
+    radio_show_id = utils.new_id()
+    radio_show = RadioShow(
+        id=radio_show_id,
+        version=RadioShow.__current_version__,
+        created_at=utils.get_now(),
+        status="creating",
+        masterdata_blob_path=masterdata_blob_path,
+        broadcasted_at=broadcasted_at,
+    )
+    try:
+        doc_ref: DocumentReference = db.collection(RadioShow.__collection__).document(
+            radio_show_id
+        )
+        doc_ref.set(radio_show.model_dump())
+    except GoogleAPICallError as e:
+        logger.error(f"Error creating radio show {radio_show_id}: {e}")
+        raise e
+
+    if use_emulator:
+        data = {"id": radio_show_id}
+        data_json = json.dumps(data)
+        data_base64 = base64.b64encode(data_json.encode("utf-8")).decode("utf-8")
+        event_body = cloudevents.create_cloud_event_body(
+            RadioShow.__collection__,
+            radio_show_id,
+            data_base64,
+        )
+        cloudevents.send_cloud_event(
+            cloudevents.EVENTARC_ENDPOINT_ADD_RADIO_SHOW, event_body
+        )
+
+    return radio_show
+
+
+def publish(
+    radio_show_id: str,
+    audio_url: str,
+    script_url: str,
+    books: list[RadioShowBook],
+    broadcasted_at: datetime,
+) -> None:
+    """
+    ラジオショーの audio_url を更新する。
+    """
+    now = utils.get_now()
+    ref = db.collection(RadioShow.__collection__).document(radio_show_id)
+    ref.update(
+        {
+            "audio_url": audio_url,
+            "script_url": script_url,
+            "status": "created",
+            "updated_at": now,
+            "broadcasted_at": broadcasted_at,
+            "book_count": len(books),
+            "books": [b.model_dump() for b in books],
+        }
+    )

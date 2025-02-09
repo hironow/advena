@@ -23,9 +23,16 @@ interface TileProps {
 const Tile: React.FC<TileProps> = ({ tile, x, y, layer, flip }) => {
   const { pxX, pxY } = getTilePosition(x, y, layer);
 
-  let img_style = {};
+  let img_style = {
+    WebkitTouchCallout: 'none',
+    WebkitUserDrag: 'none',
+    userDrag: 'none',
+    WebkitUserSelect: 'none',
+    userSelect: 'none',
+  };
   if (flip) {
     img_style = {
+      ...img_style,
       transform: 'scaleX(-1)',
     };
   }
@@ -42,6 +49,14 @@ const Tile: React.FC<TileProps> = ({ tile, x, y, layer, flip }) => {
         height: TILE_IMG_HEIGHT * TILE_SCALE,
         // Imageの中心を原点(0, 0)へ (tile画像の下揃え中央が基準点になる)
         transform: 'translate(-50%, -100%)',
+        // 長押し、強押しでの画像保存を禁止
+        WebkitTouchCallout: 'none',
+        // dragも禁止
+        WebkitUserDrag: 'none',
+        userDrag: 'none',
+        // 選択時のハイライトを禁止
+        WebkitUserSelect: 'none',
+        userSelect: 'none',
       }}
     >
       <Image

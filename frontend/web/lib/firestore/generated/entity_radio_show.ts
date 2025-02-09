@@ -14,11 +14,20 @@ export interface RadioShow {
   version: number;
   created_at: string;
   updated_at?: string | null;
-  radio_show_id: string;
+  status: "creating" | "created";
+  masterdata_blob_path: string;
+  broadcasted_at?: string | null;
+  audio_url?: string | null;
+  script_url?: string | null;
+  book_count?: number;
+  books?: RadioShowBook[];
+}
+export interface RadioShowBook {
   title: string;
-  host: string;
-  status: "draft" | "published";
-  description?: string | null;
+  url: string;
+  thumbnail_url: string;
+  isbn: string;
+  jp_e_code: string;
 }
 export interface RadioShowId {
   id: string;

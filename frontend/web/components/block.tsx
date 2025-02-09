@@ -4,7 +4,6 @@ import type {
   CreateMessage,
   Message,
 } from 'ai';
-import { formatDistance } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   type Dispatch,
@@ -17,24 +16,18 @@ import {
 import useSWR, { useSWRConfig } from 'swr';
 import { useDebounceCallback, useWindowSize } from 'usehooks-ts';
 
-import type { Document, Suggestion, Vote } from '@/lib/db/schema';
 import { cn, fetcher } from '@/lib/utils';
 
-import { DiffView } from './diffview';
 import { DocumentSkeleton } from './document-skeleton';
-import { Editor } from './editor';
 import { MultimodalInput } from './multimodal-input';
 import { Toolbar } from './toolbar';
-import { VersionFooter } from './version-footer';
 import { BlockActions } from './block-actions';
 import { BlockCloseButton } from './block-close-button';
 import { BlockMessages } from './block-messages';
-import { Console } from './console';
 import { useSidebar } from './ui/sidebar';
 import { useBlock } from '@/hooks/use-block';
 import equal from 'fast-deep-equal';
 
-// TODO: radio transcription を実装する
 export type BlockKind = 'text' | 'code';
 
 export interface UIBlock {
@@ -87,7 +80,7 @@ function PureBlock({
   setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
   messages: Array<Message>;
   setMessages: Dispatch<SetStateAction<Array<Message>>>;
-  votes: Array<Vote> | undefined;
+  votes: undefined;
   append: (
     message: Message | CreateMessage,
     chatRequestOptions?: ChatRequestOptions,
@@ -115,16 +108,6 @@ function PureBlock({
     fetcher,
   );
 
-  const { data: suggestions } = useSWR<Array<Suggestion>>(
-    documents && block && block.status !== 'streaming'
-      ? `/api/suggestions?documentId=${block.documentId}`
-      : null,
-    fetcher,
-    {
-      dedupingInterval: 5000,
-    },
-  );
-
   const [mode, setMode] = useState<'edit' | 'diff'>('edit');
   const [document, setDocument] = useState<Document | null>(null);
   const [currentVersionIndex, setCurrentVersionIndex] = useState(-1);
@@ -143,7 +126,7 @@ function PureBlock({
         setCurrentVersionIndex(documents.length - 1);
         setBlock((currentBlock) => ({
           ...currentBlock,
-          content: mostRecentDocument.content ?? '',
+          content: '',
         }));
       }
     }
@@ -167,31 +150,6 @@ function PureBlock({
 
           const currentDocument = currentDocuments.at(-1);
 
-          if (!currentDocument || !currentDocument.content) {
-            setIsContentDirty(false);
-            return currentDocuments;
-          }
-
-          if (currentDocument.content !== updatedContent) {
-            await fetch(`/api/document?id=${block.documentId}`, {
-              method: 'POST',
-              body: JSON.stringify({
-                title: block.title,
-                content: updatedContent,
-                kind: block.kind,
-              }),
-            });
-
-            setIsContentDirty(false);
-
-            const newDocument = {
-              ...currentDocument,
-              content: updatedContent,
-              createdAt: new Date(),
-            };
-
-            return [...currentDocuments, newDocument];
-          }
           return currentDocuments;
         },
         { revalidate: false },
@@ -206,24 +164,14 @@ function PureBlock({
   );
 
   const saveContent = useCallback(
-    (updatedContent: string, debounce: boolean) => {
-      if (document && updatedContent !== document.content) {
-        setIsContentDirty(true);
-
-        if (debounce) {
-          debouncedHandleContentChange(updatedContent);
-        } else {
-          handleContentChange(updatedContent);
-        }
-      }
-    },
+    (updatedContent: string, debounce: boolean) => {},
     [document, debouncedHandleContentChange, handleContentChange],
   );
 
   function getDocumentContentById(index: number) {
     if (!documents) return '';
     if (!documents[index]) return '';
-    return documents[index].content ?? '';
+    return '';
   }
 
   const handleVersionChange = (type: 'next' | 'prev' | 'toggle' | 'latest') => {
@@ -431,18 +379,10 @@ function PureBlock({
                     <div className="text-sm text-muted-foreground">
                       Saving changes...
                     </div>
-                  ) : document ? (
-                    <div className="text-sm text-muted-foreground">
-                      {`Updated ${formatDistance(
-                        new Date(document.createdAt),
-                        new Date(),
-                        {
-                          addSuffix: true,
-                        },
-                      )}`}
-                    </div>
                   ) : (
-                    <div className="w-32 h-3 mt-2 bg-muted-foreground/20 rounded-md animate-pulse" />
+                    document && (
+                      <div className="w-32 h-3 mt-2 bg-muted-foreground/20 rounded-md animate-pulse" />
+                    )
                   )}
                 </div>
               </div>
@@ -472,35 +412,7 @@ function PureBlock({
                   'mx-auto max-w-[600px]': block.kind === 'text',
                 })}
               >
-                {isDocumentsFetching && !block.content ? (
-                  <DocumentSkeleton />
-                ) : block.kind === 'text' ? (
-                  mode === 'edit' ? (
-                    <Editor
-                      content={
-                        isCurrentVersion
-                          ? block.content
-                          : getDocumentContentById(currentVersionIndex)
-                      }
-                      isCurrentVersion={isCurrentVersion}
-                      currentVersionIndex={currentVersionIndex}
-                      status={block.status}
-                      saveContent={saveContent}
-                      suggestions={isCurrentVersion ? (suggestions ?? []) : []}
-                    />
-                  ) : (
-                    <DiffView
-                      oldContent={getDocumentContentById(
-                        currentVersionIndex - 1,
-                      )}
-                      newContent={getDocumentContentById(currentVersionIndex)}
-                    />
-                  )
-                ) : null}
-
-                {suggestions ? (
-                  <div className="md:hidden h-dvh w-12 shrink-0" />
-                ) : null}
+                {isDocumentsFetching && !block.content && <DocumentSkeleton />}
 
                 <AnimatePresence>
                   {isCurrentVersion && (
@@ -517,23 +429,6 @@ function PureBlock({
                 </AnimatePresence>
               </div>
             </div>
-
-            <AnimatePresence>
-              {!isCurrentVersion && (
-                <VersionFooter
-                  currentVersionIndex={currentVersionIndex}
-                  documents={documents}
-                  handleVersionChange={handleVersionChange}
-                />
-              )}
-            </AnimatePresence>
-
-            <AnimatePresence>
-              <Console
-                consoleOutputs={consoleOutputs}
-                setConsoleOutputs={setConsoleOutputs}
-              />
-            </AnimatePresence>
           </motion.div>
         </motion.div>
       )}

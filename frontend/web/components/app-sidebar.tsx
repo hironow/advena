@@ -18,13 +18,18 @@ import {
 import Link from 'next/link';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { DotGothic16 } from 'next/font/google';
+import GoogleAuthButton from './google-auth-button';
+import { RadioShow } from '@/lib/firestore/generated/entity_radio_show';
 
 const dotGothic16 = DotGothic16({
   weight: '400',
   subsets: ['latin'],
 });
 
-export function AppSidebar({ user }: { user: User | undefined }) {
+export function AppSidebar({
+  user,
+  radioShows,
+}: { user: User | undefined; radioShows: RadioShow[] }) {
   const router = useRouter();
   const { setOpenMobile } = useSidebar();
 
@@ -49,28 +54,14 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                 ミ=ホ
               </span>
             </Link>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  type="button"
-                  className="p-2 h-fit"
-                  onClick={() => {
-                    setOpenMobile(false);
-                    router.push('/');
-                    router.refresh();
-                  }}
-                >
-                  <PlusIcon />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent align="end">New Chat</TooltipContent>
-            </Tooltip>
+            <div className="h-fit">
+              <GoogleAuthButton />
+            </div>
           </div>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarHistory user={user} />
+        <SidebarHistory user={user} radioShows={radioShows} />
       </SidebarContent>
       <SidebarFooter>{user && <SidebarUserNav user={user} />}</SidebarFooter>
     </Sidebar>

@@ -3,7 +3,6 @@
 import { useChat } from 'ai/react';
 import { useEffect, useRef, useState } from 'react';
 import type { BlockKind } from './block';
-import type { Suggestion } from '@/lib/db/schema';
 import { initialBlockData, useBlock } from '@/hooks/use-block';
 import { useUserMessageId } from '@/hooks/use-user-message-id';
 import { useSWRConfig } from 'swr';
@@ -19,7 +18,7 @@ type DataStreamDelta = {
     | 'finish'
     | 'user-message-id'
     | 'kind';
-  content: string | Suggestion;
+  content: string;
 };
 
 export function DataStreamHandler({ id }: { id: string }) {
@@ -29,17 +28,6 @@ export function DataStreamHandler({ id }: { id: string }) {
   const lastProcessedIndex = useRef(-1);
 
   const { mutate } = useSWRConfig();
-  const [optimisticSuggestions, setOptimisticSuggestions] = useState<
-    Array<Suggestion>
-  >([]);
-
-  useEffect(() => {
-    if (optimisticSuggestions && optimisticSuggestions.length > 0) {
-      const [optimisticSuggestion] = optimisticSuggestions;
-      const url = `/api/suggestions?documentId=${optimisticSuggestion.documentId}`;
-      mutate(url, optimisticSuggestions, false);
-    }
-  }, [optimisticSuggestions, mutate]);
 
   useEffect(() => {
     if (!dataStream?.length) return;
@@ -105,16 +93,6 @@ export function DataStreamHandler({ id }: { id: string }) {
                   : draftBlock.isVisible,
               status: 'streaming',
             };
-
-          case 'suggestion':
-            setTimeout(() => {
-              setOptimisticSuggestions((currentSuggestions) => [
-                ...currentSuggestions,
-                delta.content as Suggestion,
-              ]);
-            }, 0);
-
-            return draftBlock;
 
           case 'clear':
             return {

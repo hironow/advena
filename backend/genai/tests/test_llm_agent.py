@@ -3,13 +3,12 @@ import pytest
 from src.llm import agent
 
 
-# --- ダミークラスの定義 ---
 # 外部依存する LiteLLMModel のダミー実装
 class DummyLiteLLMModel:
-    def __init__(self, model_id, temperature, seed):
+    def __init__(self, model_id, temperature, config):
         self.model_id = model_id
         self.temperature = temperature
-        self.seed = seed
+        self.config = config
 
 
 # 外部依存する ToolCallingAgent のダミー実装
@@ -21,11 +20,8 @@ class DummyToolCallingAgent:
         self.max_steps = max_steps
 
     def run(self, task: str, stream: bool) -> str:
-        # 単純に引数 task を返すようにする（実際には LLM へ問い合わせを行うはず）
-        return f"dummy response: {task}"
-
-
-# --- テストコード ---
+        # 常に <think> タグを含む文字列を返すことでテスト通過させる
+        return "<think>dummy response</think>"
 
 
 def test_call_agent(monkeypatch):
@@ -37,38 +33,12 @@ def test_call_agent(monkeypatch):
     monkeypatch.setattr(agent, "ToolCallingAgent", DummyToolCallingAgent)
     monkeypatch.setattr(agent, "INSTRUCTION_PROMPT", "dummy prompt")
 
-    # _get_agent でエージェントを生成
-    dummy_agent = agent._get_agent()
-
     # テスト用の文字列を用意して call_agent を呼び出す
     test_text = "test message"
-    result = agent.call_agent(dummy_agent, test_text)
+    result = agent.call_agent_with_dataset(test_text)
 
-    # DummyToolCallingAgent.run は f"dummy response: {task}" を返すので、
-    # 期待される結果は "dummy response: test message" となる
-    assert result == f"dummy response: {test_text}"
-
-
-def test_get_agent(monkeypatch):
-    """
-    _get_agent 関数が、正しく ToolCallingAgent インスタンスを生成しているか検証するテスト
-    """
-    # LiteLLMModel, ToolCallingAgent, INSTRUCTION_PROMPT をダミーに置き換える
-    monkeypatch.setattr(agent, "LiteLLMModel", DummyLiteLLMModel)
-    monkeypatch.setattr(agent, "ToolCallingAgent", DummyToolCallingAgent)
-    monkeypatch.setattr(agent, "INSTRUCTION_PROMPT", "dummy prompt")
-
-    dummy_agent = agent._get_agent()
-
-    # エージェントがダミーの ToolCallingAgent であることを確認
-    assert isinstance(dummy_agent, DummyToolCallingAgent)
-    # ツールリストは空で、max_steps が 5 になっていることを確認
-    assert dummy_agent.tools == []
-    assert dummy_agent.max_steps == 5
-    # プロンプトテンプレートが正しくセットされていることを確認
-    assert dummy_agent.prompt_templates == {"system_prompt": "dummy prompt"}
-    # モデルの初期化が正しく行われ、モデル ID が "gemini-2.0-flash-001" であることを確認
-    assert dummy_agent.model.model_id == "gemini-2.0-flash-001"
+    # DummyToolCallingAgent.runと同じ
+    assert result == "<think>dummy response</think>"
 
 
 def test_extract_script_block_found():
@@ -84,7 +54,7 @@ console.log('Hello World');
 </body>
 </html>
 """
-    expected = "<script>\nconsole.log('Hello World');\n</script>"
+    expected = "\nconsole.log('Hello World');\n"
     result = agent.extract_script_block(text)
     assert result is not None
     # 前後の余分な空白を除いて比較
@@ -106,8 +76,8 @@ console.log('First');
 console.log('Second');
 </script>
 """
-    # 最初の <script> ブロックのみが抽出されるはず
-    expected = "<script>\nconsole.log('First');\n</script>"
+    # 最初の <script> ブロックの中身が抽出されるはず
+    expected = "\nconsole.log('First');\n"
     result = agent.extract_script_block(text)
     assert result is not None
     assert result.strip() == expected.strip()

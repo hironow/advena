@@ -6,7 +6,6 @@ import { useCopyToClipboard } from 'usehooks-ts';
 import { toast } from 'sonner';
 import type { ConsoleOutput, UIBlock } from './block';
 import { type Dispatch, memo, type SetStateAction } from 'react';
-import { RunCodeButton } from './run-code-button';
 
 interface BlockActionsProps {
   block: UIBlock;
@@ -29,10 +28,6 @@ function PureBlockActions({
 
   return (
     <div className="flex flex-row gap-1">
-      {block.kind === 'code' && (
-        <RunCodeButton block={block} setConsoleOutputs={setConsoleOutputs} />
-      )}
-
       {block.kind === 'text' && (
         <Tooltip>
           <TooltipTrigger asChild>

@@ -1,12 +1,11 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
-import { useAudioContextState } from './audio-context-provider';
-import { Button } from '../ui/button';
-import { StopIcon } from '../icons';
-import { MusicIcon } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { useAudioContextState } from '@/components/visualizer/audio-context-provider';
+import { PauseIcon, RadioTowerIcon } from 'lucide-react';
 
-const BgmController: React.FC<{ src: string }> = ({ src }) => {
+const RadioAudioController: React.FC<{ src: string }> = ({ src }) => {
   const { audioCtx, analyser, initAudio } = useAudioContextState();
 
   // AudioContext が未初期化ならここで初期化（マイクは使わない）
@@ -23,7 +22,7 @@ const BgmController: React.FC<{ src: string }> = ({ src }) => {
   // 再生中の AudioBufferSourceNode を参照
   const sourceRef = useRef<AudioBufferSourceNode | null>(null);
 
-  // BGM の取得と decode
+  // Radio の取得と decode
   useEffect(() => {
     if (!audioCtx) return; // AudioContext 初期化待ち
     let cancelled = false;
@@ -87,11 +86,15 @@ const BgmController: React.FC<{ src: string }> = ({ src }) => {
 
   return (
     <div>
-      <Button onClick={handleToggle} disabled={!audioBuffer}>
-        {isPlaying ? <StopIcon /> : <MusicIcon />}
+      <Button
+        variant={'destructive'}
+        onClick={handleToggle}
+        disabled={!audioBuffer}
+      >
+        {isPlaying ? <PauseIcon /> : <RadioTowerIcon />}
       </Button>
     </div>
   );
 };
 
-export default BgmController;
+export default RadioAudioController;

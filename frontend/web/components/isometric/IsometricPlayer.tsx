@@ -4,9 +4,12 @@ import React, { useEffect, useRef } from 'react';
 import { initKeyListeners, keysDown } from './keyInput';
 import { initTouchListeners, getTouchVector } from './touchInput';
 import {
+  bear1,
+  bird3,
   clock1,
   getLayerDiffY,
   getTilePosition,
+  ghost1,
   WORLD_MAX_LAYER,
   WORLD_SIZE,
 } from './tileset';
@@ -141,19 +144,33 @@ export default function IsometricPlayer({
   useEffect(() => {
     const keyCleanup = initKeyListeners();
     const touchCleanup = initTouchListeners(document.body);
-    // TODO: clickした場所 (x,y) にプレイヤーを移動する機能もいる
 
-    consoleLogWithStyle('%cisometric%c Player mounted in (0, 0)');
+    // TODO: ダブルタップで任意のx,yに移動する機能を追加する
+
+    // iOS Safari のオーバースクロール（バウンス）を抑制するためのリスナー
+    // ※ 単一タッチの場合にのみ preventDefault() することで、ピンチなどのマルチタッチジェスチャーは妨げないようにする
+    const disableOverscroll = (e: TouchEvent) => {
+      if (e.touches.length === 1) {
+        e.preventDefault();
+      }
+    };
+
+    // パッシブではないリスナーとして登録（passive:false が必須）
+    document.body.addEventListener('touchmove', disableOverscroll, {
+      passive: false,
+    });
+
     return () => {
       if (keyCleanup) keyCleanup();
       if (touchCleanup) touchCleanup();
+      document.body.removeEventListener('touchmove', disableOverscroll);
     };
   }, []);
 
   return (
     <div ref={playerDivRef} className={className}>
       <Tile
-        tile={clock1}
+        tile={ghost1}
         x={initialPos.x}
         y={initialPos.y}
         layer={initialPos.layer}
