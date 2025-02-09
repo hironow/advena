@@ -5,7 +5,7 @@ import type { FC } from 'react';
 import type { RadioShow } from '@/lib/firestore/generated/entity_radio_show';
 
 import { Button } from '../ui/button';
-import { CrossIcon } from '../icons';
+import { CrossIcon, LogsIcon } from '../icons';
 import { Card } from '../ui/card';
 import { DotGothic16 } from 'next/font/google';
 
@@ -64,7 +64,9 @@ export const ScriptDisplayModal: FC<ScriptDisplayModalProps> = ({
   return (
     <>
       {/* モーダルを開くボタン */}
-      <Button onClick={openModal}>Show Script</Button>
+      <Button onClick={openModal}>
+        <LogsIcon />
+      </Button>
 
       {isOpen && (
         // モーダル全体のラッパー（画面全体を覆う）

@@ -5,7 +5,7 @@ import type { FC } from 'react';
 import type { RadioShow } from '@/lib/firestore/generated/entity_radio_show';
 
 import { Button } from '../ui/button';
-import { CrossIcon } from '../icons';
+import { CrossIcon, GlobeIcon } from '../icons';
 import { Card } from '../ui/card';
 import { DotGothic16 } from 'next/font/google';
 import Link from 'next/link';
@@ -35,7 +35,9 @@ export const BooksDisplayModal: FC<BooksDisplayModalProps> = ({
   return (
     <>
       {/* モーダルを開くボタン */}
-      <Button onClick={openModal}>Show Books</Button>
+      <Button onClick={openModal}>
+        <GlobeIcon />
+      </Button>
 
       {isOpen && (
         // 画面全体を覆うモーダルのラッパー
