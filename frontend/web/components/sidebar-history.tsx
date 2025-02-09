@@ -15,21 +15,24 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { RadioShow } from '@/lib/firestore/generated/entity_radio_show';
+import type { RadioShow } from '@/lib/firestore/generated/entity_radio_show';
+import { useAtom } from 'jotai';
+import { currentRadioShowIdAtom } from '@/lib/state';
 
 const PureRadioShowItem = ({
   radioShow,
   isActive,
-  setOpenMobile,
+  onRadioShowClick,
 }: {
   radioShow: RadioShow;
   isActive: boolean;
-  setOpenMobile: (open: boolean) => void;
+  onRadioShowClick: (radioShow: RadioShow) => void;
 }) => {
   const broadcastedDate = (radioShow.broadcasted_at as any).toDate();
   const displayDate = broadcastedDate
     ? broadcastedDate
     : (radioShow.created_at as any).toDate();
+
   // UTCなので日本時間に変換から表示
   const displayDateStr = displayDate.toLocaleDateString('ja-JP', {
     year: 'numeric',
@@ -46,8 +49,11 @@ const PureRadioShowItem = ({
     <SidebarMenuItem>
       <SidebarMenuButton asChild isActive={isActive}>
         <Link
-          href={`/radioShow/${radioShow.id}`}
-          onClick={() => setOpenMobile(false)}
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            onRadioShowClick(radioShow);
+          }}
         >
           <span>{displayDateStr}</span>
         </Link>
@@ -66,9 +72,17 @@ export function SidebarHistory({
   radioShows,
 }: { user: User | undefined; radioShows: RadioShow[] }) {
   const { setOpenMobile } = useSidebar();
-  const { id } = useParams();
   const pathname = usePathname();
   const router = useRouter();
+
+  const [currentRadioShowId, setCurrentRadioShowId] = useAtom<string | null>(
+    currentRadioShowIdAtom,
+  );
+  const id = currentRadioShowId;
+
+  const handleRadioShowClick = (radioShow: RadioShow) => {
+    setCurrentRadioShowId(radioShow.id);
+  };
 
   if (!user) {
     return (
@@ -164,7 +178,7 @@ export function SidebarHistory({
                             key={radioShow.id}
                             radioShow={radioShow}
                             isActive={radioShow.id === id}
-                            setOpenMobile={setOpenMobile}
+                            onRadioShowClick={handleRadioShowClick}
                           />
                         ))}
                       </>
@@ -180,7 +194,7 @@ export function SidebarHistory({
                             key={radioShow.id}
                             radioShow={radioShow}
                             isActive={radioShow.id === id}
-                            setOpenMobile={setOpenMobile}
+                            onRadioShowClick={handleRadioShowClick}
                           />
                         ))}
                       </>
@@ -196,7 +210,7 @@ export function SidebarHistory({
                             key={radioShow.id}
                             radioShow={radioShow}
                             isActive={radioShow.id === id}
-                            setOpenMobile={setOpenMobile}
+                            onRadioShowClick={handleRadioShowClick}
                           />
                         ))}
                       </>
@@ -212,7 +226,7 @@ export function SidebarHistory({
                             key={radioShow.id}
                             radioShow={radioShow}
                             isActive={radioShow.id === id}
-                            setOpenMobile={setOpenMobile}
+                            onRadioShowClick={handleRadioShowClick}
                           />
                         ))}
                       </>
@@ -228,7 +242,7 @@ export function SidebarHistory({
                             key={radioShow.id}
                             radioShow={radioShow}
                             isActive={radioShow.id === id}
-                            setOpenMobile={setOpenMobile}
+                            onRadioShowClick={handleRadioShowClick}
                           />
                         ))}
                       </>

@@ -8,6 +8,10 @@ import { useAudioContextState } from '@/components/visualizer/audio-context-prov
 import { Button } from '@/components/ui/button';
 import { ChatHeader } from '@/components/chat-header';
 import { useSession } from 'next-auth/react';
+import { RotatingBookshelf } from '@/components/shelf/RotatingBookshelf';
+import { useAtomValue } from 'jotai';
+import { RadioShow } from '@/lib/firestore/generated/entity_radio_show';
+import { currentRadioShowIdAtom, radioShowsAtom } from '@/lib/state';
 
 // SSRオフにしてD3を使う
 const LedVisualizer = dynamic(
@@ -32,12 +36,20 @@ const InitMicButton: React.FC = () => {
 };
 
 export default function Page() {
+  const showRadioShowId = useAtomValue<string | null>(currentRadioShowIdAtom);
+  const radioShows = useAtomValue<RadioShow[]>(radioShowsAtom);
+
   return (
     <>
       <div className="flex flex-col min-w-0 h-dvh bg-background">
         <ChatHeader />
+        <div>
+          {/* 本が横一連に並んでいるUI */}
+          <RotatingBookshelf />
+        </div>
 
         <IsometricWorld />
+
         <div>
           {/* footerで固定したエリアに再生系と可視化系を積み上げる */}
           <LedVisualizer />

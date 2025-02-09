@@ -6,13 +6,15 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import Script from 'next/script';
 import { AudioProvider } from '@/components/visualizer/audio-context-provider';
 import { useSession } from 'next-auth/react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import {
   getRadioShowsSnapshot,
   getUserSnapshot,
 } from '@/lib/firestore/client-db';
 import type { User } from '@/lib/firestore/generated/entity_user';
 import type { RadioShow } from '@/lib/firestore/generated/entity_radio_show';
+import { useAtom } from 'jotai';
+import { radioShowsAtom, userAtom } from '@/lib/state';
 
 export default function Layout({
   children,
@@ -25,8 +27,8 @@ export default function Layout({
   const isLoggedIn = status === 'authenticated';
   console.info('isLoggedIn', isLoggedIn);
 
-  const [user, setUser] = useState<User | null>(null);
-  const [radioShows, setRadioShows] = useState<RadioShow[]>([]);
+  const [user, setUser] = useAtom<User | null>(userAtom);
+  const [radioShows, setRadioShows] = useAtom<RadioShow[]>(radioShowsAtom);
 
   useEffect(() => {
     if (!userId) return;
