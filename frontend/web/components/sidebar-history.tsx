@@ -18,6 +18,12 @@ import {
 import type { RadioShow } from '@/lib/firestore/generated/entity_radio_show';
 import { useAtom } from 'jotai';
 import { currentRadioShowIdAtom } from '@/lib/state';
+import { DotGothic16 } from 'next/font/google';
+
+const dotGothic16 = DotGothic16({
+  weight: '400',
+  subsets: ['latin'],
+});
 
 const PureRadioShowItem = ({
   radioShow,
@@ -89,7 +95,12 @@ export function SidebarHistory({
     return (
       <SidebarGroup>
         <SidebarGroupContent>
-          <div className="px-2 text-zinc-500 w-full flex flex-row justify-center items-center text-sm gap-2">
+          <div
+            className="px-2 text-zinc-500 w-full flex flex-row justify-center items-center text-sm gap-2"
+            style={{
+              fontFamily: dotGothic16.style.fontFamily,
+            }}
+          >
             ログインするとラジオが届きます
           </div>
         </SidebarGroupContent>
@@ -101,7 +112,12 @@ export function SidebarHistory({
     return (
       <SidebarGroup>
         <SidebarGroupContent>
-          <div className="px-2 text-zinc-500 w-full flex flex-row justify-center items-center text-sm gap-2">
+          <div
+            className="px-2 text-zinc-500 w-full flex flex-row justify-center items-center text-sm gap-2"
+            style={{
+              fontFamily: dotGothic16.style.fontFamily,
+            }}
+          >
             ラジオ番組がまだ届いていません
           </div>
         </SidebarGroupContent>
@@ -162,7 +178,11 @@ export function SidebarHistory({
     <>
       <SidebarGroup>
         <SidebarGroupContent>
-          <SidebarMenu>
+          <SidebarMenu
+            style={{
+              fontFamily: dotGothic16.style.fontFamily,
+            }}
+          >
             {radioShows &&
               (() => {
                 const groupedChats = groupRadioShowsByDate(radioShows);
