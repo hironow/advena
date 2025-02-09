@@ -1,6 +1,5 @@
 'use client';
 
-import dynamic from 'next/dynamic';
 import { ChatHeader } from '@/components/chat-header';
 import { useAtomValue } from 'jotai';
 import type { RadioShow } from '@/lib/firestore/generated/entity_radio_show';
@@ -14,12 +13,6 @@ import IsometricWorld from '@/components/isometric/IsometricWorld';
 import CustomAudioController from '@/components/visualizer/RadioController';
 
 const bgms = ['/assets/bgm/bgm1.mp3', '/assets/bgm/bgm2.mp3'];
-
-// SSRオフで D3 を使う
-const LedVisualizer = dynamic(
-  () => import('@/components/visualizer/LedVisualizer'),
-  { ssr: false },
-);
 
 // ページ全体を AudioProvider でラップする
 export default function Page() {

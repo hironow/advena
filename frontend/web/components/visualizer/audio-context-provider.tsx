@@ -1,4 +1,3 @@
-// components/visualizer/audio-context-provider.tsx
 'use client';
 
 import React, {

@@ -6,6 +6,8 @@ import * as d3 from 'd3';
 import { useAudioContextState } from './audio-context-provider';
 import type { RadioShow } from '@/lib/firestore/generated/entity_radio_show';
 
+// NOTE: hydrationエラーが起きやすいので注意
+
 const LedVisualizer: React.FC<{
   radioShow?: RadioShow;
   width?: number;
