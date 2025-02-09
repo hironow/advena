@@ -71,15 +71,6 @@ function PageContent() {
             )}
           </div>
         </div>
-
-        {currentRadioShow && audioPublicUrl && (
-          <div className="w-full flex justify-center items-center">
-            <div className="fixed bottom-2 p-2">
-              {/* FIXME: うまく可視化されないのでpending */}
-              {false && <LedVisualizer />}
-            </div>
-          </div>
-        )}
       </div>
     </>
   );
