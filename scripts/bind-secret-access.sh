@@ -86,6 +86,11 @@ gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --member="serviceAccount:${USER_SA_OF_SECRET_MANAGER_EMAIL}" \
   --role="roles/storage.admin" \
   --project="${PROJECT_ID}" --quiet
+# IMPORTANT: roles/serviceusage.serviceUsageConsumer を付与すること (Cloud Storageアクセスが必須)
+gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+  --member="serviceAccount:${USER_SA_OF_SECRET_MANAGER_EMAIL}" \
+  --role="roles/serviceusage.serviceUsageConsumer" \
+  --project="${PROJECT_ID}" --quiet
 
 # 付与されているrolesを確認
 echo "Check the roles granted to the Cloud Run service account"
