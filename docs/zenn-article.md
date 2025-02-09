@@ -12,6 +12,7 @@
 
 「ミ=ホ」 (読み方: ミーホ)
 実装上のコードネームは advena (アドヴェナ)
+※命名理由は最下部の余談を参照
 
 毎日出版される書籍の内容を紹介という形で要約し、AI合成音声でラジオ番組として提供するサービスです。
 利用者は任意のキーワードを登録でき、同じくそのキーワードの検索結果に基づくラジオ番組も提供します。
@@ -102,6 +103,7 @@
 * dotenvxを用いて環境変数の管理を行い、環境変数の管理を向上させています。 `.env.keys` へのアクセスを適切に管理する前提で、リモートでの動画配信や生配信で `.env` ファイルが映りこんでしまっても問題ないように設計しています。
 * Next.jsはstandaloneモードでclientとserverを分離しており、server側でFirebase Authのverifyを行っています。
 * FastAPIはCloud Run上で authenticated 必須のAPIとして提供しており、Firebase Authのverifyが不要となっています。
+* 各種Google Cloudへのgcloudコマンドは `scripts/` にまとめてあり、運用中の拡張や、terraform化に向けた拡張性を見据えています。
 
 LLMの特徴:
 
@@ -119,7 +121,7 @@ YouTube 3分以内
 
 ## 余談
 
-開発中にcommitterになったもの:
+開発中にcommitterになったもの(いずれも軽微かつmerge済み):
 
 * [huggingface/smolagents](https://github.com/huggingface/smolagents/pull/379)
 * [livekit/agents](https://github.com/livekit/agents/pull/1415)
