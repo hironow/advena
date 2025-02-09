@@ -24,11 +24,12 @@
 import io
 import json
 from datetime import datetime
-from typing import Any
+from typing import Any, Tuple
 from zoneinfo import ZoneInfo
 
 import feedparser  # type: ignore
 from pydantic import BaseModel, RootModel
+from pydantic.main import TupleGenerator
 
 from src.blob.storage import (
     ISBN_DIR,
@@ -55,7 +56,14 @@ class MstBook(BaseModel):
 
 
 class MstBooks(RootModel[dict[str, MstBook]]):
-    pass
+    def __getitem__(self, key: str) -> MstBook:
+        return self.root[key]
+
+    def __iter__(self):
+        return iter(self.root)
+
+    def __len__(self) -> int:
+        return len(self.root)
 
 
 def exec_fetch_rss_and_oai_pmh_workflow(
@@ -154,21 +162,59 @@ def exec_fetch_rss_and_oai_pmh_workflow(
     # 作成したcombined masterdataをGCSにアップロードする
     # entityMapをまずはそのままjsonにしてみる
     mst_books = MstBooks(mst_map)
-    mst_books_json = mst_books.model_dump_json(indent=2)
+    # mst_books_json = mst_books.model_dump_json(indent=2)
     # 適当なファイルへ
-    with open("./combined_masterdata.json", "w", encoding="utf-8") as f:
-        f.write(mst_books_json)
-        logger.info("combined_masterdata.json に書き込みました。")
+    # with open("./combined_masterdata.json", "w", encoding="utf-8") as f:
+    #     f.write(mst_books_json)
+    #     logger.info("combined_masterdata.json に書き込みました。")
 
     # 読み込みテスト
-    with open("./combined_masterdata.json", "r", encoding="utf-8") as f:
-        json_data = f.read()
-        mst_books_loaded = MstBooks.model_validate_json(json_data)
-        logger.info(f"mst_books_loaded: {mst_books_loaded}")
+    # with open("./combined_masterdata.json", "r", encoding="utf-8") as f:
+    #     json_data = f.read()
+    #     mst_books_loaded = MstBooks.model_validate_json(json_data)
+    #     # logger.info(f"mst_books_loaded: {mst_books_loaded}")
 
-        dumped_mst_books = mst_books_loaded.model_dump()
-        # 件数を表示したい
-        logger.info(f"mst_books_loaded: {len(dumped_mst_books.keys())} 件")
+    #     dumped_mst_books = mst_books_loaded.model_dump()
+    #     # 件数を表示したい
+    #     logger.info(f"mst_books_loaded: {len(dumped_mst_books.keys())} 件")
+
+    past, current, future = split_books(mst_map)
+
+    # 件数を表示したい
+    logger.info(f"past: {len(past)} 件")
+    logger.info(f"current: {len(current)} 件")
+    logger.info(f"future: {len(future)} 件")
+
+
+def split_books(
+    mst_books: dict[str, MstBook], target_datetime: datetime
+) -> tuple[dict[str, MstBook], dict[str, MstBook], dict[str, MstBook]]:
+    """
+    mst_books の各項目の published を target_datetime の日付と比較し、
+    過去日、当日、未来日に分類して返す。
+    target_datetime が None の場合は datetime.now() を使用する。
+    published が不正な場合は、その項目はスキップする。
+    """
+    # 比較の基準となる日付（date 部分のみで比較）
+    target_datetime = target_datetime or datetime.now()
+
+    past = {}
+    current = {}
+    future = {}
+
+    for link, mst_book in mst_books.items():
+        if mst_book.published is None:
+            continue
+
+        published_date = mst_book.published.date()
+        if published_date < target_datetime.date():
+            past[link] = mst_book
+        elif published_date == target_datetime.date():
+            current[link] = mst_book
+        else:
+            future[link] = mst_book
+
+    return past, current, future
 
 
 if __name__ == "__main__":

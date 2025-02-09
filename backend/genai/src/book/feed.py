@@ -26,7 +26,7 @@ ONE_MINUTE = 60  # 秒
     stop=stop_after_attempt(5),  # 最大5回の試行
     retry=retry_if_exception_type(
         httpx.HTTPStatusError
-    ),  # 任意の例外が発生したらリトライ
+    ),  # HTTPStatusError が発生したらリトライ
 )
 def fetch_rss(url: str) -> str:
     """httpx を使って RSS フィードを取得する関数。"""

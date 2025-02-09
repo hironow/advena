@@ -1,7 +1,8 @@
 from typing import Any
 
 from ratelimit import limits, sleep_and_retry
-from sickle import Sickle  # type: ignore
+from sickle import Sickle
+from sickle.oaiexceptions import OAIError
 from tenacity import (
     retry,
     retry_if_exception_type,
@@ -26,7 +27,7 @@ PERIOD = 60  # 秒
         multiplier=1, min=2, max=60
     ),  # 失敗時は最初2秒、最大60秒まで待機
     stop=stop_after_attempt(5),  # 最大5回までリトライ
-    retry=retry_if_exception_type(Exception),  # 例外が発生した場合にリトライ
+    retry=retry_if_exception_type(OAIError),  # OAIError が発生したらリトライ
 )
 def _get_metadata_by_identifier(repository: str, identifier: str) -> dict[str, Any]:
     if repository == "" or identifier == "":
