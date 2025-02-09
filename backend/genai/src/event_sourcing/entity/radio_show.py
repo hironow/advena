@@ -228,3 +228,18 @@ def new(masterdata_url: str) -> RadioShow:
         )
 
     return radio_show
+
+
+def update_audio_url(radio_show_id: str, audio_url: str) -> None:
+    """
+    ラジオショーの audio_url を更新する。
+    """
+    now = utils.get_now()
+    ref = db.collection(RadioShow.__collection__).document(radio_show_id)
+    ref.update(
+        {
+            "audio_url": audio_url,
+            "status": "created",
+            "updated_at": now,
+        }
+    )

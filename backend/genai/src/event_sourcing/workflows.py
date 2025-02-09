@@ -40,6 +40,7 @@ from src.blob.storage import (
     put_combined_json_file,
     put_oai_pmh_json,
     put_rss_xml_file,
+    put_tts_audio_file,
 )
 from src.book.book import latest_all, thumbnail
 from src.book.feed import convert_to_entry_item, fetch_rss, parse_rss
@@ -47,6 +48,7 @@ from src.book.oai_pmh import get_metadata_by_isbn, get_metadata_by_jp_e_code
 from src.event_sourcing.entity import radio_show
 from src.llm import agent
 from src.logger import logger
+from src.tts import google as tts_google
 from src.utils import get_now
 
 JST = ZoneInfo("Asia/Tokyo")
@@ -222,9 +224,21 @@ def exec_run_agent_and_tts_workflow(
     logger.info(f"result: {result}")
 
     script = agent.extract_script_block(result)
+    if script is None:
+        raise ValueError("script が取得できませんでした。")
+
     logger.info(f"script: {script}")
 
     # ここで、ラジオ番組の音声データを作成する
+    recorded = tts_google.synthesize(script)
+    if recorded is None:
+        raise ValueError("recorded が取得できませんでした。")
+
+    bs = io.BytesIO(recorded.audio_content)
+    public_url = put_tts_audio_file(radio_show_id, bs)
+
+    # created に更新
+    radio_show.update_audio_url(radio_show_id, public_url)
 
     return
 
