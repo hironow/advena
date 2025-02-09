@@ -46,6 +46,8 @@ from src.book.oai_pmh import get_metadata_by_isbn, get_metadata_by_jp_e_code
 from src.logger import logger
 from src.utils import get_now
 
+JST = ZoneInfo("Asia/Tokyo")
+
 
 class MstBook(BaseModel):
     title: str
@@ -178,7 +180,10 @@ def exec_fetch_rss_and_oai_pmh_workflow(
     #     # 件数を表示したい
     #     logger.info(f"mst_books_loaded: {len(dumped_mst_books.keys())} 件")
 
-    past, current, future = split_books(mst_map)
+    # JSTの2月6日のdatetime
+    target_datetime = datetime(2025, 2, 6, 9, 0, 0, tzinfo=JST)
+
+    past, current, future = split_books(mst_map, target_datetime)
 
     # 件数を表示したい
     logger.info(f"past: {len(past)} 件")
@@ -189,26 +194,33 @@ def exec_fetch_rss_and_oai_pmh_workflow(
 def split_books(
     mst_books: dict[str, MstBook], target_datetime: datetime
 ) -> tuple[dict[str, MstBook], dict[str, MstBook], dict[str, MstBook]]:
-    """
-    mst_books の各項目の published を target_datetime の日付と比較し、
+    """mst_books の各項目の published (UTC) を JST に変換し、
+    target_datetime (JST) の日付と比較して、
     過去日、当日、未来日に分類して返す。
-    published が None の場合は、その項目はスキップする。
-    """
-    # 基準となる日付（date 部分のみで比較）
-    target_datetime = target_datetime or datetime.now()
 
-    past = {}
-    current = {}
-    future = {}
+    ※ target_datetime は JST タイムゾーンでなければ ValueError を発生させる。
+    ※ published が None の場合は、その項目はスキップする。"""
+    # target_datetime が timezone-aware かつ JST であるかをチェック
+    if target_datetime.tzinfo is None:
+        raise ValueError("target_datetime must be timezone-aware and in JST timezone.")
+    if target_datetime.tzinfo != ZoneInfo("Asia/Tokyo"):
+        raise ValueError("target_datetime must be in JST timezone.")
+
+    target_datetime = target_datetime or datetime.now(JST)
+    target_date = target_datetime.astimezone(JST).date()
+
+    past: dict[str, MstBook] = {}
+    current: dict[str, MstBook] = {}
+    future: dict[str, MstBook] = {}
 
     for link, mst_book in mst_books.items():
         if mst_book.published is None:
             continue
 
-        published_date = mst_book.published.date()
-        if published_date < target_datetime.date():
+        published_date = mst_book.published.astimezone(JST).date()
+        if published_date < target_date:
             past[link] = mst_book
-        elif published_date == target_datetime.date():
+        elif published_date == target_date:
             current[link] = mst_book
         else:
             future[link] = mst_book
