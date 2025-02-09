@@ -28,7 +28,7 @@ else:
     L.initialize(project_api_key=os.getenv("LMNR_PROJECT_API_KEY"))
 
 
-def _get_agent() -> ToolCallingAgent:
+def get_agent() -> ToolCallingAgent:
     # use smolagents as llm agent
     # see: https://cloud.google.com/vertex-ai/generative-ai/docs/learn/models#gemini-models
     model = LiteLLMModel(
@@ -71,7 +71,7 @@ def extract_script_block(text: str) -> str | None:
 
 
 if __name__ == "__main__":
-    agent = _get_agent()
+    agent = get_agent()
     dataset = """
 None
 """

@@ -38,7 +38,7 @@ def test_call_agent(monkeypatch):
     monkeypatch.setattr(agent, "INSTRUCTION_PROMPT", "dummy prompt")
 
     # _get_agent でエージェントを生成
-    dummy_agent = agent._get_agent()
+    dummy_agent = agent.get_agent()
 
     # テスト用の文字列を用意して call_agent を呼び出す
     test_text = "test message"
@@ -58,7 +58,7 @@ def test_get_agent(monkeypatch):
     monkeypatch.setattr(agent, "ToolCallingAgent", DummyToolCallingAgent)
     monkeypatch.setattr(agent, "INSTRUCTION_PROMPT", "dummy prompt")
 
-    dummy_agent = agent._get_agent()
+    dummy_agent = agent.get_agent()
 
     # エージェントがダミーの ToolCallingAgent であることを確認
     assert isinstance(dummy_agent, DummyToolCallingAgent)

@@ -1,4 +1,3 @@
-import time
 from datetime import datetime
 
 import pytest
@@ -21,8 +20,6 @@ def clear_radio_shows_collection():
     docs = list(collection_ref.list_documents())
     for doc in docs:
         doc.delete()
-    # 書き込み削除の反映待ち（環境に合わせて調整）
-    time.sleep(0.2)
     yield
 
 
@@ -31,48 +28,32 @@ def clear_radio_shows_collection():
 # ---------------------------------------------------------------------------
 def test_radio_get_migrate_minimal_document():
     """
-    クライアントが最低限の情報のみ（id, radio_show_id, host, created_at, status="draft"）
-    で登録した場合、radio_get() 呼び出し時に以下のマイグレーションが実施されることを検証する。
-      - version が _RADIO_SHOW_CURRENT_VERSION_ (2) に更新される
-      - status が "draft" から "published" に変換される
-      - title が "Untitled Show" に補完される
-      - updated_at は None、description は "" に補完される
+    サーバーが最低限の情報のみ（id, created_at, status="creating"） で登録した場合、radio_get() 呼び出し時に以下のマイグレーションが実施されることを検証する。
+      - version が _RADIO_SHOW_CURRENT_VERSION_ (1) に更新される
     """
     radio_show_id = "test_radio_show_1"
     minimal_doc = {
         "id": radio_show_id,
-        "radio_show_id": radio_show_id,
-        "host": "John Doe",
         "created_at": datetime(2020, 1, 1),
-        "status": "draft",
-        # title, updated_at, description, version は未設定
+        "status": "creating",
+        "masterdata_url": "https://example.com/masterdata",
+        # version, updated_at, は未設定
     }
     doc_ref = db.collection(RadioShow.__collection__).document(radio_show_id)
     doc_ref.set(minimal_doc)
-    time.sleep(0.2)
 
     # radio_get() 呼び出しでマイグレーション処理が実施される
     radio_show = get(radio_show_id)
     assert radio_show is not None, "RadioShow エンティティが取得できるはず"
     # マイグレーション結果の確認
     assert radio_show.version == RadioShow.__current_version__, (
-        "最終的な version は最新 (2) である"
+        "最終的な version は最新 (1) である"
     )
-    assert radio_show.status == "published", (
-        "status は 'draft' から 'published' に変換される"
-    )
-    assert radio_show.title == "Untitled Show", "title が 'Untitled Show' に補完される"
     assert radio_show.updated_at is None, "updated_at は補完され、None のままである"
-    assert radio_show.description == "", "description は補完され、空文字列になる"
-    assert radio_show.host == "John Doe"
-    assert radio_show.radio_show_id == radio_show_id
 
     # Firestore 側も自動更新されていることを確認
     updated_doc = doc_ref.get().to_dict()
     assert updated_doc.get("version") == RadioShow.__current_version__
-    assert updated_doc.get("status") == "published"
-    assert updated_doc.get("title") == "Untitled Show"
-    assert updated_doc.get("description") == ""
 
 
 # ---------------------------------------------------------------------------
@@ -86,14 +67,12 @@ def test_radio_update():
     radio_show_id = "test_radio_show_2"
     minimal_doc = {
         "id": radio_show_id,
-        "radio_show_id": radio_show_id,
-        "host": "Jane Smith",
         "created_at": datetime(2020, 1, 1),
-        "status": "draft",
+        "status": "creating",
+        "masterdata_url": "https://example.com/masterdata",
     }
     doc_ref = db.collection(RadioShow.__collection__).document(radio_show_id)
     doc_ref.set(minimal_doc)
-    time.sleep(0.2)
 
     # 一度 radio_get() でマイグレーションを実施
     radio_show = get(radio_show_id)
@@ -101,16 +80,11 @@ def test_radio_update():
 
     # 更新用データ作成（title, host を変更）
     updated_data = radio_show.model_dump()
-    updated_data["title"] = "Morning Melodies"
-    updated_data["host"] = "Jane Smith Updated"
     updated_radio_show = RadioShow(**updated_data)
 
     update(radio_show_id, updated_radio_show)
-    time.sleep(0.2)
 
     updated_doc = doc_ref.get().to_dict()
-    assert updated_doc["title"] == "Morning Melodies"
-    assert updated_doc["host"] == "Jane Smith Updated"
 
 
 # ---------------------------------------------------------------------------
@@ -123,21 +97,18 @@ def test_radio_get_by_field_single():
     """
     radio_show_id = "test_radio_show_3"
     minimal_doc = {
+        "version": 0,
         "id": radio_show_id,
-        "radio_show_id": radio_show_id,
-        "host": "Alice",
         "created_at": datetime(2020, 1, 1),
-        "status": "draft",
-        "title": "Morning Show",  # 明示的に設定
+        "status": "creating",
+        "masterdata_url": "https://example.com/masterdata",
     }
     db.collection(RadioShow.__collection__).document(radio_show_id).set(minimal_doc)
-    time.sleep(0.2)
 
-    radio_show = get_by_field("host", "Alice")
+    radio_show = get_by_field("id", radio_show_id)
     assert radio_show is not None
-    assert radio_show.host == "Alice"
-    # 明示的に設定した title はそのまま維持される
-    assert radio_show.title == "Morning Show"
+    assert radio_show.id == radio_show_id
+    assert radio_show.status == "creating"
 
 
 # ---------------------------------------------------------------------------
@@ -152,16 +123,15 @@ def test_radio_get_by_field_multiple(caplog):
     for idx in range(2):
         radio_show_id = f"test_radio_show_mult_{idx}"
         minimal_doc = {
+            "version": 0,
             "id": radio_show_id,
-            "radio_show_id": radio_show_id,
-            "host": "DuplicateHost",
             "created_at": datetime(2020, 1, 1),
-            "status": "draft",
+            "status": "creating",
+            "masterdata_url": "https://example.com/masterdata",
         }
         db.collection(RadioShow.__collection__).document(radio_show_id).set(minimal_doc)
-    time.sleep(0.2)
 
-    radio_show = get_by_field("host", "DuplicateHost")
+    radio_show = get_by_field("status", "creating")
     assert radio_show is None
     assert "Multiple documents found" in caplog.text
 

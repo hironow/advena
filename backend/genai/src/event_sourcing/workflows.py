@@ -36,6 +36,7 @@ from src.blob.storage import (
     XML_LATEST_ALL_DIR_BASE,
     get_closest_cached_oai_pmh_file,
     get_closest_cached_rss_file,
+    get_json_file,
     put_combined_json_file,
     put_oai_pmh_json,
     put_rss_xml_file,
@@ -44,6 +45,7 @@ from src.book.book import latest_all, thumbnail
 from src.book.feed import convert_to_entry_item, fetch_rss, parse_rss
 from src.book.oai_pmh import get_metadata_by_isbn, get_metadata_by_jp_e_code
 from src.event_sourcing.entity import radio_show
+from src.llm import agent
 from src.logger import logger
 from src.utils import get_now
 
@@ -188,12 +190,40 @@ def exec_fetch_rss_and_oai_pmh_workflow(
 
 
 def exec_run_agent_and_tts_workflow(
-    radio_show: radio_show.RadioShow,
+    radio_show_id: str,
+    radio_show_masterdata_url: str,
+    exec_date: datetime | None = None,
 ) -> None:
-    if radio_show.status != "creating":
-        raise ValueError("radio_show.status should be 'creating'.")
+    if radio_show_masterdata_url == "":
+        raise ValueError("radio_show_masterdata_url is empty.")
+    if exec_date is not None and exec_date.tzinfo != JST:
+        raise ValueError("exec_date must be in JST timezone.")
 
     # ここで、ラジオ番組のスクリプトを作成する
+    mst_json = get_json_file(radio_show_masterdata_url)
+    mst_books_loaded = MstBooks.model_validate_json(mst_json)
+
+    exec_date = exec_date or datetime.now(JST)
+    mst_map = mst_books_loaded.root
+    _, current, _ = split_books(mst_map, exec_date)
+
+    # 件数
+    logger.info(f"current: {len(current)} 件")
+
+    llm_context = ""
+    for _, mst_book in current.items():
+        book_prompt = convert_to_book_prompt(mst_book)
+        llm_context += book_prompt + "\n"
+
+    logger.info(f"llm_context: {llm_context}")
+
+    radio_agent = agent.get_agent()
+    result = agent.call_agent(radio_agent, llm_context)
+    logger.info(f"result: {result}")
+
+    script = agent.extract_script_block(result)
+    logger.info(f"script: {script}")
+
     # ここで、ラジオ番組の音声データを作成する
 
     return
@@ -285,9 +315,9 @@ def split_books(
 
 if __name__ == "__main__":
     # RSSを取得してOAI-PMHを取得して、GCSにアップロードする
-    url = latest_all(size=1000)
+    url = latest_all(size=10)
     print(url)
-    exec_fetch_rss_and_oai_pmh_workflow(url, "latest_all", "1000")
+    exec_fetch_rss_and_oai_pmh_workflow(url, "latest_all", "10")
 
     # # 適当なファイルへ
     # # with open("./combined_masterdata.json", "w", encoding="utf-8") as f:

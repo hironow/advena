@@ -290,3 +290,20 @@ def get_closest_cached_oai_pmh_file(
     # ファイルの先頭に戻す
     bs.seek(0)
     return bs
+
+
+def get_json_file(url: str) -> str:
+    """
+    Masterdata ファイル (JSON) を GCS から取得する。
+    URL は private/masterdata/<signature>.json とする。
+    """
+    if url == "":
+        raise ValueError("url should not be empty.")
+    bucket = _get_bucket()
+    blob = bucket.blob(url)
+    try:
+        json_str = blob.download_as_string()
+    except Exception:
+        logger.error(f"Failed to download string from GCS: {url}", exc_info=True)
+        raise
+    return json_str.decode("utf-8")

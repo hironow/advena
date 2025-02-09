@@ -33,7 +33,7 @@ class RadioShow(RadioShowId):
     """
 
     __collection__ = "radio_shows"  # 作成後は変更不可
-    __current_version__ = 0
+    __current_version__ = 1
 
     version: int
     created_at: datetime
@@ -48,36 +48,18 @@ class RadioShow(RadioShowId):
 # ---------------------------------------------------------------------------
 # 各バージョン間のマイグレーション処理
 # ---------------------------------------------------------------------------
-# def radio_migrate_from_0_to_1(doc: dict[str, Any]) -> dict[str, Any]:
-#     """
-#     バージョン 0 → 1 のマイグレーション:
-#       - 必要なオプショナルフィールドに対して、デフォルト値を補完する。
-#       - status が "draft" なら "published" に変更する。
-#       - version を 1 にセットする。
-#     """
-#     if doc.get("status") == "draft":
-#         doc["status"] = "published"
-#     doc.setdefault("updated_at", None)
-#     doc.setdefault("description", "")
-#     doc["version"] = 1
-#     return doc
-
-
-# def radio_migrate_from_1_to_2(doc: dict[str, Any]) -> dict[str, Any]:
-#     """
-#     バージョン 1 → 2 のマイグレーション:
-#       - title に対して、存在しない場合は "Untitled Show" を設定（例）。
-#       - version を 2 にセットする。
-#     """
-#     doc.setdefault("title", "Untitled Show")
-#     doc["version"] = 2
-#     return doc
+def radio_migrate_from_0_to_1(doc: dict[str, Any]) -> dict[str, Any]:
+    """
+    バージョン 0 → 1 のマイグレーション:
+      - version を 1 にセットする。
+    """
+    doc["version"] = 1
+    return doc
 
 
 # バージョンごとのマイグレーション関数の登録
 MIGRATIONS: dict[int, Callable[[dict[str, Any]], dict[str, Any]]] = {
-    # 0: radio_migrate_from_0_to_1,
-    # 1: radio_migrate_from_1_to_2,
+    0: radio_migrate_from_0_to_1,
 }
 
 

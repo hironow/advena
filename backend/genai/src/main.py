@@ -10,6 +10,7 @@ from src.blob.storage import XML_LATEST_ALL_DIR_BASE
 from src.book.book import latest_all
 from src.database.firestore import db
 from src.event_sourcing import workflows
+from src.event_sourcing.entity.radio_show import RadioShow
 from src.logger import logger
 from src.utils import get_now, is_valid_uuid
 
@@ -119,7 +120,9 @@ async def add_radio_show(request: Request):
         return Response(content="radio_show already created", status_code=204)
 
     # start workflow
-    workflows.exec_run_agent_and_tts_workflow(radio_show)
+    workflows.exec_run_agent_and_tts_workflow(
+        radio_show_id, radio_show.get("masterdata_url", "")
+    )
 
     logger.info(
         f"{event_id}: finished adding a radio_show for {radio_show_id} as created"
