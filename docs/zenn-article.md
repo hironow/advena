@@ -90,6 +90,25 @@
 * キーワードを登録すると、そのキーワードのためのラジオ番組が提供されます
 * UIとしてゲームライクなフィールドを提供します。このフィールドは各種UIを人間に提供するためのものですが、AIがAgenticに振る舞うことができる拡張性を想定して、場として提供しています
 
+実コード上の特徴:
+
+* 運用サービスおよび運用中の拡張を見据えて、設計しています。
+* Firestoreのデータ構造は、無停止でのmigrationに対応しています。
+* Eventarcによるイベント駆動型の処理、Cloud Tasksによる非同期処理の移譲、Cloud Schedulerによる定期処理の非同期実行を採用し、運用中の拡張を見据えています。
+* LLMの推論中の結果トレースは、Weights & BiasesのWeaveおよびLaminarを用いてロギングしています。
+* LLMの利用は、huggingface/smolagentsを使うことで、agenticな振る舞いおよびTool Callの拡張性を見据えています。
+* Firebase Emulatorと連携して、Firebase Auth、Firestore、Cloud Storageを使って開発を進めることができ、Development Experienceを向上させています。
+* miseおよびpnpm、uvを使って開発環境の立ち上げを迅速に行うことができます。
+* dotenvxを用いて環境変数の管理を行い、環境変数の管理を向上させています。 `.env.keys` へのアクセスを適切に管理する前提で、リモートでの動画配信や生配信で `.env` ファイルが映りこんでしまっても問題ないように設計しています。
+* Next.jsはstandaloneモードでclientとserverを分離しており、server側でFirebase Authのverifyを行っています。
+* FastAPIはCloud Run上で authenticated 必須のAPIとして提供しており、Firebase Authのverifyが不要となっています。
+
+LLMの特徴:
+
+* ラジオ番組という特性かつText to speechで読み上げるため、常用漢字のみを出力とするように調整しています。
+* ラジオ番組の台本の構成というタスク上、thinkタグを使い、まず構成を考えてからscriptタグで読み上げ文章を生成する調整を行いました。
+* 共感性を高める調整を入れました。例えば、感嘆などを指示しています。
+
 ## システム
 
 アーキテクチャ図の画像
@@ -97,3 +116,21 @@
 ## デモ動画
 
 YouTube 3分以内
+
+## 余談
+
+開発中にcommitterになったもの:
+
+* [huggingface/smolagents](https://github.com/huggingface/smolagents/pull/379)
+* [livekit/agents](https://github.com/livekit/agents/pull/1415)
+
+開発中の悩まされたもの:
+
+* auth.js(旧next-auth.js)のv5対応
+  * Firebase Emulatorで動く形式への対応
+* Eventarcのデバッグ方法
+  * localhostへのcallを模擬する対応
+* Cloud Tasksのデバッグ方法
+  * Tailscale Funnelを使った対応
+* Next.js standaloneモードでのbuild対応
+  * dotenvxの環境変数の投入も含めた対応
