@@ -19,21 +19,16 @@ CALLS_PER_MINUTE = 60  # 回
 ONE_MINUTE = 60  # 秒
 
 
-@sleep_and_retry
-@limits(calls=CALLS_PER_MINUTE, period=ONE_MINUTE)
-@retry(
-    wait=wait_exponential(multiplier=1, min=2, max=60),  # 最初は2秒、最大60秒まで待機
-    stop=stop_after_attempt(5),  # 最大5回の試行
-    retry=retry_if_exception_type(
-        httpx.HTTPStatusError
-    ),  # HTTPStatusError が発生したらリトライ
-)
 def fetch_rss(url: str) -> str:
     """httpx を使って RSS フィードを取得する関数。"""
-    response = httpx.get(url, timeout=300)  # タイムアウトは 300 秒 = 5 分
-    response.raise_for_status()
-    raw_xml = response.text
-    return raw_xml
+    try:
+        response = httpx.get(url, timeout=300)  # タイムアウトは 300 秒 = 5 分
+        response.raise_for_status()
+        raw_xml = response.text
+        return raw_xml
+    except httpx.HTTPError as exc:
+        logger.error(f"HTTP Exception for {exc.request.url} - {exc}")
+        return ""
 
 
 def parse_rss(raw_xml: str) -> tuple[feedparser.FeedParserDict, datetime | None]:

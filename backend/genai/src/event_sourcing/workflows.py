@@ -106,6 +106,8 @@ def exec_fetch_rss_and_oai_pmh_workflow(
     if cached_xml is None:
         # キャッシュが見つからなかった場合は、リクエストを送信する
         raw_xml: str = fetch_rss(url=target_url)
+        if raw_xml == "":
+            raise ValueError("RSS フィードの取得に失敗しました。")
         feed, last_build_date = parse_rss(raw_xml)
         if last_build_date is None:
             raise ValueError("RSS フィードの更新日時が取得できませんでした。")
