@@ -82,6 +82,9 @@ def exec_fetch_rss_and_oai_pmh_workflow(
 ) -> None:
     """RSS、API系をcallしてGCSにキャッシュ、ラジオ番組作成が可能な最終1ファイルをGCSにアップロードする。ラジオ番組が作成開始される。"""
     logger.info("start exec_run_agent_and_tts_workflow ...")
+    logger.info(
+        f"target_url: {target_url}, prefix_dir: {prefix_dir}, suffix_dir: {suffix_dir}, broadcasted_at: {broadcasted_at}"
+    )
     if target_url == "":
         raise ValueError("target_url is empty.")
     if prefix_dir == "" or suffix_dir == "":
@@ -210,6 +213,9 @@ def exec_run_agent_and_tts_workflow(
     exec_date: datetime | None = None,
 ) -> None:
     logger.info("start exec_run_agent_and_tts_workflow ...")
+    logger.info(
+        f"radio_show_id: {radio_show_id}, masterdata_blob_path: {masterdata_blob_path}, exec_date: {exec_date}"
+    )
     if masterdata_blob_path == "":
         raise ValueError("masterdata_blob_path is empty.")
     if exec_date is not None:

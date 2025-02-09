@@ -84,6 +84,8 @@ def test_add_radio_show(monkeypatch):
     radio_show_doc = db.collection("radio_shows").document(dummy_id)
     radio_show_doc.set(
         {
+            "id": dummy_id,
+            "created_at": datetime.now(),
             "status": "creating",
             "masterdata_blob_path": "dummy/path",
             "broadcasted_at": datetime.now(),

@@ -67,9 +67,8 @@ class RadioShow(RadioShowId):
 # 各バージョン間のマイグレーション処理
 # ---------------------------------------------------------------------------
 def radio_migrate_from_0_to_1(doc: dict[str, Any]) -> dict[str, Any]:
-    """
-    バージョン 0 → 1 のマイグレーション:
-      - version を 1 にセットする。
+    """バージョン 0 → 1 のマイグレーション:
+    - version を 1 にセットする。
     """
     doc["version"] = 1
     return doc

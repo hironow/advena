@@ -13,6 +13,7 @@ from src.blob import storage
 from src.book import book
 from src.database.firestore import db
 from src.event_sourcing import workflows
+from src.event_sourcing.entity import radio_show as entity_radio_show
 from src.logger import logger
 
 
@@ -112,38 +113,26 @@ async def add_radio_show(request: Request):
         logger.info(
             f"{event_id}: start adding collection: {radio_shows} in a radio_show: {radio_show_id}"
         )
-
-        if not utils.is_valid_uuid(radio_show_id):
+        if (
+            not utils.is_valid_uuid(radio_show_id)
+            or radio_shows != entity_radio_show.RadioShow.__collection__
+        ):
             logger.error(f"{event_id}: invalid radio_show_id: {radio_show_id}")
             return Response(content="invalid radio_show_id", status_code=400)
 
         # firestoreから取得
-        doc = db.collection(radio_shows).document(radio_show_id).get()
-        logger.info(f"{event_id}: doc: {doc.to_dict()}")
-        if not doc.exists:
+        doc = entity_radio_show.get(radio_show_id)
+        if doc is None:
             logger.error(f"{event_id}: radio_show {radio_show_id} is not found")
             return Response(content="radio_show not found", status_code=404)
 
-        if doc.get("status") == "created":
+        if doc.status == "created":
             logger.error(f"{event_id}: radio_show {radio_show_id} is already created")
             return Response(content="radio_show already created", status_code=204)
 
         # start workflow
-        masterdata_blob_path: str = doc.get("masterdata_blob_path")
-        if masterdata_blob_path is None:
-            logger.error(f"{event_id}: masterdata_blob_path is not found")
-            return Response(content="masterdata_blob_path not found", status_code=400)
-
-        broadcasted_at: datetime | None = doc.get("broadcasted_at")
-        if broadcasted_at is None:
-            logger.error(f"{event_id}: broadcasted_at is not found")
-            return Response(content="broadcasted_at not found", status_code=400)
-
-        if broadcasted_at is not None:
-            # UTC前提
-            broadcasted_at = broadcasted_at.replace(tzinfo=ZoneInfo("UTC"))
-        logger.info("masterdata_blob_path: %s", masterdata_blob_path)
-        logger.info("broadcasted_at: %s", broadcasted_at)
+        masterdata_blob_path = doc.masterdata_blob_path
+        broadcasted_at = doc.broadcasted_at
         workflows.exec_run_agent_and_tts_workflow(
             radio_show_id,
             masterdata_blob_path,
