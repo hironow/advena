@@ -14,7 +14,10 @@ import type { RadioShow } from '@/lib/firestore/generated/entity_radio_show';
 import { currentRadioShowIdAtom, radioShowsAtom } from '@/lib/state';
 import BgmController from '@/components/visualizer/BgmController';
 import { Card } from '@/components/ui/card';
-import { ScriptDisplay } from '@/components/visualizer/ScriptDisplay';
+import {
+  ScriptDisplay,
+  ScriptDisplayModal,
+} from '@/components/visualizer/ScriptDisplayModal';
 
 // SSRオフにしてD3を使う
 const LedVisualizer = dynamic(
@@ -60,20 +63,26 @@ export default function Page() {
 
         <IsometricWorld />
 
-        {/* scriptの表示 */}
-        <div className="rounded-xl p-6 flex flex-col gap-8 leading-relaxed text-center max-w-xl">
-          <p className="flex flex-row justify-center gap-4 items-center">
-            {currentRadioShow && <ScriptDisplay radioShow={currentRadioShow} />}
-          </p>
+        {/* scriptの表示部分をモーダルとして実装 */}
+        <div className="fixed left-6 rounded-xl p-6 flex flex-col gap-8 leading-relaxed text-center max-w-xl mx-auto">
+          {currentRadioShow && (
+            <ScriptDisplayModal radioShow={currentRadioShow} />
+          )}
+        </div>
+
+        {/* controller 右に整列 */}
+        <div className="w-full flex justify-center items-center">
+          <div className="fixed top-6 right-3 p-2">
+            <InitMicButton />
+            {hasAudio && audioPublicUrl && (
+              <BgmController src={audioPublicUrl} />
+            )}
+          </div>
         </div>
 
         {/* 中央真下に浮かせる */}
         <div className="w-full flex justify-center items-center">
           <div className="fixed bottom-6 p-2">
-            <InitMicButton />
-            {hasAudio && audioPublicUrl && (
-              <BgmController src={audioPublicUrl} />
-            )}
             {/* footerで固定したエリアに再生系と可視化系を積み上げる */}
             <LedVisualizer radioShow={currentRadioShow} />
           </div>
