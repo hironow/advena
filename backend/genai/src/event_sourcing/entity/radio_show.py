@@ -13,6 +13,8 @@ from google.cloud.firestore import (
 from pydantic import BaseModel
 
 from src import utils
+from src.book import book
+from src.book.book import thumbnail
 from src.database import cloudevents
 from src.database.firestore import db, use_emulator
 from src.logger import logger
@@ -21,6 +23,14 @@ from src.logger import logger
 # RadioShowId は id のみを持つモデル
 class RadioShowId(BaseModel):
     id: str
+
+
+class RadioShowBook(BaseModel):
+    title: str
+    url: str
+    thumbnail_url: str
+    isbn: str
+    jp_e_code: str
 
 
 # ---------------------------------------------------------------------------
@@ -48,6 +58,9 @@ class RadioShow(RadioShowId):
     # public url は公開されるのでそのまま保持
     audio_url: str | None = None
     script_url: str | None = None
+    # book
+    book_count: int = 0
+    books: list[RadioShowBook] = []
 
 
 # ---------------------------------------------------------------------------
@@ -236,8 +249,8 @@ def new(masterdata_blob_path: str, broadcasted_at: datetime | None) -> RadioShow
     return radio_show
 
 
-def update_audio_and_script_url(
-    radio_show_id: str, audio_url: str, script_url: str
+def publish(
+    radio_show_id: str, audio_url: str, script_url: str, books: list[RadioShowBook]
 ) -> None:
     """
     ラジオショーの audio_url を更新する。
@@ -250,5 +263,7 @@ def update_audio_and_script_url(
             "script_url": script_url,
             "status": "created",
             "updated_at": now,
+            "book_count": len(books),
+            "books": [b.model_dump() for b in books],
         }
     )

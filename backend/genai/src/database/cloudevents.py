@@ -56,7 +56,8 @@ def send_cloud_event(endpoint: str, event_body: dict[str, Any]) -> None:
         logger.info(f"[COMMAND] Event body: {json.dumps(event_body)}")
 
         headers = {"Content-Type": "application/cloudevents+json"}
-        response = httpx.post(endpoint, headers=headers, json=event_body)
+        # timeoutしがちなので、タイムアウトを長めに設定
+        response = httpx.post(endpoint, headers=headers, json=event_body, timeout=30)
 
         if response.status_code < 300:
             logger.info("[INFO] CloudEvent sent successfully.")

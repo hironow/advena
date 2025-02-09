@@ -46,7 +46,7 @@ from src.book.book import latest_all, thumbnail
 from src.book.feed import convert_to_entry_item, fetch_rss, parse_rss
 from src.book.oai_pmh import get_metadata_by_isbn, get_metadata_by_jp_e_code
 from src.event_sourcing.entity import radio_show as entity_radio_show
-from src.llm import agent
+from src.llm import agent, ng_word
 from src.logger import logger
 from src.tts import google as tts_google
 from src.utils import JST, get_now
@@ -234,19 +234,28 @@ def exec_run_agent_and_tts_workflow(
 
     # agent: prompting
     # 与えるcontextの順番を一律にするために、keyでソートする
+    save_books: list[entity_radio_show.RadioShowBook] = []
     llm_context = ""
     mst_keys = current.keys()
     sorted_mst_keys = sorted(mst_keys)
     for idx, mst_key in enumerate(sorted_mst_keys):
         mst_book = current[mst_key]
+        save_books.append(
+            entity_radio_show.RadioShowBook(
+                title=mst_book.title,
+                url=mst_key,
+                thumbnail_url=mst_book.thumbnail_link,
+                isbn=mst_book.isbn,
+                jp_e_code=mst_book.jp_e_code,
+            )
+        )
         book_prompt = convert_to_book_prompt(mst_book, idx + 1)
         llm_context += book_prompt + "\n"
     logger.info(f"llm_context: {llm_context}")
 
     # agent: llm -> script
     logger.info("start agent call ...")
-    radio_agent = agent.get_agent()
-    result = agent.call_agent_with_dataset(radio_agent, llm_context)
+    result = agent.call_agent_with_dataset(llm_context)
     logger.info(f"agent call result: {result}")
     # parse script
     script = agent.extract_script_block(result)
@@ -268,8 +277,9 @@ def exec_run_agent_and_tts_workflow(
     audio_public_url = audio_blob.public_url
 
     # created に更新
-    entity_radio_show.update_audio_and_script_url(
-        radio_show_id, audio_public_url, script_public_url
+
+    entity_radio_show.publish(
+        radio_show_id, audio_public_url, script_public_url, save_books
     )
 
     return
@@ -292,7 +302,15 @@ def convert_to_book_prompt(mst_book: MstBook, number: int) -> str:
     sorted_keys = sorted(keys)
     for key in sorted_keys:
         # skipして良いkey
-        if key in ["bibRecordCategory", "publicationPlace"]:
+        if key in [
+            "bibRecordCategory",
+            "publicationPlace",
+            "title",
+            "identifier",
+            "price",
+            "language",
+            "extent",
+        ]:
             continue
 
         mdata = mst_book.metadata[key]
@@ -311,7 +329,13 @@ def convert_to_book_prompt(mst_book: MstBook, number: int) -> str:
             case str():
                 metadata_str += f"* {key}: {mdata}\n"
             case list():
+                # tagのようなものにsensitiveが入りやすい。全体に影響を与えるので割愛
+                if key in ["value"]:
+                    if any(ng_word.is_ng_word(str(d)) for d in mdata):
+                        continue
+
                 metadata_str += f"* {key}: {', '.join([str(d) for d in mdata])}\n"
+
             case dict():
                 metadata_str += (
                     f"* {key}: {','.join([f'{k}:{v}' for k, v in mdata.items()])}\n"
@@ -361,56 +385,8 @@ def split_books(
 
 if __name__ == "__main__":
     # RSSを取得してOAI-PMHを取得して、GCSにアップロードする
-    size = 100
+    size = 1000
     url = latest_all(size=size)
     print(url)
-    jst_2_5 = datetime(2025, 2, 5, 9, 0, 0, tzinfo=JST)
-    exec_fetch_rss_and_oai_pmh_workflow(url, "latest_all", str(size), jst_2_5)
-
-    # # 適当なファイルへ
-    # # with open("./combined_masterdata.json", "w", encoding="utf-8") as f:
-    # #     f.write(mst_books_json)
-    # #     logger.info("combined_masterdata.json に書き込みました。")
-
-    # # 読み込みテスト
-    # # with open("./combined_masterdata.json", "r", encoding="utf-8") as f:
-    # #     json_data = f.read()
-    # #     mst_books_loaded = MstBooks.model_validate_json(json_data)
-    # #     # logger.info(f"mst_books_loaded: {mst_books_loaded}")
-
-    # #     dumped_mst_books = mst_books_loaded.model_dump()
-    # #     # 件数を表示したい
-    # #     logger.info(f"mst_books_loaded: {len(dumped_mst_books.keys())} 件")
-
-    # # JSTの2月6日のdatetime
-    # target_datetime = datetime(2025, 2, 6, 9, 0, 0, tzinfo=JST)
-
-    # past, current, future = split_books(mst_map, target_datetime)
-
-    # # 件数を表示したい
-    # logger.info(f"past: {len(past)} 件")
-    # logger.info(f"current: {len(current)} 件")
-    # logger.info(f"future: {len(future)} 件")
-
-    # # currentだけをjsonにしてみる
-    # mst_books_current = MstBooks(current)
-    # mst_books_current_json = mst_books_current.model_dump_json(indent=2)
-    # # 適当なファイルへ
-    # with open("./combined_masterdata_current.json", "w", encoding="utf-8") as f:
-    #     f.write(mst_books_current_json)
-    #     logger.info("combined_masterdata_current.json に書き込みました。")
-
-    # # LLMに渡すやつ
-    # llm_input = "current_text.txt"
-    # i = ""
-    # for _, mst_book in current.items():
-    #     book_prompt = convert_to_book_prompt(mst_book)
-    #     logger.info(f"{book_prompt}")
-    #     logger.info("---")
-
-    #     i += book_prompt + "\n"
-    #     i += "---\n"
-
-    # with open(llm_input, "w", encoding="utf-8") as f:
-    #     f.write(i)
-    #     logger.info("current_text.txt に書き込みました。")
+    jst_date = datetime(2025, 2, 4, 9, 0, 0, tzinfo=JST)
+    exec_fetch_rss_and_oai_pmh_workflow(url, "latest_all", str(size), jst_date)
