@@ -5,7 +5,7 @@ import styles from './isometric.module.css';
 import IsometricBackground from './IsometricBackground';
 import IsometricPlayer from './IsometricPlayer';
 import IsometricCamera from './IsometricCamera';
-import { dummy_layer_map, dummy_tile_map } from './tileset';
+import { dummy_layer_map, dummy_tile_map, zero_layer_map } from './tileset';
 import { consoleLogWithStyle } from './utils';
 
 // TODO: playerのポジションが変わった時だけに発火してcallbackする関数(modalの表示など)
@@ -17,7 +17,7 @@ export default function IsometricWorld() {
   // プレイヤーのタイル座標:
   // 頂上が (0, 0) で、真下が (WORLD_SIZE-1, WORLD_SIZE-1) となる
   const map = dummy_tile_map;
-  const layerMap = dummy_layer_map;
+  const layerMap = zero_layer_map;
 
   const initialPlayerPos = { x: 0, y: 0, layer: layerMap[0][0] };
   const [playerPos, setPlayerPos] =

@@ -52,15 +52,15 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // アナライザ
       const analyser = ctx.createAnalyser();
-      analyser.fftSize = 512; // 2の乗数
+      analyser.fftSize = 256; // 2の乗数
       analyser.smoothingTimeConstant = 0.85;
       analyserRef.current = analyser;
 
-      // マイク
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      setMicAllowed(true);
-      const micSource = ctx.createMediaStreamSource(stream);
-      micSource.connect(analyser);
+      // マイク: TODO: 拡張要素
+      // const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // setMicAllowed(true);
+      // const micSource = ctx.createMediaStreamSource(stream);
+      // micSource.connect(analyser);
 
       // もしマイク音をスピーカーに出したくないなら analyser→ctx.destination は繋がない
       // analyser.connect(ctx.destination);

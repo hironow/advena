@@ -4,9 +4,12 @@ import React, { useEffect, useRef } from 'react';
 import { initKeyListeners, keysDown } from './keyInput';
 import { initTouchListeners, getTouchVector } from './touchInput';
 import {
+  bear1,
+  bird3,
   clock1,
   getLayerDiffY,
   getTilePosition,
+  ghost1,
   WORLD_MAX_LAYER,
   WORLD_SIZE,
 } from './tileset';
@@ -167,7 +170,7 @@ export default function IsometricPlayer({
   return (
     <div ref={playerDivRef} className={className}>
       <Tile
-        tile={clock1}
+        tile={ghost1}
         x={initialPos.x}
         y={initialPos.y}
         layer={initialPos.layer}

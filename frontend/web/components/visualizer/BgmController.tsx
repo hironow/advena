@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import type React from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAudioContextState } from './audio-context-provider';
 import { Button } from '../ui/button';
 
@@ -53,7 +54,7 @@ const BgmController: React.FC<Props> = ({ src }) => {
     // 新しく AudioBufferSourceNode を作り、destinationに接続
     const source = audioCtx.createBufferSource();
     source.buffer = audioBuffer;
-    source.loop = true; // ループさせる場合
+    source.loop = false; // ループさせる場合
     source.connect(audioCtx.destination);
 
     source.start(0);
@@ -76,12 +77,7 @@ const BgmController: React.FC<Props> = ({ src }) => {
       </Button>{' '}
       <Button onClick={handleStop} disabled={!sourceRef.current}>
         Stop BGM
-      </Button>{' '}
-      <p style={{ fontSize: '0.9rem' }}>
-        BGM を <br />
-        fetch→decodeAudioData→AudioBufferSourceNode <br />
-        で再生 AnalyserNodeへは繋がないので、LEDには反映されません。
-      </p>
+      </Button>
     </div>
   );
 };
