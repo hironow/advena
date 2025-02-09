@@ -24,12 +24,11 @@
 import io
 import json
 from datetime import datetime
-from typing import Any, Tuple
+from typing import Any
 from zoneinfo import ZoneInfo
 
 import feedparser  # type: ignore
 from pydantic import BaseModel, RootModel
-from pydantic.main import TupleGenerator
 
 from src.blob.storage import (
     ISBN_DIR,
@@ -51,6 +50,9 @@ JST = ZoneInfo("Asia/Tokyo")
 
 class MstBook(BaseModel):
     title: str
+    summary: str
+    isbn: str
+    jp_e_code: str
     link: str
     thumbnail_link: str
     published: datetime
@@ -154,6 +156,9 @@ def exec_fetch_rss_and_oai_pmh_workflow(
         # mapに格納
         mst_map[item.link] = MstBook(
             title=item.title,
+            summary=item.summary,
+            isbn=item.isbn,
+            jp_e_code=item.jp_e_code,
             link=item.link,
             thumbnail_link=thumbnail_link,
             published=item.published or utcnow,
@@ -189,6 +194,76 @@ def exec_fetch_rss_and_oai_pmh_workflow(
     logger.info(f"past: {len(past)} 件")
     logger.info(f"current: {len(current)} 件")
     logger.info(f"future: {len(future)} 件")
+
+    # currentだけをjsonにしてみる
+    mst_books_current = MstBooks(current)
+    mst_books_current_json = mst_books_current.model_dump_json(indent=2)
+    # 適当なファイルへ
+    with open("./combined_masterdata_current.json", "w", encoding="utf-8") as f:
+        f.write(mst_books_current_json)
+        logger.info("combined_masterdata_current.json に書き込みました。")
+
+    # LLMに渡すやつ
+    llm_input = "current_text.txt"
+    i = ""
+    for _, mst_book in current.items():
+        book_prompt = convert_to_book_prompt(mst_book)
+        logger.info(f"{book_prompt}")
+        logger.info("---")
+
+        i += book_prompt + "\n"
+        i += "---\n"
+
+    with open(llm_input, "w", encoding="utf-8") as f:
+        f.write(i)
+        logger.info("current_text.txt に書き込みました。")
+
+
+def convert_to_book_prompt(mst_book: MstBook) -> str:
+    """MstBookをLLMに渡すだけの情報にする"""
+    # linkはいらない
+    # metadataのnullばっかりの項目はいらない
+    # publishedはJSTに変換する
+    # thumbnail_linkもいらない
+
+    title = mst_book.title
+    summary = mst_book.summary
+
+    # metadataは全ての項目が null の場合はkeyを表示しない
+    # 1つでもnullでない場合は表示する(nullは None と表記)
+    metadata_str = ""
+    keys = mst_book.metadata.keys()
+    sorted_keys = sorted(keys)
+    for key in sorted_keys:
+        # skipして良いkey
+        if key in ["bibRecordCategory", "publicationPlace"]:
+            continue
+
+        mdata = mst_book.metadata[key]
+        if mdata is None:
+            continue
+        # skipパターン
+        match mdata:
+            case str() if mdata == "":
+                continue
+            case list() if len(mdata) == 0 or all(x is None for x in mdata):
+                continue
+            case dict() if len(mdata) == 0 or all(x is None for x in mdata.values()):
+                continue
+        # displayパターン
+        match mdata:
+            case str():
+                metadata_str += f"* {key}: {mdata}\n"
+            case list():
+                metadata_str += f"* {key}: {', '.join([str(d) for d in mdata])}\n"
+            case dict():
+                metadata_str += (
+                    f"* {key}: {','.join([f'{k}:{v}' for k, v in mdata.items()])}\n"
+                )
+            case _:
+                logger.warning(f"metadata に未対応の型が含まれています: {mdata}")
+
+    return f"title:{title}\nsummary:{summary}\nmetadata:\n{metadata_str}"
 
 
 def split_books(
