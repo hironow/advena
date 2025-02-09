@@ -45,7 +45,7 @@ export default function GoogleAuthButton() {
 
   return (
     <Button size={'sm'} variant="destructive" onClick={handleClick}>
-      {isLoggedIn ? 'Sign Out' : 'Sign In with Google'}
+      {isLoggedIn ? 'Sign out' : 'Sign in with Google'}
     </Button>
   );
 }
