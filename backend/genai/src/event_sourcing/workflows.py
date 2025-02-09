@@ -398,5 +398,5 @@ if __name__ == "__main__":
     size = 1000
     url = latest_all(size=size)
     print(url)
-    jst_date = datetime(2025, 2, 4, 8, 0, 0, tzinfo=JST)
+    jst_date = datetime(2025, 2, 5, 9, 0, 0, tzinfo=JST)
     exec_fetch_rss_and_oai_pmh_workflow(url, "latest_all", str(size), jst_date)

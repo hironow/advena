@@ -8,7 +8,7 @@ import { SessionProvider } from 'next-auth/react';
 import { auth } from '@/auth';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://m1h0.com'),
+  metadataBase: new URL('https://example.com'),
   title: 'advena',
   description: 'advena is ...',
 };
