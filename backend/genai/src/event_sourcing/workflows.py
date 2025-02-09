@@ -36,14 +36,16 @@ from src.blob.storage import (
     XML_LATEST_ALL_DIR_BASE,
     get_closest_cached_oai_pmh_file,
     get_closest_cached_rss_file,
+    put_combined_json_file,
     put_oai_pmh_json,
     put_rss_xml_file,
 )
 from src.book.book import latest_all, thumbnail
 from src.book.feed import convert_to_entry_item, fetch_rss, parse_rss
 from src.book.oai_pmh import get_metadata_by_isbn, get_metadata_by_jp_e_code
+from src.event_sourcing.entity.radio_show import RadioShow
 from src.logger import logger
-from src.utils import get_now
+from src.utils import get_now, new_id
 
 JST = ZoneInfo("Asia/Tokyo")
 
@@ -73,7 +75,7 @@ class MstBooks(RootModel[dict[str, MstBook]]):
 def exec_fetch_rss_and_oai_pmh_workflow(
     target_url: str, prefix_dir: str, suffix_dir: str
 ) -> None:
-    """RSSを取得してGCSにアップロードする"""
+    """RSS、API系をcallしてGCSにキャッシュ、ラジオ番組作成が可能な最終1ファイルをGCSにアップロードする"""
     utcnow = get_now()
     cached_xml = get_closest_cached_rss_file(utcnow, prefix_dir, suffix_dir)
 
@@ -81,18 +83,16 @@ def exec_fetch_rss_and_oai_pmh_workflow(
     if cached_xml is None:
         # キャッシュが見つからなかった場合は、リクエストを送信する
         raw_xml: str = fetch_rss(url=target_url)
-
         feed, last_build_date = parse_rss(raw_xml)
         if last_build_date is None:
             raise ValueError("RSS フィードの更新日時が取得できませんでした。")
 
         # UTC -> JST
         last_build_date = last_build_date.astimezone(ZoneInfo("Asia/Tokyo"))
-        cache_signature = f"{last_build_date.strftime('%Y%m%d_%H%M%S_0900')}"
         # cache upload
         bs_xml = io.BytesIO(raw_xml.encode("utf-8"))
         result_url = put_rss_xml_file(
-            signature=cache_signature,
+            last_build_date=last_build_date,
             prefix_dir=XML_LATEST_ALL_DIR_BASE,
             file=bs_xml,
             suffix_dir=suffix_dir,
@@ -101,6 +101,11 @@ def exec_fetch_rss_and_oai_pmh_workflow(
     else:
         raw_xml = cached_xml.read().decode("utf-8")
         feed, last_build_date = parse_rss(raw_xml)
+        if last_build_date is None:
+            raise ValueError("RSS フィードの更新日時が取得できませんでした。")
+
+        # UTC -> JST
+        last_build_date = last_build_date.astimezone(ZoneInfo("Asia/Tokyo"))
         logger.info("キャッシュからRSSフィードを取得しました。")
 
     # keyはlink
@@ -113,7 +118,6 @@ def exec_fetch_rss_and_oai_pmh_workflow(
         logger.info(f"item: {item}")
 
         # oai_pmh から書誌情報を取得する
-
         metadata: dict[str, Any] = {}
         thumbnail_link: str = ""
         if item.isbn != "":
@@ -166,57 +170,22 @@ def exec_fetch_rss_and_oai_pmh_workflow(
         )
 
     # ここで、entryMapを使って、combined masterdataを作成する
+    rss_sig = last_build_date.strftime("%Y%m%d_%H%M%S_0900")
     # 作成したcombined masterdataをGCSにアップロードする
     # entityMapをまずはそのままjsonにしてみる
     mst_books = MstBooks(mst_map)
-    # mst_books_json = mst_books.model_dump_json(indent=2)
-    # 適当なファイルへ
-    # with open("./combined_masterdata.json", "w", encoding="utf-8") as f:
-    #     f.write(mst_books_json)
-    #     logger.info("combined_masterdata.json に書き込みました。")
+    mst_books_json_str = mst_books.model_dump_json(indent=2)
+    result_url = put_combined_json_file(rss_sig, mst_books_json_str)
+    logger.info(f"combined masterdata を '{result_url}' にアップロードしました。")
 
-    # 読み込みテスト
-    # with open("./combined_masterdata.json", "r", encoding="utf-8") as f:
-    #     json_data = f.read()
-    #     mst_books_loaded = MstBooks.model_validate_json(json_data)
-    #     # logger.info(f"mst_books_loaded: {mst_books_loaded}")
-
-    #     dumped_mst_books = mst_books_loaded.model_dump()
-    #     # 件数を表示したい
-    #     logger.info(f"mst_books_loaded: {len(dumped_mst_books.keys())} 件")
-
-    # JSTの2月6日のdatetime
-    target_datetime = datetime(2025, 2, 6, 9, 0, 0, tzinfo=JST)
-
-    past, current, future = split_books(mst_map, target_datetime)
-
-    # 件数を表示したい
-    logger.info(f"past: {len(past)} 件")
-    logger.info(f"current: {len(current)} 件")
-    logger.info(f"future: {len(future)} 件")
-
-    # currentだけをjsonにしてみる
-    mst_books_current = MstBooks(current)
-    mst_books_current_json = mst_books_current.model_dump_json(indent=2)
-    # 適当なファイルへ
-    with open("./combined_masterdata_current.json", "w", encoding="utf-8") as f:
-        f.write(mst_books_current_json)
-        logger.info("combined_masterdata_current.json に書き込みました。")
-
-    # LLMに渡すやつ
-    llm_input = "current_text.txt"
-    i = ""
-    for _, mst_book in current.items():
-        book_prompt = convert_to_book_prompt(mst_book)
-        logger.info(f"{book_prompt}")
-        logger.info("---")
-
-        i += book_prompt + "\n"
-        i += "---\n"
-
-    with open(llm_input, "w", encoding="utf-8") as f:
-        f.write(i)
-        logger.info("current_text.txt に書き込みました。")
+    # Firestore recordをここで creating で作成する
+    radio_show = RadioShow(
+        version=RadioShow.__current_version__,
+        id=new_id(),
+        status="creating",
+        masterdata_url=result_url,
+        created_at=get_now(),
+    )
 
 
 def convert_to_book_prompt(mst_book: MstBook) -> str:
@@ -308,3 +277,51 @@ if __name__ == "__main__":
     url = latest_all(size=1000)
     print(url)
     exec_fetch_rss_and_oai_pmh_workflow(url, "latest_all", "1000")
+
+    # # 適当なファイルへ
+    # # with open("./combined_masterdata.json", "w", encoding="utf-8") as f:
+    # #     f.write(mst_books_json)
+    # #     logger.info("combined_masterdata.json に書き込みました。")
+
+    # # 読み込みテスト
+    # # with open("./combined_masterdata.json", "r", encoding="utf-8") as f:
+    # #     json_data = f.read()
+    # #     mst_books_loaded = MstBooks.model_validate_json(json_data)
+    # #     # logger.info(f"mst_books_loaded: {mst_books_loaded}")
+
+    # #     dumped_mst_books = mst_books_loaded.model_dump()
+    # #     # 件数を表示したい
+    # #     logger.info(f"mst_books_loaded: {len(dumped_mst_books.keys())} 件")
+
+    # # JSTの2月6日のdatetime
+    # target_datetime = datetime(2025, 2, 6, 9, 0, 0, tzinfo=JST)
+
+    # past, current, future = split_books(mst_map, target_datetime)
+
+    # # 件数を表示したい
+    # logger.info(f"past: {len(past)} 件")
+    # logger.info(f"current: {len(current)} 件")
+    # logger.info(f"future: {len(future)} 件")
+
+    # # currentだけをjsonにしてみる
+    # mst_books_current = MstBooks(current)
+    # mst_books_current_json = mst_books_current.model_dump_json(indent=2)
+    # # 適当なファイルへ
+    # with open("./combined_masterdata_current.json", "w", encoding="utf-8") as f:
+    #     f.write(mst_books_current_json)
+    #     logger.info("combined_masterdata_current.json に書き込みました。")
+
+    # # LLMに渡すやつ
+    # llm_input = "current_text.txt"
+    # i = ""
+    # for _, mst_book in current.items():
+    #     book_prompt = convert_to_book_prompt(mst_book)
+    #     logger.info(f"{book_prompt}")
+    #     logger.info("---")
+
+    #     i += book_prompt + "\n"
+    #     i += "---\n"
+
+    # with open(llm_input, "w", encoding="utf-8") as f:
+    #     f.write(i)
+    #     logger.info("current_text.txt に書き込みました。")

@@ -2,6 +2,7 @@ import io
 import os
 from datetime import datetime
 from typing import Any, BinaryIO
+from zoneinfo import ZoneInfo
 
 from google.cloud import storage  # type: ignore
 
@@ -120,15 +121,23 @@ def put_tts_audio_file(signature: str, file: BinaryIO) -> str:
 
 
 def put_rss_xml_file(
-    signature: str, prefix_dir: str, file: BinaryIO, suffix_dir: str = "non"
+    last_build_date: datetime, prefix_dir: str, file: BinaryIO, suffix_dir: str = "non"
 ) -> str:
     """
     RSS XML ファイルを GCS にアップロードし、公開 URL を返す。
     キャッシュの有効期限は 5 分間。
     アップロード先: private/rss/(latest_all|keyword_X)/<signature>.xml
+
+    signature: ファイル名の接頭辞として利用する日時文字列 (JST)
+    例: 20250209_000000_0900
     """
-    if signature == "" or prefix_dir == "":
+    if prefix_dir == "":
         raise ValueError("signature should not be empty.")
+    last_build_date_w_tz = last_build_date
+    if last_build_date_w_tz.tzinfo != ZoneInfo("Asia/Tokyo"):
+        last_build_date_w_tz = last_build_date.astimezone(ZoneInfo("Asia/Tokyo"))
+
+    signature = f"{last_build_date_w_tz.strftime('%Y%m%d_%H%M%S_0900')}"
     blob_path = f"{RSS_RAW_DIR}/{prefix_dir}_{suffix_dir}/{signature}.xml"
     metadata = {
         "Cache-Control": "public, max-age=300",  # 5分間
@@ -187,11 +196,14 @@ def get_closest_cached_rss_file(
     if target_utc is None:
         raise ValueError("target_utc should not be None.")
 
+    # タイムゾーンを UTC から JST に変換
+    target_jst = target_utc.astimezone(ZoneInfo("Asia/Tokyo"))
+
     bucket = _get_bucket()
     prefix_base = f"{RSS_RAW_DIR}/{prefix_dir}_{suffix_dir}"
     # ソートはできないので、日までが同じものを全て取得してから、チェックする
     # ex: "private/rss/latest_all/20250209"
-    search_prefix = prefix_base + "/" + target_utc.strftime("%Y%m%d")
+    search_prefix = prefix_base + "/" + target_jst.strftime("%Y%m%d")
 
     logger.info(f"searching for cached RSS files...: {search_prefix}")
     blobs: list[storage.Blob] = list(
