@@ -18,6 +18,9 @@ def test_split_books_classification():
     books = {
         "book_past": MstBook(
             title="Past Book",
+            summary="summary1",
+            isbn="isbn1",
+            jp_e_code="jp_e_code1",
             link="link1",
             thumbnail_link="thumb1",
             published=datetime(
@@ -26,6 +29,9 @@ def test_split_books_classification():
         ),
         "book_current": MstBook(
             title="Current Book",
+            summary="summary1",
+            isbn="isbn1",
+            jp_e_code="jp_e_code1",
             link="link2",
             thumbnail_link="thumb2",
             # 2025-02-11 03:00 UTC → JST: 12:00 (2/11)
@@ -33,6 +39,9 @@ def test_split_books_classification():
         ),
         "book_future": MstBook(
             title="Future Book",
+            summary="summary1",
+            isbn="isbn1",
+            jp_e_code="jp_e_code1",
             link="link3",
             thumbnail_link="thumb3",
             # 2025-02-12 01:00 UTC → JST: 10:00 (2/12)
@@ -67,6 +76,9 @@ def test_split_books_skip_none():
     )
     book_valid = MstBook(
         title="Valid Book",
+        summary="summary1",
+        isbn="isbn1",
+        jp_e_code="jp_e_code1",
         link="link_valid",
         thumbnail_link="thumb_valid",
         # 2025-02-11 03:00 UTC → JST: 12:00 (2/11)
@@ -103,6 +115,9 @@ def test_split_books_timezone_consistency():
     # 例: 2025-02-10 14:00:00 UTC → JST: 2025-02-10 23:00:00
     book_utc_past = MstBook(
         title="UTC Past Book",
+        summary="summary1",
+        isbn="isbn1",
+        jp_e_code="jp_e_code1",
         link="utc_past",
         thumbnail_link="thumb_utc_past",
         published=datetime(2025, 2, 10, 14, 0, 0, tzinfo=ZoneInfo("UTC")),
@@ -111,6 +126,9 @@ def test_split_books_timezone_consistency():
     # 2025-02-11 00:00:00 UTC → JST: 2025-02-11 09:00:00
     book_utc_current = MstBook(
         title="UTC Current Book",
+        summary="summary1",
+        isbn="isbn1",
+        jp_e_code="jp_e_code1",
         link="utc_current",
         thumbnail_link="thumb_utc_current",
         published=datetime(2025, 2, 11, 0, 0, 0, tzinfo=ZoneInfo("UTC")),
@@ -118,6 +136,9 @@ def test_split_books_timezone_consistency():
     # 2025-02-11 14:30:00 UTC → JST: 2025-02-11 23:30:00
     book_utc_current2 = MstBook(
         title="UTC Current Book 2",
+        summary="summary1",
+        isbn="isbn1",
+        jp_e_code="jp_e_code1",
         link="utc_current2",
         thumbnail_link="thumb_utc_current2",
         published=datetime(2025, 2, 11, 14, 30, 0, tzinfo=ZoneInfo("UTC")),
@@ -125,6 +146,9 @@ def test_split_books_timezone_consistency():
     # 2025-02-12 00:30:00 UTC → JST: 2025-02-12 09:30:00
     book_utc_future = MstBook(
         title="UTC Future Book",
+        summary="summary1",
+        isbn="isbn1",
+        jp_e_code="jp_e_code1",
         link="utc_future",
         thumbnail_link="thumb_utc_future",
         published=datetime(2025, 2, 12, 0, 30, 0, tzinfo=ZoneInfo("UTC")),
