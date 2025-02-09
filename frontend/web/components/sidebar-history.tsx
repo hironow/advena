@@ -82,6 +82,7 @@ export function SidebarHistory({
 
   const handleRadioShowClick = (radioShow: RadioShow) => {
     setCurrentRadioShowId(radioShow.id);
+    console.info('radio show clicked', radioShow);
   };
 
   if (!user) {

@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
         hostname: 'avatar.vercel.sh',
       },
     ],
+    domains: ['ndlsearch.ndl.go.jp'],
   },
 };
 
