@@ -42,7 +42,7 @@ def test_call_agent(monkeypatch):
 
     # テスト用の文字列を用意して call_agent を呼び出す
     test_text = "test message"
-    result = agent.call_agent(dummy_agent, test_text)
+    result = agent.call_agent_with_dataset(dummy_agent, test_text)
 
     # DummyToolCallingAgent.run は f"dummy response: {task}" を返すので、
     # 期待される結果は "dummy response: test message" となる

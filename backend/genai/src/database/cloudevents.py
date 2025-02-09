@@ -64,7 +64,5 @@ def send_cloud_event(endpoint: str, event_body: dict[str, Any]) -> None:
             logger.error(
                 f"[ERROR] Failed to send CloudEvent: {response.status_code} {response.reason_phrase}"
             )
-
-        logger.info(f"[INFO] Response: {response.text}")
     except Exception as e:
         logger.error(f"[ERROR] Exception while sending CloudEvent: {e}")

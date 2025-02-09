@@ -43,6 +43,8 @@ class RadioShow(RadioShowId):
     status: Literal["creating"] | Literal["created"]
     # masterdataは非公開なので blob path で管理
     masterdata_blob_path: str
+    # 過去日の指定をしたいときは datetime で作成時に指定する
+    broadcasted_at: datetime | None = None
     # public url は公開されるのでそのまま保持
     audio_url: str | None = None
     script_url: str | None = None
@@ -196,7 +198,7 @@ def get_by_field(field: str, value: Any) -> RadioShow | None:
     return None
 
 
-def new(masterdata_blob_path: str) -> RadioShow:
+def new(masterdata_blob_path: str, broadcasted_at: datetime | None) -> RadioShow:
     """
     新規ラジオショーを作成する。
     """
@@ -207,6 +209,7 @@ def new(masterdata_blob_path: str) -> RadioShow:
         created_at=utils.get_now(),
         status="creating",
         masterdata_blob_path=masterdata_blob_path,
+        broadcasted_at=broadcasted_at,
     )
     try:
         doc_ref: DocumentReference = db.collection(RadioShow.__collection__).document(

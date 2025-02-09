@@ -23,9 +23,8 @@
 
 import io
 import json
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
-from zoneinfo import ZoneInfo
 
 import feedparser  # type: ignore
 from pydantic import BaseModel, RootModel
@@ -41,17 +40,16 @@ from src.blob.storage import (
     put_oai_pmh_json,
     put_rss_xml_file,
     put_tts_audio_file,
+    put_tts_script_file,
 )
 from src.book.book import latest_all, thumbnail
 from src.book.feed import convert_to_entry_item, fetch_rss, parse_rss
 from src.book.oai_pmh import get_metadata_by_isbn, get_metadata_by_jp_e_code
-from src.event_sourcing.entity import radio_show
+from src.event_sourcing.entity import radio_show as entity_radio_show
 from src.llm import agent
 from src.logger import logger
 from src.tts import google as tts_google
-from src.utils import get_now
-
-JST = ZoneInfo("Asia/Tokyo")
+from src.utils import JST, get_now
 
 
 class MstBook(BaseModel):
@@ -77,7 +75,10 @@ class MstBooks(RootModel[dict[str, MstBook]]):
 
 
 def exec_fetch_rss_and_oai_pmh_workflow(
-    target_url: str, prefix_dir: str, suffix_dir: str
+    target_url: str,
+    prefix_dir: str,
+    suffix_dir: str,
+    broadcasted_at: datetime | None = None,
 ) -> None:
     """RSS、API系をcallしてGCSにキャッシュ、ラジオ番組作成が可能な最終1ファイルをGCSにアップロードする。ラジオ番組が作成開始される。"""
     logger.info("start exec_run_agent_and_tts_workflow ...")
@@ -85,6 +86,10 @@ def exec_fetch_rss_and_oai_pmh_workflow(
         raise ValueError("target_url is empty.")
     if prefix_dir == "" or suffix_dir == "":
         raise ValueError("prefix_dir or suffix_dir is empty.")
+    if broadcasted_at is not None:
+        # must timezone-aware
+        if broadcasted_at.tzinfo is None:
+            raise ValueError("broadcasted_at must be timezone-aware.")
 
     utcnow = get_now()
     cached_xml = get_closest_cached_rss_file(utcnow, prefix_dir, suffix_dir)
@@ -98,7 +103,7 @@ def exec_fetch_rss_and_oai_pmh_workflow(
             raise ValueError("RSS フィードの更新日時が取得できませんでした。")
 
         # UTC -> JST
-        last_build_date = last_build_date.astimezone(ZoneInfo("Asia/Tokyo"))
+        last_build_date = last_build_date.astimezone(JST)
         # cache upload
         bs_xml = io.BytesIO(raw_xml.encode("utf-8"))
         cached_url = put_rss_xml_file(
@@ -115,7 +120,7 @@ def exec_fetch_rss_and_oai_pmh_workflow(
             raise ValueError("RSS フィードの更新日時が取得できませんでした。")
 
         # UTC -> JST
-        last_build_date = last_build_date.astimezone(ZoneInfo("Asia/Tokyo"))
+        last_build_date = last_build_date.astimezone(JST)
         logger.info("キャッシュからRSSフィードを取得しました。")
 
     # keyはlink
@@ -187,9 +192,11 @@ def exec_fetch_rss_and_oai_pmh_workflow(
     mst_books_json_str = mst_books.model_dump_json(indent=2)
     result_blob = put_combined_json_file(rss_sig, mst_books_json_str)
     logger.info(f"combined masterdata を '{result_blob.name}' にアップロードしました。")
+    if result_blob is None:
+        raise ValueError("combined masterdata がアップロードできませんでした。")
 
     # Firestore recordをここで creating で作成する
-    creating = radio_show.new(result_blob.name)
+    creating = entity_radio_show.new(result_blob.name, broadcasted_at)
     logger.info(f"[COMMAND] radio_show.new creating: {creating}")
 
     # 後続処理はeventarcが行う
@@ -199,68 +206,76 @@ def exec_fetch_rss_and_oai_pmh_workflow(
 
 def exec_run_agent_and_tts_workflow(
     radio_show_id: str,
-    radio_show_masterdata_url: str,
+    masterdata_blob_path: str,
     exec_date: datetime | None = None,
 ) -> None:
     logger.info("start exec_run_agent_and_tts_workflow ...")
-    if radio_show_masterdata_url == "":
-        raise ValueError("radio_show_masterdata_url is empty.")
-    # target_datetime が timezone-aware かつ JST であるかをチェック
-    if exec_date is not None and exec_date.tzinfo is None:
-        raise ValueError("target_datetime must be timezone-aware and in JST timezone.")
-    if exec_date is not None and exec_date.tzinfo != JST:
-        raise ValueError("target_datetime must be in JST timezone.")
+    if masterdata_blob_path == "":
+        raise ValueError("masterdata_blob_path is empty.")
+    if exec_date is not None:
+        # must timezone-aware
+        if exec_date.tzinfo is None:
+            raise ValueError("broadcasted_at must be timezone-aware.")
 
-    # ここで、ラジオ番組のスクリプトを作成する
-    mst_json = get_json_file(radio_show_masterdata_url)
+    # load masterdata
+    mst_json = get_json_file(masterdata_blob_path)
     mst_books_loaded = MstBooks.model_validate_json(mst_json)
     logger.info("Success to load masterdata json.")
 
-    exec_date = exec_date or datetime.now(JST)
+    # 以降はJSTでの処理
+    exec_date_jst = datetime.now(JST)
+    if exec_date is not None:
+        # 実行対象の日時を上書き
+        exec_date_jst = exec_date.astimezone(JST)
     mst_map = mst_books_loaded.root
-    past, current, future = split_books(mst_map, exec_date)
+    past, current, future = split_books(mst_map, exec_date_jst)
     logger.info("Success to split books.")
     logger.info(f"past: {len(past)}, current: {len(current)}, future: {len(future)}")
 
+    # agent: prompting
+    # 与えるcontextの順番を一律にするために、keyでソートする
     llm_context = ""
-    for _, mst_book in current.items():
-        book_prompt = convert_to_book_prompt(mst_book)
+    mst_keys = current.keys()
+    sorted_mst_keys = sorted(mst_keys)
+    for idx, mst_key in enumerate(sorted_mst_keys):
+        mst_book = current[mst_key]
+        book_prompt = convert_to_book_prompt(mst_book, idx + 1)
         llm_context += book_prompt + "\n"
     logger.info(f"llm_context: {llm_context}")
 
+    # agent: llm -> script
     logger.info("start agent call ...")
     radio_agent = agent.get_agent()
-    result = agent.call_agent(radio_agent, llm_context)
+    result = agent.call_agent_with_dataset(radio_agent, llm_context)
     logger.info(f"agent call result: {result}")
-
+    # parse script
     script = agent.extract_script_block(result)
     if script is None:
         raise ValueError("script が取得できませんでした。")
-
     logger.info(f"radio show script: {script}")
 
-    # gcsにscriptを保存する
-    # 今はlocalに保存する
-    fn = "script.txt"
-    with open(fn, "w", encoding="utf-8") as f:
-        f.write(script)
-        logger.info(f"{fn} にスクリプトを書き込みました。")
+    # upload: script
+    script_blob = put_tts_script_file(radio_show_id, script)
+    script_public_url = script_blob.public_url
 
-    # ここで、ラジオ番組の音声データを作成する
+    # start: script -> audio
     recorded = tts_google.synthesize(script)
     if recorded is None:
         raise ValueError("recorded が取得できませんでした。")
 
     bs = io.BytesIO(recorded.audio_content)
-    public_url = put_tts_audio_file(radio_show_id, bs).public_url
+    audio_blob = put_tts_audio_file(radio_show_id, bs)
+    audio_public_url = audio_blob.public_url
 
     # created に更新
-    radio_show.update_audio_url(radio_show_id, public_url, "todo.txt")
+    entity_radio_show.update_audio_and_script_url(
+        radio_show_id, audio_public_url, script_public_url
+    )
 
     return
 
 
-def convert_to_book_prompt(mst_book: MstBook) -> str:
+def convert_to_book_prompt(mst_book: MstBook, number: int) -> str:
     """MstBookをLLMに渡すだけの情報にする"""
     # linkはいらない
     # metadataのnullばっかりの項目はいらない
@@ -304,7 +319,7 @@ def convert_to_book_prompt(mst_book: MstBook) -> str:
             case _:
                 logger.warning(f"metadata に未対応の型が含まれています: {mdata}")
 
-    return f"title:{title}\nsummary:{summary}\nmetadata:\n{metadata_str}"
+    return f"{number}番 title:{title}\nsummary:{summary}\nmetadata:\n{metadata_str}"
 
 
 def split_books(
@@ -346,9 +361,11 @@ def split_books(
 
 if __name__ == "__main__":
     # RSSを取得してOAI-PMHを取得して、GCSにアップロードする
-    url = latest_all(size=10)
+    size = 100
+    url = latest_all(size=size)
     print(url)
-    exec_fetch_rss_and_oai_pmh_workflow(url, "latest_all", "10")
+    jst_2_5 = datetime(2025, 2, 5, 9, 0, 0, tzinfo=JST)
+    exec_fetch_rss_and_oai_pmh_workflow(url, "latest_all", str(size), jst_2_5)
 
     # # 適当なファイルへ
     # # with open("./combined_masterdata.json", "w", encoding="utf-8") as f:

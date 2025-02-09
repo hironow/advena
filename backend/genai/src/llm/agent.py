@@ -16,8 +16,7 @@ TEMPERATURE = 0.08
 SEED = 42
 
 # 正規表現パターン
-SCRIPT_PATTERN = re.compile(r"(<script>.*?</script>)", re.DOTALL)
-
+SCRIPT_PATTERN = re.compile(r"<script\b[^>]*>(.*?)</script>", re.DOTALL)
 
 if os.getenv("CI") == "true":
     # CI 環境では weave と Laminar を初期化しない
@@ -47,22 +46,25 @@ def get_agent() -> ToolCallingAgent:
     return agent
 
 
-def call_agent(agent: ToolCallingAgent, text: str) -> str:
+@observe(name="call_agent_with_dataset")
+@weave.op
+def call_agent_with_dataset(agent: ToolCallingAgent, dataset: str) -> str:
+    text = "### dataset: \n" + dataset
     return agent.run(task=text, stream=False)
 
 
 def extract_script_block(text: str) -> str | None:
     """
-    指定の文字列から最初に見つかった <script> タグブロックを抽出して返します。
+    指定の文字列から最初に見つかった <script> タグブロック内の内容を抽出して返します。
 
-    タグ自体 (<script> および </script>) も含めた文字列を返します。
+    タグ自身 (<script> および </script>) は返り値に含みません。
     もし <script> ブロックが見つからなかった場合は None を返します。
 
     Args:
         text (str): 対象の文字列
 
     Returns:
-        Optional[str]: 抽出した <script> ブロック、もしくは None
+        Optional[str]: 抽出した <script> ブロック内の内容、もしくは None
     """
     match = SCRIPT_PATTERN.search(text)
     if match:
@@ -71,10 +73,14 @@ def extract_script_block(text: str) -> str | None:
 
 
 if __name__ == "__main__":
-    agent = get_agent()
-    dataset = """
-None
-"""
-    text = "dataset: " + dataset
-    result = call_agent(agent, text)
-    print(result)
+    #     agent = get_agent()
+    #     dataset = """
+    # None
+    # """
+    #     text = "dataset: " + dataset
+    #     result = call_agent(agent, text)
+    #     print(result)
+
+    sample_text = "<script>hoge</script>"
+    extracted_content = extract_script_block(sample_text)
+    print(extracted_content)  # 出力: hoge

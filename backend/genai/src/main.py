@@ -1,5 +1,7 @@
 from contextlib import asynccontextmanager
+from datetime import datetime
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import google.auth as gauth
 from cloudevents.http import from_http  # type: ignore
@@ -36,48 +38,54 @@ app = FastAPI(
 @app.post("/add_user")
 async def add_user(request: Request):
     """[COMMAND] creating user"""
-    # cloud event からのリクエストを受け取る
-    body = await request.body()
-    event = from_http(request.headers, body)  # type: ignore
-    logger.info(f"event: {event}")
-    document = event.get("document")
-    event_id = event.get("id")
+    try:
+        # cloud event からのリクエストを受け取る
+        body = await request.body()
+        event = from_http(request.headers, body)  # type: ignore
+        logger.info(f"event: {event}")
+        document = event.get("document")
+        event_id = event.get("id")
 
-    now = utils.get_now()
+        now = utils.get_now()
 
-    logger.info(f"{event_id}: start adding a document: {document}")
-    # FIXME: 抽象化できていないので、修正が必要
-    # document は "users/{userId}" の形式であると想定
-    if "/" not in document or document.count("/") != 1:
-        logger.error(f"{event_id}: invalid document: {document}")
-        return Response(content="invalid document", status_code=400)
+        logger.info(f"{event_id}: start adding a document: {document}")
+        # FIXME: 抽象化できていないので、修正が必要
+        # document は "users/{userId}" の形式であると想定
+        if "/" not in document or document.count("/") != 1:
+            logger.error(f"{event_id}: invalid document: {document}")
+            return Response(content="invalid document", status_code=400)
 
-    users, user_id = document.split("/")
-    logger.info(f"{event_id}: start adding collection: {users} in a user: {user_id}")
+        users, user_id = document.split("/")
+        logger.info(
+            f"{event_id}: start adding collection: {users} in a user: {user_id}"
+        )
 
-    if not utils.is_valid_uuid(user_id):
-        logger.error(f"{event_id}: invalid user_id: {user_id}")
-        return Response(content="invalid user_id", status_code=400)
+        if not utils.is_valid_uuid(user_id):
+            logger.error(f"{event_id}: invalid user_id: {user_id}")
+            return Response(content="invalid user_id", status_code=400)
 
-    # firestoreから取得
-    user = db.collection(users).document(user_id).get()
-    if not user.exists:
-        logger.error(f"{event_id}: user {user_id} is not found")
-        return Response(content="user not found", status_code=404)
+        # firestoreから取得
+        user = db.collection(users).document(user_id).get()
+        if not user.exists:
+            logger.error(f"{event_id}: user {user_id} is not found")
+            return Response(content="user not found", status_code=404)
 
-    if user.get("status") == "created":
-        logger.error(f"{event_id}: user {user_id} is already created")
-        return Response(content="user already created", status_code=204)
+        if user.get("status") == "created":
+            logger.error(f"{event_id}: user {user_id} is already created")
+            return Response(content="user already created", status_code=204)
 
-    db.collection(users).document(user_id).update(
-        {
-            "status": "created",
-            "updated_at": now,
-        }
-    )
+        db.collection(users).document(user_id).update(
+            {
+                "status": "created",
+                "updated_at": now,
+            }
+        )
 
-    logger.info(f"{event_id}: finished adding a user for {user_id} as created")
-    return Response(content="finished", status_code=204)
+        logger.info(f"{event_id}: finished adding a user for {user_id} as created")
+        return Response(content="finished", status_code=204)
+    except Exception as e:
+        logger.error(f"error: {e}")
+        return Response(content="error", status_code=500)
 
 
 @app.post("/add_radio_show")
@@ -121,11 +129,17 @@ async def add_radio_show(request: Request):
             return Response(content="radio_show already created", status_code=204)
 
         # start workflow
-        masterdata_url = doc.get("masterdata_url")
-        logger.info("masterdata_url: %s", masterdata_url)
+        masterdata_blob_path: str = doc.get("masterdata_blob_path")
+        broadcasted_at: datetime | None = doc.get("broadcasted_at")
+        if broadcasted_at:
+            # UTC前提
+            broadcasted_at = broadcasted_at.replace(tzinfo=ZoneInfo("UTC"))
+        logger.info("masterdata_blob_path: %s", masterdata_blob_path)
+        logger.info("broadcasted_at: %s", broadcasted_at)
         workflows.exec_run_agent_and_tts_workflow(
             radio_show_id,
-            masterdata_url,
+            masterdata_blob_path,
+            broadcasted_at,
         )
 
         logger.info(
@@ -134,7 +148,7 @@ async def add_radio_show(request: Request):
         return Response(content="finished", status_code=204)
     except Exception as e:
         logger.error(f"error: {e}")
-        return Response(content="error + {e}", status_code=500)
+        return Response(content="error", status_code=500)
 
 
 class AsyncTaskBody(BaseModel):
@@ -150,22 +164,37 @@ KIND_LATEST_WITH_KEYWORDS_BY_USER = "latest_with_keywords_by_user"
 @app.post("/async_task")
 async def async_task(body: AsyncTaskBody):
     """[COMMAND] async task"""
-    logger.info(f"async task kind: {body.kind}, data: {body.data}")
+    try:
+        logger.info(f"async task kind: {body.kind}, data: {body.data}")
 
-    # TODO: cloud schedulerからの定期的な非同期処理(eventarc経由ではない)
-    # NOTE: Fan-Outパターンで処理を分散するパターンも考えられる
+        # TODO: cloud schedulerからの定期的な非同期処理(eventarc経由ではない)
+        # NOTE: Fan-Outパターンで処理を分散するパターンも考えられる
 
-    if body.kind == KIND_LATEST_ALL:
-        # start latest_all workflow
-        url = book.latest_all()
-        workflows.exec_fetch_rss_and_oai_pmh_workflow(
-            url, storage.XML_LATEST_ALL_DIR_BASE, "test"
-        )
-    elif body.kind == KIND_LATEST_WITH_KEYWORDS_BY_USER:
-        # start latest_with_keywords_by_user for each user workflow
-        pass
+        if body.kind == KIND_LATEST_ALL:
+            # dataには `broadcasted_at` が含まれる場合がある
+            broadcasted_at: datetime | None = None
+            if body.data:
+                broadcasted_at_str = body.data.get("broadcasted_at")
+                if broadcasted_at_str:
+                    # 指定された放送日時はUTCである前提
+                    broadcasted_at = datetime.fromisoformat(broadcasted_at_str).replace(
+                        tzinfo=ZoneInfo("UTC")
+                    )
+                    logger.info(f"broadcasted_at: {broadcasted_at}")
 
-    return Response(status_code=204)
+            # start latest_all workflow
+            url = book.latest_all()
+            workflows.exec_fetch_rss_and_oai_pmh_workflow(
+                url, storage.XML_LATEST_ALL_DIR_BASE, "test", broadcasted_at
+            )
+        elif body.kind == KIND_LATEST_WITH_KEYWORDS_BY_USER:
+            # start latest_with_keywords_by_user for each user workflow
+            pass
+
+        return Response(status_code=204)
+    except Exception as e:
+        logger.error(f"error: {e}")
+        return Response(content="error", status_code=500)
 
 
 @app.post("/hcheck")

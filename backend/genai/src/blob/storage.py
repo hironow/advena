@@ -6,9 +6,8 @@ from zoneinfo import ZoneInfo
 
 from google.cloud import storage  # type: ignore
 
-from src import blob
 from src.logger import logger
-from src.utils import get_diff_days, get_now
+from src.utils import JST, get_diff_days, get_now
 
 # 環境変数から GCP プロジェクトとバケット名を取得
 gcp_project = os.getenv("GOOGLE_CLOUD_PROJECT", "")
@@ -100,6 +99,25 @@ def _upload_blob_string(
     return blob
 
 
+def put_tts_script_file(signature: str, script: str) -> storage.Blob:
+    """
+    TTS後のスクリプトファイルを GCS にアップロードし、公開 URL を返す。
+    キャッシュの有効期限は 7 日間。
+    アップロード先: public/radio_show_script/<signature>.txt
+    """
+    if signature == "" or script == "":
+        raise ValueError("signature and script should not be empty.")
+    blob_path = f"{RADIO_SHOW_SCRIPT_DIR}/{signature}.txt"
+    metadata = {
+        "Cache-Control": "public, max-age=604800",  # 7日間
+        "content-type": "text/plain; charset=utf-8",
+        "custom_time": get_now().isoformat(),
+    }
+    return _upload_blob_string(
+        blob_path, script, metadata, content_type="text/plain", acl="publicRead"
+    )
+
+
 def put_tts_audio_file(signature: str, file: BinaryIO) -> storage.Blob:
     """
     TTS後の音声ファイルを GCS にアップロードし、公開 URL を返す。
@@ -135,8 +153,8 @@ def put_rss_xml_file(
     if prefix_dir == "":
         raise ValueError("signature should not be empty.")
     last_build_date_w_tz = last_build_date
-    if last_build_date_w_tz.tzinfo != ZoneInfo("Asia/Tokyo"):
-        last_build_date_w_tz = last_build_date.astimezone(ZoneInfo("Asia/Tokyo"))
+    if last_build_date_w_tz.tzinfo != JST:
+        last_build_date_w_tz = last_build_date.astimezone(JST)
 
     signature = f"{last_build_date_w_tz.strftime('%Y%m%d_%H%M%S_0900')}"
     blob_path = f"{RSS_RAW_DIR}/{prefix_dir}_{suffix_dir}/{signature}.xml"
@@ -198,7 +216,7 @@ def get_closest_cached_rss_file(
         raise ValueError("target_utc should not be None.")
 
     # タイムゾーンを UTC から JST に変換
-    target_jst = target_utc.astimezone(ZoneInfo("Asia/Tokyo"))
+    target_jst = target_utc.astimezone(JST)
 
     bucket = _get_bucket()
     prefix_base = f"{RSS_RAW_DIR}/{prefix_dir}_{suffix_dir}"
