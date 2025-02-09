@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styles from './isometric.module.css';
 import IsometricBackground from './IsometricBackground';
 import IsometricPlayer from './IsometricPlayer';
@@ -10,10 +10,14 @@ import { consoleLogWithStyle } from './utils';
 
 // TODO: playerのポジションが変わった時だけに発火してcallbackする関数(modalの表示など)
 
+interface IsometricWorldProps {
+  cb: (x: number, y: number) => void;
+}
+
 /**
  * 全体をまとめる "ワールド" コンポーネント
  */
-export default function IsometricWorld() {
+export default function IsometricWorld({ cb }: IsometricWorldProps) {
   // プレイヤーのタイル座標:
   // 頂上が (0, 0) で、真下が (WORLD_SIZE-1, WORLD_SIZE-1) となる
   const map = dummy_tile_map;
@@ -26,10 +30,12 @@ export default function IsometricWorld() {
   // プレイヤーのタイル座標更新を受け取る (描画のpx座標ではない)
   const handlePlayerPosUpdate = (x: number, y: number, layer: number) => {
     setPlayerPos({ x: x, y: y, layer: layer });
-    // consoleLogWithStyle(
-    //   `%cisometric%c Player position updated: (${x}, ${y}, ${layer})`,
-    // )
   };
+
+  useEffect(() => {
+    // プレイヤーのタイル座標が変わったらcallbackを実行する
+    cb(playerPos.x, playerPos.y);
+  }, [playerPos.x, playerPos.y]);
 
   return (
     <div className={styles.isometricGame}>
