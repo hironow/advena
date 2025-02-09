@@ -43,9 +43,9 @@ from src.blob.storage import (
 from src.book.book import latest_all, thumbnail
 from src.book.feed import convert_to_entry_item, fetch_rss, parse_rss
 from src.book.oai_pmh import get_metadata_by_isbn, get_metadata_by_jp_e_code
-from src.event_sourcing.entity.radio_show import RadioShow
+from src.event_sourcing.entity import radio_show
 from src.logger import logger
-from src.utils import get_now, new_id
+from src.utils import get_now
 
 JST = ZoneInfo("Asia/Tokyo")
 
@@ -75,7 +75,7 @@ class MstBooks(RootModel[dict[str, MstBook]]):
 def exec_fetch_rss_and_oai_pmh_workflow(
     target_url: str, prefix_dir: str, suffix_dir: str
 ) -> None:
-    """RSS、API系をcallしてGCSにキャッシュ、ラジオ番組作成が可能な最終1ファイルをGCSにアップロードする"""
+    """RSS、API系をcallしてGCSにキャッシュ、ラジオ番組作成が可能な最終1ファイルをGCSにアップロードする。ラジオ番組が作成開始される。"""
     utcnow = get_now()
     cached_xml = get_closest_cached_rss_file(utcnow, prefix_dir, suffix_dir)
 
@@ -179,13 +179,24 @@ def exec_fetch_rss_and_oai_pmh_workflow(
     logger.info(f"combined masterdata を '{result_url}' にアップロードしました。")
 
     # Firestore recordをここで creating で作成する
-    radio_show = RadioShow(
-        version=RadioShow.__current_version__,
-        id=new_id(),
-        status="creating",
-        masterdata_url=result_url,
-        created_at=get_now(),
-    )
+    creating = radio_show.new(result_url)
+    logger.info(f"[COMMAND] radio_show.new creating: {creating}")
+
+    # 後続処理はeventarcが行う
+
+    return
+
+
+def exec_run_agent_and_tts_workflow(
+    radio_show: radio_show.RadioShow,
+) -> None:
+    if radio_show.status != "creating":
+        raise ValueError("radio_show.status should be 'creating'.")
+
+    # ここで、ラジオ番組のスクリプトを作成する
+    # ここで、ラジオ番組の音声データを作成する
+
+    return
 
 
 def convert_to_book_prompt(mst_book: MstBook) -> str:

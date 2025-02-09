@@ -17,6 +17,15 @@ def patch_from_http(monkeypatch):
         return json.loads(body)
 
     monkeypatch.setattr(main_module, "from_http", fake_from_http)
+    
+    
+# workflowsのmock
+@pytest.fixture(autouse=True)
+def patch_workflows(monkeypatch):
+    def fake_exec_fetch_rss_and_oai_pmh_workflow(url, prefix, suffix):
+        pass
+
+    monkeypatch.setattr(main_module.workflows, "exec_fetch_rss_and_oai_pmh_workflow", fake_exec_fetch_rss_and_oai_pmh_workflow)
 
 
 # * tests for endpoints
