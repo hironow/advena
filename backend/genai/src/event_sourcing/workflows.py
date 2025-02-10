@@ -23,6 +23,7 @@
 
 import io
 import json
+import time
 from datetime import UTC, datetime
 from typing import Any
 
@@ -95,12 +96,19 @@ def exec_fetch_rss_and_oai_pmh_workflow(
             raise ValueError("broadcasted_at must be timezone-aware.")
 
     utcnow = get_now()
-    cached_xml = get_closest_cached_rss_file(utcnow, prefix_dir, suffix_dir)
+    try:
+        cached_xml = get_closest_cached_rss_file(utcnow, prefix_dir, suffix_dir)
+    except ValueError as e:
+        logger.error(f"RSS フィードのキャッシュ取得に失敗しました: {e}")
+        cached_xml = None
 
+    logger.info(f"start fetch_rss: {target_url}")
     feed: feedparser.FeedParserDict
     if cached_xml is None:
         # キャッシュが見つからなかった場合は、リクエストを送信する
         raw_xml: str = fetch_rss(url=target_url)
+        if raw_xml == "":
+            raise ValueError("RSS フィードの取得に失敗しました。")
         feed, last_build_date = parse_rss(raw_xml)
         if last_build_date is None:
             raise ValueError("RSS フィードの更新日時が取得できませんでした。")
@@ -187,6 +195,9 @@ def exec_fetch_rss_and_oai_pmh_workflow(
             metadata=metadata,
         )
 
+        # 最大1000件でアクセス集中するため一定時間待つ
+        time.sleep(0.1)
+
     # ここで、entryMapを使って、combined masterdataを作成する
     rss_sig = last_build_date.strftime("%Y%m%d_%H%M%S_0900")
     # 作成したcombined masterdataをGCSにアップロードする
@@ -224,9 +235,13 @@ def exec_run_agent_and_tts_workflow(
             raise ValueError("broadcasted_at must be timezone-aware.")
 
     # load masterdata
-    mst_json = get_json_file(masterdata_blob_path)
-    mst_books_loaded = MstBooks.model_validate_json(mst_json)
-    logger.info("Success to load masterdata json.")
+    try:
+        mst_json = get_json_file(masterdata_blob_path)
+        mst_books_loaded = MstBooks.model_validate_json(mst_json)
+        logger.info("Success to load masterdata json.")
+    except Exception as e:
+        logger.error(f"masterdata の読み込みに失敗しました: {e}")
+        raise e
 
     # 以降はJSTでの処理
     exec_date_jst = datetime.now(JST)
@@ -237,6 +252,10 @@ def exec_run_agent_and_tts_workflow(
     past, current, future = split_books(mst_map, exec_date_jst)
     logger.info("Success to split books.")
     logger.info(f"past: {len(past)}, current: {len(current)}, future: {len(future)}")
+
+    if len(current) == 0:
+        logger.error(f"{exec_date} に放送可能な書籍がありませんでした。")
+        return
 
     # agent: prompting
     # 与えるcontextの順番を一律にするために、keyでソートする
@@ -283,7 +302,6 @@ def exec_run_agent_and_tts_workflow(
     audio_public_url = audio_blob.public_url
 
     # created に更新
-
     entity_radio_show.publish(
         radio_show_id,
         audio_public_url,
@@ -291,7 +309,6 @@ def exec_run_agent_and_tts_workflow(
         save_books,
         broadcasted_at=exec_date_jst,
     )
-
     return
 
 

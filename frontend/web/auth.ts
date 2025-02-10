@@ -34,6 +34,33 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           const { idToken } = await signInSchema.parseAsync(credentials);
           const decoded = await adminAuth.verifyIdToken(idToken);
 
+          // allow domain only
+          const email = decoded.email;
+          if (!email) {
+            throw new Error('Email not found');
+          }
+          const allowedDomainsStr = process.env.ALLOWED_DOMAINS_LIST;
+          const allowedEmailsStr = process.env.ALLOWED_EMAILS_LIST;
+
+          // comma separated list and strip whitespace
+          const allowedDomains = allowedDomainsStr
+            ? allowedDomainsStr.split(',').map((domain) => domain.trim())
+            : [];
+          const allowedEmails = allowedEmailsStr
+            ? allowedEmailsStr.split(',').map((email) => email.trim())
+            : [];
+          // ドメインが許可されているかどうか
+          const isAllowedDomain = allowedDomains.some((domain) =>
+            email.endsWith(domain),
+          );
+          // メールアドレスが許可されているかどうか
+          const isAllowedEmail = allowedEmails.includes(email);
+
+          const ok = isAllowedDomain || isAllowedEmail;
+          if (!ok) {
+            throw new Error('Unauthorized email');
+          }
+
           // NOTE: firebase auth uidを使ってユーザーを一意に識別する
           let userInFirestore: User | null = null;
           userInFirestore = await getUserByFirebaseUidAdmin(decoded.uid);

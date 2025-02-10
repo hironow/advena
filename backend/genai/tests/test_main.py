@@ -194,7 +194,8 @@ def test_async_task_broadcasted_at_timezones(
         "exec_fetch_rss_and_oai_pmh_workflow",
         dummy_exec_fetch_rss_and_oai_pmh_workflow,
     )
-    monkeypatch.setattr(book, "latest_all", lambda: "http://dummy.url")
+    # 内部のdataが変わるとこのmockも変える必要がある
+    monkeypatch.setattr(book, "latest_all", lambda size: "http://dummy.url")
 
     request_body = {
         "kind": "latest_all",  # 実装側の定数と合わせる必要があります

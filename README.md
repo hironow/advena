@@ -117,13 +117,45 @@ gcloud config configurations create <your-configuration-name>
 
 build docker image and push to google artifact registry
 
-wip
+```bash
+mr fe:build:dev
+mr be:build:dev
+```
+
+and check build image internal files:
+
+```bash
+mr fe:check_dockerignore
+mr be:check_dockerignore
+```
 
 ### deploy
 
 deploy to google cloud run and other components(like firestore, storage, eventarc, firebase, etc)
 
-wip
+```bash
+mr fe:push:dev
+mr be:push:dev
+```
+
+and firebase deploy:
+
+```bash
+mr f:deploy:dev
+mr f:deploy:prd
+```
+
+and cors setting:
+
+```bash
+# check cors setting: output is null is no setting
+gcloud storage buckets describe gs://${BUCKET_NAME} --format="default(cors_config)"
+
+# set cors setting use cors.json
+gcloud storage buckets update gs://${BUCKET_NAME} --cors-file=./cors.json
+```
+
+cloud run deployment is manual...
 
 ## references
 

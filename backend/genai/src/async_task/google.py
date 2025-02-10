@@ -1,18 +1,10 @@
 import json
-import logging
 import os
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from google.cloud import tasks  # type: ignore
 from google.protobuf import duration_pb2, timestamp_pb2
-from tenacity import (
-    before_sleep_log,
-    retry,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_exponential,
-)
 
 from src.logger import logger
 
@@ -85,13 +77,6 @@ def _create_http_task(
     )
 
 
-@retry(
-    wait=wait_exponential(multiplier=1, min=1, max=60),
-    stop=stop_after_attempt(10),
-    retry=retry_if_exception_type(Exception),
-    before_sleep=before_sleep_log(logger, logging.WARNING),
-    reraise=True,
-)
 def _enqueue_with_retry(
     url: str,
     json_payload: dict[str, Any],
@@ -99,14 +84,22 @@ def _enqueue_with_retry(
     task_id: str | None,
     deadline_in_seconds: int | None,
 ) -> tasks.Task:
-    """retryとして、指数バックオフで最大10回リトライする"""
-    return _create_http_task(
-        url,
-        json_payload,
-        scheduled_seconds_from_now,
-        task_id,
-        deadline_in_seconds,
-    )
+    """retryとして、for-loopで最大10回リトライする"""
+    for i in range(10):
+        try:
+            return _create_http_task(
+                url,
+                json_payload,
+                scheduled_seconds_from_now,
+                task_id,
+                deadline_in_seconds,
+            )
+            break
+        except Exception as e:
+            logger.error(f"Failed to enqueue task. Retrying... {i + 1}: {e}")
+            if i == 9:
+                raise e
+            continue
 
 
 def enqueue_async_task(
