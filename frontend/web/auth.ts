@@ -55,9 +55,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           );
           // メールアドレスが許可されているかどうか
           const isAllowedEmail = allowedEmails.includes(email);
-          // いずれかでなければ拒否
-          if (!isAllowedDomain && !isAllowedEmail) {
-            throw new Error('Not allowed email');
+
+          const ok = isAllowedDomain || isAllowedEmail;
+          if (!ok) {
+            throw new Error('Unauthorized email');
           }
 
           // NOTE: firebase auth uidを使ってユーザーを一意に識別する
