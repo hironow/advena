@@ -60,7 +60,7 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body className="antialiased overscroll-none">
+      <body className="antialiased">
         <SessionProvider session={session}>
           <ThemeProvider
             attribute="class"

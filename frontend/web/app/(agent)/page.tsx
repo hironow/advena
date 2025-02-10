@@ -37,7 +37,7 @@ function PageContent() {
 
   return (
     <>
-      <div className="relative flex flex-col min-w-0 h-dvh bg-background">
+      <div className="relative flex flex-col min-w-0 h-dvh bg-background overscroll-none">
         <ChatHeader />
 
         <IsometricWorld
