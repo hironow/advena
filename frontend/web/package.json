@@ -14,7 +14,7 @@
     "test:watch": "vitest watch"
   },
   "dependencies": {
-    "@ai-sdk/google-vertex": "^2.1.26",
+    "@ai-sdk/google-vertex": "^2.1.29",
     "@dotenvx/dotenvx": "^1.38.5",
     "@radix-ui/react-alert-dialog": "^1.1.6",
     "@radix-ui/react-dialog": "^1.1.6",
@@ -69,7 +69,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
-    "@tailwindcss/postcss": "^4.0.13",
+    "@tailwindcss/postcss": "^4.0.14",
     "@tailwindcss/typography": "^0.5.16",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.2.0",
@@ -80,7 +80,7 @@
     "@types/react-dom": "^19.0.4",
     "jsdom": "^26.0.0",
     "postcss": "^8.5.3",
-    "tailwindcss": "^4.0.13",
+    "tailwindcss": "^4.0.14",
     "tsx": "^4.19.3",
     "typescript": "^5.8.2",
     "vitest": "^3.0.8"
