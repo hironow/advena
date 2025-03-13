@@ -5,7 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  '@ai-sdk/provider': 1.0.9
+  '@ai-sdk/provider': 1.0.10
 
 importers:
 
@@ -48,8 +48,8 @@ importers:
         specifier: ^1.1.2
         version: 1.1.2(@types/react-dom@19.0.4(@types/react@19.0.10))(@types/react@19.0.10)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       ai:
-        specifier: 4.1.46
-        version: 4.1.46(react@19.0.0)(zod@3.24.2)
+        specifier: 4.1.58
+        version: 4.1.58(react@19.0.0)(zod@3.24.2)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -87,8 +87,8 @@ importers:
         specifier: ^2.12.2
         version: 2.12.2(@types/react@19.0.10)(react@19.0.0)
       lucide-react:
-        specifier: ^0.476.0
-        version: 0.476.0(react@19.0.0)
+        specifier: ^0.479.0
+        version: 0.479.0(react@19.0.0)
       nanoid:
         specifier: ^5.1.3
         version: 5.1.3
@@ -135,14 +135,14 @@ importers:
         specifier: ^19.0.0
         version: 19.0.0(react@19.0.0)
       react-markdown:
-        specifier: ^9.1.0
-        version: 9.1.0(@types/react@19.0.10)(react@19.0.0)
+        specifier: ^10.1.0
+        version: 10.1.0(@types/react@19.0.10)(react@19.0.0)
       react-resizable-panels:
         specifier: ^2.1.7
         version: 2.1.7(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       react-scan:
-        specifier: ^0.1.4
-        version: 0.1.4(next@15.2.2(@babel/core@7.26.10)(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(rollup@4.35.0)
+        specifier: ^0.2.14
+        version: 0.2.14(@types/react@19.0.10)(next@15.2.2(@babel/core@7.26.10)(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(rollup@4.35.0)
       remark-gfm:
         specifier: ^4.0.1
         version: 4.0.1
@@ -150,8 +150,8 @@ importers:
         specifier: ^0.0.1
         version: 0.0.1
       sonner:
-        specifier: ^1.7.4
-        version: 1.7.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+        specifier: ^2.0.1
+        version: 2.0.1(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       swr:
         specifier: ^2.3.3
         version: 2.3.3(react@19.0.0)
@@ -237,15 +237,6 @@ packages:
     peerDependencies:
       zod: ^3.0.0
 
-  '@ai-sdk/provider-utils@2.1.10':
-    resolution: {integrity: sha512-4GZ8GHjOFxePFzkl3q42AU0DQOtTQ5w09vmaWUf/pKFXJPizlnzKSUkF0f+VkapIUfDugyMqPMT1ge8XQzVI7Q==}
-    engines: {node: '>=18'}
-    peerDependencies:
-      zod: ^3.0.0
-    peerDependenciesMeta:
-      zod:
-        optional: true
-
   '@ai-sdk/provider-utils@2.1.12':
     resolution: {integrity: sha512-NLm2Ypkv419jR5TNOvZ057ciSYFKzSDEIIwE8cRyeR1Y5RbuX+auZveqGg6GWsDzvUnn6Xra7BJmr0422v60UA==}
     engines: {node: '>=18'}
@@ -255,12 +246,12 @@ packages:
       zod:
         optional: true
 
-  '@ai-sdk/provider@1.0.9':
-    resolution: {integrity: sha512-jie6ZJT2ZR0uVOVCDc9R2xCX5I/Dum/wEK28lx21PJx6ZnFAN9EzD2WsPhcDWfCgGx3OAZZ0GyM3CEobXpa9LA==}
+  '@ai-sdk/provider@1.0.10':
+    resolution: {integrity: sha512-pco8Zl9U0xwXI+nCLc0woMtxbvjU8hRmGTseAUiPHFLYAAL8trRPCukg69IDeinOvIeo1SmXxAIdWWPZOLb4Cg==}
     engines: {node: '>=18'}
 
-  '@ai-sdk/react@1.1.18':
-    resolution: {integrity: sha512-2wlWug6NVAc8zh3pgqtvwPkSNTdA6Q4x9CmrNXCeHcXfJkJ+MuHFQz/I7Wb7mLRajf0DAxsFLIhHyBCEuTkDNw==}
+  '@ai-sdk/react@1.1.22':
+    resolution: {integrity: sha512-+ZlmJBu9NH59wvAtuh+xXEJ2MEfisBpVbYwN347+VlJJ3LfHVH9Rp1d58jVwBsfJvDUMn5UMuHZIXIdQhJIBTg==}
     engines: {node: '>=18'}
     peerDependencies:
       react: ^18 || ^19 || ^19.0.0-rc
@@ -271,8 +262,8 @@ packages:
       zod:
         optional: true
 
-  '@ai-sdk/ui-utils@1.1.16':
-    resolution: {integrity: sha512-jfblR2yZVISmNK2zyNzJZFtkgX57WDAUQXcmn3XUBJyo8LFsADu+/vYMn5AOyBi9qJT0RBk11PEtIxIqvByw3Q==}
+  '@ai-sdk/ui-utils@1.1.18':
+    resolution: {integrity: sha512-PCDXKKKHqA8Oqm5LsXl3Byxmit0r0Gg3nMPI3bdEriDIExoQikULX2T6/IS5u1qNeoC3UK5F2acpCyl5Q+aIuQ==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.0.0
@@ -1229,8 +1220,8 @@ packages:
   '@panva/hkdf@1.2.1':
     resolution: {integrity: sha512-6oclG6Y3PiDFcoyk8srjLfVKyMfVCKJ27JwNPViuXziFpmdz+MZnZN/aKY0JGXgYuO/VghU0jcOAZgWXZ1Dmrw==}
 
-  '@pivanov/utils@0.0.1':
-    resolution: {integrity: sha512-JQ/pXeG9/Yq3UuwH2Xp4F6bSAIDGzbxT0Vrg/82tMi3Yp+Ps9AYzjSDE+zfvBRqc7J11V6MMonUrWj4+2dYgrg==}
+  '@pivanov/utils@0.0.2':
+    resolution: {integrity: sha512-q9CN0bFWxWgMY5hVVYyBgez1jGiLBa6I+LkG37ycylPhFvEGOOeaADGtUSu46CaZasPnlY8fCdVJZmrgKb1EPA==}
     peerDependencies:
       react: '>=18'
       react-dom: '>=18'
@@ -2028,6 +2019,11 @@ packages:
     peerDependencies:
       '@types/react': ^19.0.0
 
+  '@types/react-reconciler@0.28.9':
+    resolution: {integrity: sha512-HHM3nxyUZ3zAylX8ZEyrDNd2XZOnQ0D5XfunJF5FLQnZbHHYq4UWvW1QfelQNXv1ICNkwYhfxjwfnqivYB6bFg==}
+    peerDependencies:
+      '@types/react': '*'
+
   '@types/react@19.0.10':
     resolution: {integrity: sha512-JuRQ9KXLEjaUNjTWpzuR231Z2WpIwczOkBEIvbHNCzQefFIT0L8IqE6NV6ULLyC1SI/i234JnDoMkfg+RjQj2g==}
 
@@ -2098,8 +2094,8 @@ packages:
     resolution: {integrity: sha512-jRR5wdylq8CkOe6hei19GGZnxM6rBGwFl3Bg0YItGDimvjGtAvdZk4Pu6Cl4u4Igsws4a1fd1Vq3ezrhn4KmFw==}
     engines: {node: '>= 14'}
 
-  ai@4.1.46:
-    resolution: {integrity: sha512-VTvAktT69IN1qcNAv7OlcOuR0q4HqUlhkVacrWmMlEoprYykF9EL5RY8IECD5d036Wqg0walwbSKZlA2noHm1A==}
+  ai@4.1.58:
+    resolution: {integrity: sha512-ugOL7Py5GwlVVhqOW2UAK2ouUgzMepK8xkJtW4EXvK2CllYvNdK/2SG2sppdo7YJYSPqtlwbvi8BsDYNDwFlgg==}
     engines: {node: '>=18'}
     peerDependencies:
       react: ^18 || ^19 || ^19.0.0-rc
@@ -2155,8 +2151,10 @@ packages:
   bignumber.js@9.1.2:
     resolution: {integrity: sha512-2/mKyZH9K85bzOEfhXDBFZTGd1CTs+5IHpeFQo9luiBG7hghdC851Pj2WAhb6E3R6b9tZj/XKhbg4fum+Kepug==}
 
-  bippy@0.2.7:
-    resolution: {integrity: sha512-LTCos3SmOJHrag0qF91tLUZMMw6wA+i15ESRBp71pvfNlTMYcxYoJHJ/pvFhd+29Wm5vfgVxBHV7kP5OKUUipg==}
+  bippy@0.3.8:
+    resolution: {integrity: sha512-0ou8fJWxUXK/+eRjUz5unbtX8Mrn0OYRs6QQwwUJtU6hsFDTSmSeI1fJC/2nrPA4G6GWcxwT+O6TbHyGhl4fEg==}
+    peerDependencies:
+      react: '>=17.0.1'
 
   browserslist@4.24.4:
     resolution: {integrity: sha512-KDi1Ny1gSePi1vm0q4oxSF8b4DR44GF4BbmS2YdhPLOEqd8pDviZOGH/GsmRwoWJ2+5Lr085X7naowMwKHDG1A==}
@@ -3023,8 +3021,8 @@ packages:
   lru-memoizer@2.3.0:
     resolution: {integrity: sha512-GXn7gyHAMhO13WSKrIiNfztwxodVsP8IoZ3XfrJV4yH2x0/OeTO/FIaAHTY5YekdGgW94njfuKmyyt1E0mR6Ug==}
 
-  lucide-react@0.476.0:
-    resolution: {integrity: sha512-x6cLTk8gahdUPje0hSgLN1/MgiJH+Xl90Xoxy9bkPAsMPOUiyRSKR4JCDPGVCEpyqnZXH3exFWNItcvra9WzUQ==}
+  lucide-react@0.479.0:
+    resolution: {integrity: sha512-aBhNnveRhorBOK7uA4gDjgaf+YlHMdMhQ/3cupk6exM10hWlEU+2QtWYOfhXhjAsmdb6LeKR+NZnow4UxRRiTQ==}
     peerDependencies:
       react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
@@ -3452,8 +3450,8 @@ packages:
   react-is@17.0.2:
     resolution: {integrity: sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==}
 
-  react-markdown@9.1.0:
-    resolution: {integrity: sha512-xaijuJB0kzGiUdG7nc2MOMDUDBWPyGAjZtUrow9XxUeua8IqeP+VlIfAZ3bphpcLTnSZXz6z9jcVC/TCwbfgdw==}
+  react-markdown@10.1.0:
+    resolution: {integrity: sha512-qKxVopLT/TyA6BX3Ue5NwabOsAzm0Q7kAPwq6L+wWDwisYs7R8vZ0nRXqq6rkueboxpkjvLGU9fWifiX/ZZFxQ==}
     peerDependencies:
       '@types/react': '>=18'
       react: '>=18'
@@ -3484,8 +3482,8 @@ packages:
       react: ^16.14.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^19.0.0-rc
       react-dom: ^16.14.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^19.0.0-rc
 
-  react-scan@0.1.4:
-    resolution: {integrity: sha512-WaLrG4kHyWpYt07fHvMDeD2Berq/LueQfTBY03RQDmUsMn8QyLaKhzzFw1w33BbQFe26IlezTEBYetfFgbCQAw==}
+  react-scan@0.2.14:
+    resolution: {integrity: sha512-Kw3vD0jC0xX69u5BlNG8FNjX+4h+yS4c9uuHb7Vpvz7+kvnPSU4xyhNhsS0ZfYrztcO29W4GV6FV5HThCfJwXA==}
     hasBin: true
     peerDependencies:
       '@remix-run/react': '>=1.0.0'
@@ -3621,8 +3619,8 @@ packages:
   sisteransi@1.0.5:
     resolution: {integrity: sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg==}
 
-  sonner@1.7.4:
-    resolution: {integrity: sha512-DIS8z4PfJRbIyfVFDVnK9rO3eYDtse4Omcm6bt0oEr5/jtLgysmjuBl1frJ9E/EQZrFmKx2A8m/s5s9CRXIzhw==}
+  sonner@2.0.1:
+    resolution: {integrity: sha512-FRBphaehZ5tLdLcQ8g2WOIRE+Y7BCfWi5Zyd8bCvBjiW8TxxAyoWZIxS661Yz6TGPqFQ4VLzOF89WEYhfynSFQ==}
     peerDependencies:
       react: ^18.0.0 || ^19.0.0 || ^19.0.0-rc
       react-dom: ^18.0.0 || ^19.0.0 || ^19.0.0-rc
@@ -4075,7 +4073,7 @@ snapshots:
 
   '@ai-sdk/anthropic@1.1.16(zod@3.24.2)':
     dependencies:
-      '@ai-sdk/provider': 1.0.9
+      '@ai-sdk/provider': 1.0.10
       '@ai-sdk/provider-utils': 2.1.12(zod@3.24.2)
       zod: 3.24.2
 
@@ -4083,7 +4081,7 @@ snapshots:
     dependencies:
       '@ai-sdk/anthropic': 1.1.16(zod@3.24.2)
       '@ai-sdk/google': 1.1.22(zod@3.24.2)
-      '@ai-sdk/provider': 1.0.9
+      '@ai-sdk/provider': 1.0.10
       '@ai-sdk/provider-utils': 2.1.12(zod@3.24.2)
       google-auth-library: 9.15.1
       zod: 3.24.2
@@ -4093,46 +4091,37 @@ snapshots:
 
   '@ai-sdk/google@1.1.22(zod@3.24.2)':
     dependencies:
-      '@ai-sdk/provider': 1.0.9
+      '@ai-sdk/provider': 1.0.10
       '@ai-sdk/provider-utils': 2.1.12(zod@3.24.2)
-      zod: 3.24.2
-
-  '@ai-sdk/provider-utils@2.1.10(zod@3.24.2)':
-    dependencies:
-      '@ai-sdk/provider': 1.0.9
-      eventsource-parser: 3.0.0
-      nanoid: 3.3.9
-      secure-json-parse: 2.7.0
-    optionalDependencies:
       zod: 3.24.2
 
   '@ai-sdk/provider-utils@2.1.12(zod@3.24.2)':
     dependencies:
-      '@ai-sdk/provider': 1.0.9
+      '@ai-sdk/provider': 1.0.10
       eventsource-parser: 3.0.0
       nanoid: 3.3.9
       secure-json-parse: 2.7.0
     optionalDependencies:
       zod: 3.24.2
 
-  '@ai-sdk/provider@1.0.9':
+  '@ai-sdk/provider@1.0.10':
     dependencies:
       json-schema: 0.4.0
 
-  '@ai-sdk/react@1.1.18(react@19.0.0)(zod@3.24.2)':
+  '@ai-sdk/react@1.1.22(react@19.0.0)(zod@3.24.2)':
     dependencies:
-      '@ai-sdk/provider-utils': 2.1.10(zod@3.24.2)
-      '@ai-sdk/ui-utils': 1.1.16(zod@3.24.2)
+      '@ai-sdk/provider-utils': 2.1.12(zod@3.24.2)
+      '@ai-sdk/ui-utils': 1.1.18(zod@3.24.2)
       swr: 2.3.3(react@19.0.0)
       throttleit: 2.1.0
     optionalDependencies:
       react: 19.0.0
       zod: 3.24.2
 
-  '@ai-sdk/ui-utils@1.1.16(zod@3.24.2)':
+  '@ai-sdk/ui-utils@1.1.18(zod@3.24.2)':
     dependencies:
-      '@ai-sdk/provider': 1.0.9
-      '@ai-sdk/provider-utils': 2.1.10(zod@3.24.2)
+      '@ai-sdk/provider': 1.0.10
+      '@ai-sdk/provider-utils': 2.1.12(zod@3.24.2)
       zod-to-json-schema: 3.24.3(zod@3.24.2)
     optionalDependencies:
       zod: 3.24.2
@@ -5035,7 +5024,7 @@ snapshots:
 
   '@panva/hkdf@1.2.1': {}
 
-  '@pivanov/utils@0.0.1(react-dom@19.0.0(react@19.0.0))(react@19.0.0)':
+  '@pivanov/utils@0.0.2(react-dom@19.0.0(react@19.0.0))(react@19.0.0)':
     dependencies:
       react: 19.0.0
       react-dom: 19.0.0(react@19.0.0)
@@ -5799,6 +5788,10 @@ snapshots:
     dependencies:
       '@types/react': 19.0.10
 
+  '@types/react-reconciler@0.28.9(@types/react@19.0.10)':
+    dependencies:
+      '@types/react': 19.0.10
+
   '@types/react@19.0.10':
     dependencies:
       csstype: 3.1.3
@@ -5888,13 +5881,14 @@ snapshots:
 
   agent-base@7.1.3: {}
 
-  ai@4.1.46(react@19.0.0)(zod@3.24.2):
+  ai@4.1.58(react@19.0.0)(zod@3.24.2):
     dependencies:
-      '@ai-sdk/provider': 1.0.9
-      '@ai-sdk/provider-utils': 2.1.10(zod@3.24.2)
-      '@ai-sdk/react': 1.1.18(react@19.0.0)(zod@3.24.2)
-      '@ai-sdk/ui-utils': 1.1.16(zod@3.24.2)
+      '@ai-sdk/provider': 1.0.10
+      '@ai-sdk/provider-utils': 2.1.12(zod@3.24.2)
+      '@ai-sdk/react': 1.1.22(react@19.0.0)(zod@3.24.2)
+      '@ai-sdk/ui-utils': 1.1.18(zod@3.24.2)
       '@opentelemetry/api': 1.9.0
+      eventsource-parser: 3.0.0
       jsondiffpatch: 0.6.0
     optionalDependencies:
       react: 19.0.0
@@ -5936,7 +5930,12 @@ snapshots:
 
   bignumber.js@9.1.2: {}
 
-  bippy@0.2.7: {}
+  bippy@0.3.8(@types/react@19.0.10)(react@19.0.0):
+    dependencies:
+      '@types/react-reconciler': 0.28.9(@types/react@19.0.10)
+      react: 19.0.0
+    transitivePeerDependencies:
+      - '@types/react'
 
   browserslist@4.24.4:
     dependencies:
@@ -6925,7 +6924,7 @@ snapshots:
       lodash.clonedeep: 4.5.0
       lru-cache: 6.0.0
 
-  lucide-react@0.476.0(react@19.0.0):
+  lucide-react@0.479.0(react@19.0.0):
     dependencies:
       react: 19.0.0
 
@@ -7588,7 +7587,7 @@ snapshots:
 
   react-is@17.0.2: {}
 
-  react-markdown@9.1.0(@types/react@19.0.10)(react@19.0.0):
+  react-markdown@10.1.0(@types/react@19.0.10)(react@19.0.0):
     dependencies:
       '@types/hast': 3.0.4
       '@types/mdast': 4.0.4
@@ -7630,18 +7629,18 @@ snapshots:
       react: 19.0.0
       react-dom: 19.0.0(react@19.0.0)
 
-  react-scan@0.1.4(next@15.2.2(@babel/core@7.26.10)(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(rollup@4.35.0):
+  react-scan@0.2.14(@types/react@19.0.10)(next@15.2.2(@babel/core@7.26.10)(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(rollup@4.35.0):
     dependencies:
       '@babel/core': 7.26.10
       '@babel/generator': 7.26.10
       '@babel/types': 7.26.10
       '@clack/core': 0.3.5
       '@clack/prompts': 0.8.2
-      '@pivanov/utils': 0.0.1(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      '@pivanov/utils': 0.0.2(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@preact/signals': 1.3.2(preact@10.26.4)
       '@rollup/pluginutils': 5.1.4(rollup@4.35.0)
       '@types/node': 20.17.24
-      bippy: 0.2.7
+      bippy: 0.3.8(@types/react@19.0.10)(react@19.0.0)
       esbuild: 0.24.2
       estree-walker: 3.0.3
       kleur: 4.1.5
@@ -7655,6 +7654,7 @@ snapshots:
       next: 15.2.2(@babel/core@7.26.10)(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       unplugin: 2.1.0
     transitivePeerDependencies:
+      - '@types/react'
       - rollup
       - supports-color
 
@@ -7823,7 +7823,7 @@ snapshots:
 
   sisteransi@1.0.5: {}
 
-  sonner@1.7.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
+  sonner@2.0.1(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
     dependencies:
       react: 19.0.0
       react-dom: 19.0.0(react@19.0.0)
