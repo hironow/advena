@@ -20,5 +20,6 @@
   "schedule": [
     "every weekend"
   ],
-  "timezone": "Asia/Tokyo"
+  "timezone": "Asia/Tokyo",
+  "stabilityDays": 7
 }
