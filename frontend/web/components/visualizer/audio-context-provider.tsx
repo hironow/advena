@@ -42,7 +42,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
   const [micAllowed, setMicAllowed] = useState(false);
 
   const analyserRef = useRef<AnalyserNode | null>(null);
-  const dataArrayRef = useRef<Uint8Array | null>(null);
+  const dataArrayRef = useRef<Uint8Array<ArrayBuffer> | null>(null);
   const rafIdRef = useRef<number | null>(null);
 
   const initAudio = async (
