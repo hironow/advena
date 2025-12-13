@@ -36,8 +36,7 @@ function PageContent() {
   const bgm = bgms[Math.floor(Math.random() * bgms.length)];
 
   return (
-    <>
-      <div className="relative flex flex-col min-w-0 h-dvh bg-background">
+    <div className="relative flex flex-col min-w-0 h-dvh bg-background">
         <ChatHeader />
 
         <IsometricWorld
@@ -72,6 +71,5 @@ function PageContent() {
           </div>
         </div>
       </div>
-    </>
   );
 }

@@ -4,9 +4,6 @@ import React, { useEffect, useRef } from 'react';
 import { initKeyListeners, keysDown } from './keyInput';
 import { initTouchListeners, getTouchVector } from './touchInput';
 import {
-  bear1,
-  bird3,
-  clock1,
   getLayerDiffY,
   getTilePosition,
   ghost1,
@@ -15,7 +12,6 @@ import {
 } from './tileset';
 import { useRafLoop } from '../../hooks/use-ref-loop';
 import Tile from './Tile';
-import { consoleLogWithStyle } from './utils';
 
 const tileSpeed = 2.5; // 1秒に2.5マス進む想定
 

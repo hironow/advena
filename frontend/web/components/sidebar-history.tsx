@@ -2,10 +2,9 @@
 
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
 import Link from 'next/link';
-import { useParams, usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import type { User } from 'next-auth';
-import { memo, useEffect, useState } from 'react';
-import { toast } from 'sonner';
+import { memo, } from 'react';
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -75,10 +74,13 @@ export const RadioShowItem = memo(PureRadioShowItem, (prevProps, nextProps) => {
 export function SidebarHistory({
   user,
   radioShows,
-}: { user: User | undefined; radioShows: RadioShow[] }) {
+}: {
+  user: User | undefined;
+  radioShows: RadioShow[];
+}) {
   const { setOpenMobile } = useSidebar();
-  const pathname = usePathname();
-  const router = useRouter();
+  const _pathname = usePathname();
+  const _router = useRouter();
 
   const [currentRadioShowId, setCurrentRadioShowId] = useAtom<string | null>(
     currentRadioShowIdAtom,
@@ -167,8 +169,7 @@ export function SidebarHistory({
   };
 
   return (
-    <>
-      <SidebarGroup>
+    <SidebarGroup>
         <SidebarGroupContent>
           <SidebarMenu
             style={{
@@ -266,6 +267,5 @@ export function SidebarHistory({
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>
-    </>
   );
 }

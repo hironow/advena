@@ -3,7 +3,6 @@ import type {
   CoreMessage,
   CoreToolMessage,
   Message,
-  ToolInvocation,
 } from 'ai';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -41,7 +40,7 @@ export function getLocalStorage(key: string) {
   return [];
 }
 
-function addToolMessageToChat({
+function _addToolMessageToChat({
   toolMessage,
   messages,
 }: {

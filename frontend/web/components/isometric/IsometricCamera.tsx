@@ -30,7 +30,7 @@ export default function IsometricCamera({
 
   useRafLoop(() => {
     const { x, y, layer } = getPlayerScreenPos();
-    const pos = getTilePosition(x, y, layer);
+    const _pos = getTilePosition(x, y, layer);
 
     // プレイヤーの画面座標を取得して、カメラを移動
     if (worldRef.current) {
