@@ -27,7 +27,7 @@ jobs:
           echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22.18.0'
           cache: 'npm'
@@ -89,7 +89,7 @@ jobs:
         working-directory: ./backend/genai
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22.18.0'
           cache: 'npm'
