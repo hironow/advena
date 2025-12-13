@@ -68,12 +68,9 @@ known-third-party = []
 # Preserve types, even if a file imports `from __future__ import annotations`.
 keep-runtime-typing = true
 
-[tool.pytest]
-norecursedirs = [".venv", "src/swarm/examples/*"]
-
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "function"  # "class", "module", "package", "session"
+norecursedirs = [".venv", "src/swarm/examples/*"]
 
 [tool.uv.sources]
 mock-firestore = { git = "https://github.com/hironow/python-mock-firestore.git" }
-litellm = { git = "https://github.com/BerriAI/litellm.git", rev = "main" }
