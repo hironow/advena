@@ -2,7 +2,7 @@ import 'server-only';
 
 // serverから参照される firestore access library
 
-import { Timestamp, } from 'firebase-admin/firestore';
+import { Timestamp } from 'firebase-admin/firestore';
 
 import { getAdminDb, useEmulator } from '../firebase/admin';
 import { USER_COLLECTION } from './types';
