@@ -15,15 +15,11 @@ import type { RadioShow } from '@/lib/firestore/generated/entity_radio_show';
 import { useAtom } from 'jotai';
 import { radioShowsAtom, userAtom } from '@/lib/state';
 
-export default function Layout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function Layout({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const userId = session?.user?.id;
 
-  const isLoggedIn = status === 'authenticated';
+  const _isLoggedIn = status === 'authenticated';
 
   const [user, setUser] = useAtom<User | null>(userAtom);
   const [radioShows, setRadioShows] = useAtom<RadioShow[]>(radioShowsAtom);

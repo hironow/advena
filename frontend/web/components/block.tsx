@@ -111,7 +111,7 @@ function PureBlock({
   const [mode, setMode] = useState<'edit' | 'diff'>('edit');
   const [document, setDocument] = useState<Document | null>(null);
   const [currentVersionIndex, setCurrentVersionIndex] = useState(-1);
-  const [consoleOutputs, setConsoleOutputs] = useState<Array<ConsoleOutput>>(
+  const [_consoleOutputs, setConsoleOutputs] = useState<Array<ConsoleOutput>>(
     [],
   );
 
@@ -137,10 +137,10 @@ function PureBlock({
   }, [block.status, mutateDocuments]);
 
   const { mutate } = useSWRConfig();
-  const [isContentDirty, setIsContentDirty] = useState(false);
+  const [isContentDirty, _setIsContentDirty] = useState(false);
 
   const handleContentChange = useCallback(
-    (updatedContent: string) => {
+    (_updatedContent: string) => {
       if (!block) return;
 
       mutate<Array<Document>>(
@@ -148,7 +148,7 @@ function PureBlock({
         async (currentDocuments) => {
           if (!currentDocuments) return undefined;
 
-          const currentDocument = currentDocuments.at(-1);
+          const _currentDocument = currentDocuments.at(-1);
 
           return currentDocuments;
         },
@@ -163,12 +163,12 @@ function PureBlock({
     2000,
   );
 
-  const saveContent = useCallback(
-    (updatedContent: string, debounce: boolean) => {},
+  const _saveContent = useCallback(
+    (_updatedContent: string, _debounce: boolean) => {},
     [document, debouncedHandleContentChange, handleContentChange],
   );
 
-  function getDocumentContentById(index: number) {
+  function _getDocumentContentById(index: number) {
     if (!documents) return '';
     if (!documents[index]) return '';
     return '';

@@ -1,7 +1,7 @@
 'use client';
 
 import { useChat } from 'ai/react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import type { BlockKind } from './block';
 import { initialBlockData, useBlock } from '@/hooks/use-block';
 import { useUserMessageId } from '@/hooks/use-user-message-id';

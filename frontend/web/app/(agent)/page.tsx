@@ -36,42 +36,40 @@ function PageContent() {
   const bgm = bgms[Math.floor(Math.random() * bgms.length)];
 
   return (
-    <>
-      <div className="relative flex flex-col min-w-0 h-dvh bg-background">
-        <ChatHeader />
+    <div className="relative flex flex-col min-w-0 h-dvh bg-background">
+      <ChatHeader />
 
-        <IsometricWorld
-          cb={(x, y) => {
-            // (1,0): メモリアル
-            // (5,7): エレベーター
-            // (7,5): お家
-            if (x === 5 && y === 7) {
-              toast('紹介された本も見れますよ！');
-            } else if (x === 7 && y === 5) {
-              toast('ラジオ番組の台本も読めますよ！');
-            } else if (x === 1 && y === 0) {
-              toast('ミ=ホはまだ beta version です🥺');
-            }
-          }}
-        />
+      <IsometricWorld
+        cb={(x, y) => {
+          // (1,0): メモリアル
+          // (5,7): エレベーター
+          // (7,5): お家
+          if (x === 5 && y === 7) {
+            toast('紹介された本も見れますよ！');
+          } else if (x === 7 && y === 5) {
+            toast('ラジオ番組の台本も読めますよ！');
+          } else if (x === 1 && y === 0) {
+            toast('ミ=ホはまだ beta version です🥺');
+          }
+        }}
+      />
 
-        <div className="fixed top-18 right-6 flex flex-col gap-4 items-end">
-          <div className="flex flex-col gap-2">
-            <BgmController src={bgm} />
-          </div>
-          {currentRadioShow && (
-            <>
-              <BooksDisplayModal radioShow={currentRadioShow} />
-              <ScriptDisplayModal radioShow={currentRadioShow} />
-            </>
+      <div className="fixed top-18 right-6 flex flex-col gap-4 items-end">
+        <div className="flex flex-col gap-2">
+          <BgmController src={bgm} />
+        </div>
+        {currentRadioShow && (
+          <>
+            <BooksDisplayModal radioShow={currentRadioShow} />
+            <ScriptDisplayModal radioShow={currentRadioShow} />
+          </>
+        )}
+        <div className="flex flex-col gap-2">
+          {currentRadioShow && audioPublicUrl && (
+            <CustomAudioController src={audioPublicUrl} />
           )}
-          <div className="flex flex-col gap-2">
-            {currentRadioShow && audioPublicUrl && (
-              <CustomAudioController src={audioPublicUrl} />
-            )}
-          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

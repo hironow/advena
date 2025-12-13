@@ -2,10 +2,9 @@
 
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
 import Link from 'next/link';
-import { useParams, usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import type { User } from 'next-auth';
-import { memo, useEffect, useState } from 'react';
-import { toast } from 'sonner';
+import { memo } from 'react';
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -75,10 +74,13 @@ export const RadioShowItem = memo(PureRadioShowItem, (prevProps, nextProps) => {
 export function SidebarHistory({
   user,
   radioShows,
-}: { user: User | undefined; radioShows: RadioShow[] }) {
+}: {
+  user: User | undefined;
+  radioShows: RadioShow[];
+}) {
   const { setOpenMobile } = useSidebar();
-  const pathname = usePathname();
-  const router = useRouter();
+  const _pathname = usePathname();
+  const _router = useRouter();
 
   const [currentRadioShowId, setCurrentRadioShowId] = useAtom<string | null>(
     currentRadioShowIdAtom,
@@ -167,105 +169,103 @@ export function SidebarHistory({
   };
 
   return (
-    <>
-      <SidebarGroup>
-        <SidebarGroupContent>
-          <SidebarMenu
-            style={{
-              fontFamily: dotGothic16.style.fontFamily,
-            }}
-          >
-            {radioShows &&
-              (() => {
-                const groupedChats = groupRadioShowsByDate(radioShows);
+    <SidebarGroup>
+      <SidebarGroupContent>
+        <SidebarMenu
+          style={{
+            fontFamily: dotGothic16.style.fontFamily,
+          }}
+        >
+          {radioShows &&
+            (() => {
+              const groupedChats = groupRadioShowsByDate(radioShows);
 
-                return (
-                  <>
-                    {groupedChats.today.length > 0 && (
-                      <>
-                        <div className="px-2 py-1 text-xs text-sidebar-foreground/50">
-                          Today
-                        </div>
-                        {groupedChats.today.map((radioShow: RadioShow) => (
-                          <RadioShowItem
-                            key={radioShow.id}
-                            radioShow={radioShow}
-                            isActive={radioShow.id === id}
-                            onRadioShowClick={handleRadioShowClick}
-                          />
-                        ))}
-                      </>
-                    )}
+              return (
+                <>
+                  {groupedChats.today.length > 0 && (
+                    <>
+                      <div className="px-2 py-1 text-xs text-sidebar-foreground/50">
+                        Today
+                      </div>
+                      {groupedChats.today.map((radioShow: RadioShow) => (
+                        <RadioShowItem
+                          key={radioShow.id}
+                          radioShow={radioShow}
+                          isActive={radioShow.id === id}
+                          onRadioShowClick={handleRadioShowClick}
+                        />
+                      ))}
+                    </>
+                  )}
 
-                    {groupedChats.yesterday.length > 0 && (
-                      <>
-                        <div className="px-2 py-1 text-xs text-sidebar-foreground/50 mt-6">
-                          Yesterday
-                        </div>
-                        {groupedChats.yesterday.map((radioShow: RadioShow) => (
-                          <RadioShowItem
-                            key={radioShow.id}
-                            radioShow={radioShow}
-                            isActive={radioShow.id === id}
-                            onRadioShowClick={handleRadioShowClick}
-                          />
-                        ))}
-                      </>
-                    )}
+                  {groupedChats.yesterday.length > 0 && (
+                    <>
+                      <div className="px-2 py-1 text-xs text-sidebar-foreground/50 mt-6">
+                        Yesterday
+                      </div>
+                      {groupedChats.yesterday.map((radioShow: RadioShow) => (
+                        <RadioShowItem
+                          key={radioShow.id}
+                          radioShow={radioShow}
+                          isActive={radioShow.id === id}
+                          onRadioShowClick={handleRadioShowClick}
+                        />
+                      ))}
+                    </>
+                  )}
 
-                    {groupedChats.lastWeek.length > 0 && (
-                      <>
-                        <div className="px-2 py-1 text-xs text-sidebar-foreground/50 mt-6">
-                          Last 7 days
-                        </div>
-                        {groupedChats.lastWeek.map((radioShow: RadioShow) => (
-                          <RadioShowItem
-                            key={radioShow.id}
-                            radioShow={radioShow}
-                            isActive={radioShow.id === id}
-                            onRadioShowClick={handleRadioShowClick}
-                          />
-                        ))}
-                      </>
-                    )}
+                  {groupedChats.lastWeek.length > 0 && (
+                    <>
+                      <div className="px-2 py-1 text-xs text-sidebar-foreground/50 mt-6">
+                        Last 7 days
+                      </div>
+                      {groupedChats.lastWeek.map((radioShow: RadioShow) => (
+                        <RadioShowItem
+                          key={radioShow.id}
+                          radioShow={radioShow}
+                          isActive={radioShow.id === id}
+                          onRadioShowClick={handleRadioShowClick}
+                        />
+                      ))}
+                    </>
+                  )}
 
-                    {groupedChats.lastMonth.length > 0 && (
-                      <>
-                        <div className="px-2 py-1 text-xs text-sidebar-foreground/50 mt-6">
-                          Last 30 days
-                        </div>
-                        {groupedChats.lastMonth.map((radioShow: RadioShow) => (
-                          <RadioShowItem
-                            key={radioShow.id}
-                            radioShow={radioShow}
-                            isActive={radioShow.id === id}
-                            onRadioShowClick={handleRadioShowClick}
-                          />
-                        ))}
-                      </>
-                    )}
+                  {groupedChats.lastMonth.length > 0 && (
+                    <>
+                      <div className="px-2 py-1 text-xs text-sidebar-foreground/50 mt-6">
+                        Last 30 days
+                      </div>
+                      {groupedChats.lastMonth.map((radioShow: RadioShow) => (
+                        <RadioShowItem
+                          key={radioShow.id}
+                          radioShow={radioShow}
+                          isActive={radioShow.id === id}
+                          onRadioShowClick={handleRadioShowClick}
+                        />
+                      ))}
+                    </>
+                  )}
 
-                    {groupedChats.older.length > 0 && (
-                      <>
-                        <div className="px-2 py-1 text-xs text-sidebar-foreground/50 mt-6">
-                          Older
-                        </div>
-                        {groupedChats.older.map((radioShow: RadioShow) => (
-                          <RadioShowItem
-                            key={radioShow.id}
-                            radioShow={radioShow}
-                            isActive={radioShow.id === id}
-                            onRadioShowClick={handleRadioShowClick}
-                          />
-                        ))}
-                      </>
-                    )}
-                  </>
-                );
-              })()}
-          </SidebarMenu>
-        </SidebarGroupContent>
-      </SidebarGroup>
-    </>
+                  {groupedChats.older.length > 0 && (
+                    <>
+                      <div className="px-2 py-1 text-xs text-sidebar-foreground/50 mt-6">
+                        Older
+                      </div>
+                      {groupedChats.older.map((radioShow: RadioShow) => (
+                        <RadioShowItem
+                          key={radioShow.id}
+                          radioShow={radioShow}
+                          isActive={radioShow.id === id}
+                          onRadioShowClick={handleRadioShowClick}
+                        />
+                      ))}
+                    </>
+                  )}
+                </>
+              );
+            })()}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
   );
 }
