@@ -14,7 +14,7 @@
     "test:watch": "vitest watch"
   },
   "dependencies": {
-    "@ai-sdk/google-vertex": "^2.2.27",
+    "@ai-sdk/google-vertex": "^3.0.0",
     "@dotenvx/dotenvx": "^1.49.0",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-dialog": "^1.1.15",
