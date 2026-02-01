@@ -1,3 +1,0 @@
-[submodule "emulator"]
-	path = emulator
-	url = git@github.com:hironow/emulator-set.git
