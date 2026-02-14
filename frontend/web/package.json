@@ -87,7 +87,7 @@
   },
   "pnpm": {
     "overrides": {
-      "@ai-sdk/provider": "1.1.3"
+      "@ai-sdk/provider": "3.0.8"
     },
     "onlyBuiltDependencies": [
       "@firebase/util",
