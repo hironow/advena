@@ -75,7 +75,7 @@
     "@testing-library/react": "^16.3.0",
     "@types/d3": "^7.4.3",
     "@types/d3-scale": "^4.0.9",
-    "@types/node": "^22.17.2",
+    "@types/node": "^24.0.0",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "jsdom": "^26.1.0",
