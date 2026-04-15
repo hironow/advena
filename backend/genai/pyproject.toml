@@ -5,7 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "cloudevents>=1.11.0",
+    "cloudevents>=1.11.0,<2",
     "fastapi>=0.115.6",
     "feedparser>=6.0.11",
     "firebase-admin>=6.6.0",
