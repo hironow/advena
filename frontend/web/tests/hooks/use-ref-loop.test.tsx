@@ -1,13 +1,10 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { renderHook } from "@testing-library/react";
 
-import {
-  mockRequestAnimationFrame,
-  mockCancelAnimationFrame,
-} from '@/tests/hooks/mock-raf';
-import { useRafLoop } from '@/hooks/use-ref-loop';
+import { mockRequestAnimationFrame, mockCancelAnimationFrame } from "@/tests/hooks/mock-raf";
+import { useRafLoop } from "@/hooks/use-ref-loop";
 
-describe('useRafLoop', () => {
+describe("useRafLoop", () => {
   let mockCallback: ReturnType<typeof vi.fn<(deltaMs: number) => void>>;
   let originalRAF: typeof globalThis.requestAnimationFrame;
   let originalCAF: typeof globalThis.cancelAnimationFrame;
@@ -33,7 +30,7 @@ describe('useRafLoop', () => {
     globalThis.cancelAnimationFrame = originalCAF;
   });
 
-  it('renders without error and starts the loop', () => {
+  it("renders without error and starts the loop", () => {
     // given
     renderHook(() => useRafLoop(mockCallback));
 
@@ -49,10 +46,10 @@ describe('useRafLoop', () => {
     expect(mockCallback).toHaveBeenCalledTimes(1);
 
     const [deltaMs] = mockCallback.mock.calls[0];
-    expect(typeof deltaMs).toBe('number');
+    expect(typeof deltaMs).toBe("number");
   });
 
-  it('calls callback repeatedly as the frames advance', () => {
+  it("calls callback repeatedly as the frames advance", () => {
     // given
     renderHook(() => useRafLoop(mockCallback));
 
@@ -66,7 +63,7 @@ describe('useRafLoop', () => {
     expect(mockCallback).toHaveBeenCalledTimes(3);
   });
 
-  it('cancels animation on unmount', () => {
+  it("cancels animation on unmount", () => {
     // given
     const { unmount } = renderHook(() => useRafLoop(mockCallback));
 

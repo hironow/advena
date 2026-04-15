@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { WORLD_SIZE } from './tileset';
-import Tile from './Tile';
+import React from "react";
+import { WORLD_SIZE } from "./tileset";
+import Tile from "./Tile";
 
 interface IsometricBackgroundProps {
   map: string[][];
@@ -20,13 +20,7 @@ export default function IsometricBackground({
   for (let y = 0; y < WORLD_SIZE; y++) {
     for (let x = 0; x < WORLD_SIZE; x++) {
       tiles.push(
-        <Tile
-          key={`tile-${x}-${y}`}
-          tile={map[x][y]}
-          x={x}
-          y={y}
-          layer={layerMap[x][y]}
-        />,
+        <Tile key={`tile-${x}-${y}`} tile={map[x][y]} x={x} y={y} layer={layerMap[x][y]} />,
       );
     }
   }

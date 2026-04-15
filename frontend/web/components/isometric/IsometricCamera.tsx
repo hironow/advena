@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React, { useRef } from 'react';
-import { useRafLoop } from '../../hooks/use-ref-loop';
-import { getTilePosition } from './tileset';
+import React, { useRef } from "react";
+import { useRafLoop } from "../../hooks/use-ref-loop";
+import { getTilePosition } from "./tileset";
 
 interface IsometricCameraProps {
   className?: string;

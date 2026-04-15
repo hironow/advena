@@ -1,12 +1,6 @@
-'use client';
+"use client";
 
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 
 interface AudioContextValue {
   audioCtx: AudioContext | null;
@@ -17,10 +11,7 @@ interface AudioContextValue {
    * @param mediaElement 渡された場合、その音源を analyser に接続します（既に接続済みなら何もしません）
    * @param options.useMic true を指定すると、mediaElement がない場合にマイク入力を利用
    */
-  initAudio: (
-    mediaElement?: HTMLMediaElement,
-    options?: { useMic?: boolean },
-  ) => Promise<void>;
+  initAudio: (mediaElement?: HTMLMediaElement, options?: { useMic?: boolean }) => Promise<void>;
 }
 
 const AudioContextState = createContext<AudioContextValue>({
@@ -34,9 +25,7 @@ const AudioContextState = createContext<AudioContextValue>({
 // 接続済みの mediaElement を管理（同じ要素を複数回接続しないように）
 const connectedMediaElements = new WeakSet<HTMLMediaElement>();
 
-export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [audioCtx, setAudioCtx] = useState<AudioContext | null>(null);
   const [freqData, setFreqData] = useState<Uint8Array | null>(null);
   const [micAllowed, setMicAllowed] = useState(false);
@@ -45,14 +34,11 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
   const dataArrayRef = useRef<Uint8Array<ArrayBuffer> | null>(null);
   const rafIdRef = useRef<number | null>(null);
 
-  const initAudio = async (
-    mediaElement?: HTMLMediaElement,
-    options?: { useMic?: boolean },
-  ) => {
+  const initAudio = async (mediaElement?: HTMLMediaElement, options?: { useMic?: boolean }) => {
     // AudioContext が未生成なら生成
     if (!audioCtx) {
       const AC = window.AudioContext || (window as any).webkitAudioContext;
-      if (!AC) throw new Error('AudioContext not supported');
+      if (!AC) throw new Error("AudioContext not supported");
 
       const ctx = new AC();
       setAudioCtx(ctx);
@@ -87,7 +73,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
         source.connect(analyserRef.current!);
         connectedMediaElements.add(mediaElement);
       } catch (err) {
-        console.error('Error connecting media element:', err);
+        console.error("Error connecting media element:", err);
       }
     }
 

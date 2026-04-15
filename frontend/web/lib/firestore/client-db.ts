@@ -1,21 +1,13 @@
-'use client';
+"use client";
 
 // clientから参照される firestore access library
 // firebase packageのfirestoreを利用しているが、firebase-admin packageのfirestoreは利用しないこと
 
-import { db } from '../firebase/client';
-import {
-  collection,
-  doc,
-  getDoc,
-  onSnapshot,
-  orderBy,
-  query,
-  where,
-} from 'firebase/firestore';
-import { RADIO_SHOW_COLLECTION, USER_COLLECTION } from './types';
-import type { User } from './generated/entity_user';
-import type { RadioShow } from './generated/entity_radio_show';
+import { db } from "../firebase/client";
+import { collection, doc, getDoc, onSnapshot, orderBy, query, where } from "firebase/firestore";
+import { RADIO_SHOW_COLLECTION, USER_COLLECTION } from "./types";
+import type { User } from "./generated/entity_user";
+import type { RadioShow } from "./generated/entity_radio_show";
 
 // Status: firestoreのdocumentの状態を表す
 // -ingは「command」として、-edは「event」として使われ、eventarcを通して backend に通知される
@@ -27,10 +19,7 @@ import type { RadioShow } from './generated/entity_radio_show';
 // User: ユーザー
 type GetUserSnapshotCallback = (user: User) => void;
 
-export const getUserSnapshot = (
-  userId: string,
-  cb: GetUserSnapshotCallback,
-) => {
+export const getUserSnapshot = (userId: string, cb: GetUserSnapshotCallback) => {
   const q = doc(db, USER_COLLECTION, userId);
   const unsubscribe = onSnapshot(q, (doc) => {
     const user = {
@@ -55,8 +44,8 @@ export const getRadioShowsSnapshot = (cb: getRadioShowsSnapshotCallback) => {
   const q = query(
     // status が created のものだけ取得 updated_at でソート、最新の公開が0番目
     collection(db, RADIO_SHOW_COLLECTION),
-    where('status', '==', 'created'),
-    orderBy('broadcasted_at', 'desc'),
+    where("status", "==", "created"),
+    orderBy("broadcasted_at", "desc"),
   );
   const unsubscribe = onSnapshot(q, (querySnapshot) => {
     const radioShows = querySnapshot.docs.map(

@@ -210,7 +210,7 @@ run = "bun update && bun install"
 dir = "frontend/web/"
 
 [tasks."fe:format"]
-run = "bun run format"
+run = "vp fmt"
 dir = "frontend/web/"
 
 [tasks."fe:test"]

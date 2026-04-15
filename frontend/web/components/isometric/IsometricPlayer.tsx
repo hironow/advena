@@ -1,17 +1,11 @@
-'use client';
+"use client";
 
-import React, { useEffect, useRef } from 'react';
-import { initKeyListeners, keysDown } from './keyInput';
-import { initTouchListeners, getTouchVector } from './touchInput';
-import {
-  getLayerDiffY,
-  getTilePosition,
-  ghost1,
-  WORLD_MAX_LAYER,
-  WORLD_SIZE,
-} from './tileset';
-import { useRafLoop } from '../../hooks/use-ref-loop';
-import Tile from './Tile';
+import React, { useEffect, useRef } from "react";
+import { initKeyListeners, keysDown } from "./keyInput";
+import { initTouchListeners, getTouchVector } from "./touchInput";
+import { getLayerDiffY, getTilePosition, ghost1, WORLD_MAX_LAYER, WORLD_SIZE } from "./tileset";
+import { useRafLoop } from "../../hooks/use-ref-loop";
+import Tile from "./Tile";
 
 const tileSpeed = 2.5; // 1秒に2.5マス進む想定
 
@@ -73,27 +67,21 @@ export default function IsometricPlayer({
     }
 
     // 4方向のどこに行っているかをkindに保存
-    let kind = '';
-    if (vx === 0 && vy === -1) kind = 'up';
-    if (vx === 0 && vy === 1) kind = 'down';
-    if (vx === -1 && vy === 0) kind = 'left';
-    if (vx === 1 && vy === 0) kind = 'right';
+    let kind = "";
+    if (vx === 0 && vy === -1) kind = "up";
+    if (vx === 0 && vy === 1) kind = "down";
+    if (vx === -1 && vy === 0) kind = "left";
+    if (vx === 1 && vy === 0) kind = "right";
     // console.info(`Player is moving ${kind}`);
     // 場合によってはflipさせる
     let flip = false;
-    if (kind === 'left') flip = true;
-    if (kind === 'right') flip = false;
+    if (kind === "left") flip = true;
+    if (kind === "right") flip = false;
     // TODO: tile assetによって方向が違う...画像を変えてもいいかも
 
     // 4) タイル座標を更新 (0 - WORLD_SIZE-1 でクリップ)
-    tileXRef.current = Math.max(
-      0,
-      Math.min(maxXorY, tileXRef.current + vx * tileSpeed * dt),
-    );
-    tileYRef.current = Math.max(
-      0,
-      Math.min(maxXorY, tileYRef.current + vy * tileSpeed * dt),
-    );
+    tileXRef.current = Math.max(0, Math.min(maxXorY, tileXRef.current + vx * tileSpeed * dt));
+    tileYRef.current = Math.max(0, Math.min(maxXorY, tileYRef.current + vy * tileSpeed * dt));
 
     // 5) タイル座標 -> ピクセル座標
     const xInt = Math.floor(tileXRef.current);
@@ -124,7 +112,7 @@ export default function IsometricPlayer({
       playerDivRef.current.style.transform = `translate(${finalPxX}px, ${finalPxY + initialLayerDiffY}px)`;
 
       if (flip) {
-        playerDivRef.current.style.transform += ' scaleX(-1)';
+        playerDivRef.current.style.transform += " scaleX(-1)";
       }
 
       // consoleLogWithStyle(
@@ -152,25 +140,20 @@ export default function IsometricPlayer({
     };
 
     // パッシブではないリスナーとして登録（passive:false が必須）
-    document.body.addEventListener('touchmove', disableOverscroll, {
+    document.body.addEventListener("touchmove", disableOverscroll, {
       passive: false,
     });
 
     return () => {
       if (keyCleanup) keyCleanup();
       if (touchCleanup) touchCleanup();
-      document.body.removeEventListener('touchmove', disableOverscroll);
+      document.body.removeEventListener("touchmove", disableOverscroll);
     };
   }, []);
 
   return (
     <div ref={playerDivRef} className={className}>
-      <Tile
-        tile={ghost1}
-        x={initialPos.x}
-        y={initialPos.y}
-        layer={initialPos.layer}
-      />
+      <Tile tile={ghost1} x={initialPos.x} y={initialPos.y} layer={initialPos.layer} />
     </div>
   );
 }

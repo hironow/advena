@@ -1,28 +1,26 @@
-'use client';
+"use client";
 
-import { useState, useRef } from 'react';
-import type { FC } from 'react';
-import type { RadioShow } from '@/lib/firestore/generated/entity_radio_show';
+import { useState, useRef } from "react";
+import type { FC } from "react";
+import type { RadioShow } from "@/lib/firestore/generated/entity_radio_show";
 
-import { Button } from '../ui/button';
-import { CrossIcon, GlobeIcon } from '../icons';
-import { Card } from '../ui/card';
-import { DotGothic16 } from 'next/font/google';
-import Link from 'next/link';
-import { LinkIcon, ArrowUp, ArrowDown } from 'lucide-react';
+import { Button } from "../ui/button";
+import { CrossIcon, GlobeIcon } from "../icons";
+import { Card } from "../ui/card";
+import { DotGothic16 } from "next/font/google";
+import Link from "next/link";
+import { LinkIcon, ArrowUp, ArrowDown } from "lucide-react";
 
 const dotGothic16 = DotGothic16({
-  weight: '400',
-  subsets: ['latin'],
+  weight: "400",
+  subsets: ["latin"],
 });
 
 interface BooksDisplayModalProps {
   radioShow: RadioShow;
 }
 
-export const BooksDisplayModal: FC<BooksDisplayModalProps> = ({
-  radioShow,
-}) => {
+export const BooksDisplayModal: FC<BooksDisplayModalProps> = ({ radioShow }) => {
   // モーダルの開閉状態
   const [isOpen, setIsOpen] = useState(false);
   // スクロール可能な領域への ref を作成
@@ -34,14 +32,14 @@ export const BooksDisplayModal: FC<BooksDisplayModalProps> = ({
   // 上にスクロールする処理（例：300pxずつ上に移動）
   const scrollUp = () => {
     if (cardRef.current) {
-      cardRef.current.scrollBy({ top: -300, behavior: 'smooth' });
+      cardRef.current.scrollBy({ top: -300, behavior: "smooth" });
     }
   };
 
   // 下にスクロールする処理（例：300pxずつ下に移動）
   const scrollDown = () => {
     if (cardRef.current) {
-      cardRef.current.scrollBy({ top: 300, behavior: 'smooth' });
+      cardRef.current.scrollBy({ top: 300, behavior: "smooth" });
     }
   };
 
@@ -59,10 +57,7 @@ export const BooksDisplayModal: FC<BooksDisplayModalProps> = ({
         // 画面全体を覆うモーダルのラッパー
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           {/* 背景オーバーレイ：クリックでモーダルを閉じる */}
-          <div
-            className="absolute inset-0 bg-black opacity-50"
-            onClick={closeModal}
-          />
+          <div className="absolute inset-0 bg-black opacity-50" onClick={closeModal} />
 
           {/* モーダル本体とスクロールボタンを内包するコンテナ */}
           <div className="relative">
@@ -77,13 +72,11 @@ export const BooksDisplayModal: FC<BooksDisplayModalProps> = ({
             <Card
               ref={cardRef}
               className="w-full max-w-xl p-6 overflow-y-auto max-h-[80vh]"
-              style={{ WebkitOverflowScrolling: 'touch' }}
+              style={{ WebkitOverflowScrolling: "touch" }}
             >
               {/* ヘッダー：タイトルと閉じるボタン */}
               <div className="flex justify-between items-center mb-4">
-                <h2 className={`text-xl font-bold ${dotGothic16.className}`}>
-                  Books
-                </h2>
+                <h2 className={`text-xl font-bold ${dotGothic16.className}`}>Books</h2>
                 <Button variant="ghost" onClick={closeModal}>
                   <CrossIcon />
                 </Button>
@@ -99,18 +92,12 @@ export const BooksDisplayModal: FC<BooksDisplayModalProps> = ({
                       <div className="flex items-center justify-between">
                         <span className="font-semibold">{book.title}</span>
                         {/* 外部リンク：新規タブで開く */}
-                        <Link
-                          href={book.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
+                        <Link href={book.url} target="_blank" rel="noopener noreferrer">
                           <LinkIcon className="w-5 h-5 text-blue-500" />
                         </Link>
                       </div>
                       <div className="text-sm text-gray-600">
-                        {book.isbn !== ''
-                          ? `ISBN: ${book.isbn}`
-                          : `JP-eコード: ${book.jp_e_code}`}
+                        {book.isbn !== "" ? `ISBN: ${book.isbn}` : `JP-eコード: ${book.jp_e_code}`}
                       </div>
                     </li>
                   ))

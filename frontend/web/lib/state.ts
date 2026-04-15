@@ -1,6 +1,6 @@
-import { atom } from 'jotai';
-import type { User } from '@/lib/firestore/generated/entity_user';
-import type { RadioShow } from '@/lib/firestore/generated/entity_radio_show';
+import { atom } from "jotai";
+import type { User } from "@/lib/firestore/generated/entity_user";
+import type { RadioShow } from "@/lib/firestore/generated/entity_radio_show";
 // import { Message, Note, Notebook, Source } from '@/lib/firebase/firestore';
 
 // const sidebarOpenAtom = atom(true);

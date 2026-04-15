@@ -1,17 +1,17 @@
-import type { NextConfig } from 'next';
+import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: 'standalone',
+  output: "standalone",
   eslint: {
     ignoreDuringBuilds: true,
   },
   images: {
     remotePatterns: [
       {
-        hostname: 'avatar.vercel.sh',
+        hostname: "avatar.vercel.sh",
       },
     ],
-    domains: ['ndlsearch.ndl.go.jp'],
+    domains: ["ndlsearch.ndl.go.jp"],
   },
 };
 

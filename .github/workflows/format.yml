@@ -29,13 +29,16 @@ jobs:
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
 
+      - name: Install Vite Plus
+        run: curl -fsSL https://vite.plus | bash
+
       - name: Install dependencies
         run: bun install
         working-directory: ./frontend/web
 
-      - name: Run format
+      - name: Run format check
         run: |
-          mise run fe:format
+          vp fmt
           git diff --exit-code
         working-directory: ./frontend/web
 

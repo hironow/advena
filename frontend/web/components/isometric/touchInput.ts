@@ -1,6 +1,6 @@
 // touchInput.ts
 
-import { consoleLogWithStyle } from './utils';
+import { consoleLogWithStyle } from "./utils";
 
 // タッチ時の状態を保持
 // 複数指タッチをどう扱うか？ → シンプルに「最初の1本」だけ見る想定で実装
@@ -68,19 +68,19 @@ export function initTouchListeners(element: HTMLElement) {
     // e.preventDefault();
   };
 
-  element.addEventListener('touchstart', onTouchStart, { passive: false });
-  element.addEventListener('touchmove', onTouchMove, { passive: false });
-  element.addEventListener('touchend', onTouchEnd, { passive: false });
-  element.addEventListener('touchcancel', onTouchCancel, { passive: false });
+  element.addEventListener("touchstart", onTouchStart, { passive: false });
+  element.addEventListener("touchmove", onTouchMove, { passive: false });
+  element.addEventListener("touchend", onTouchEnd, { passive: false });
+  element.addEventListener("touchcancel", onTouchCancel, { passive: false });
 
-  consoleLogWithStyle('%cisometric%c TouchInput listeners initialized');
+  consoleLogWithStyle("%cisometric%c TouchInput listeners initialized");
 
   // アンマウント時に解除するなら
   return () => {
-    element.removeEventListener('touchstart', onTouchStart);
-    element.removeEventListener('touchmove', onTouchMove);
-    element.removeEventListener('touchend', onTouchEnd);
-    element.removeEventListener('touchcancel', onTouchCancel);
+    element.removeEventListener("touchstart", onTouchStart);
+    element.removeEventListener("touchmove", onTouchMove);
+    element.removeEventListener("touchend", onTouchEnd);
+    element.removeEventListener("touchcancel", onTouchCancel);
   };
 }
 
