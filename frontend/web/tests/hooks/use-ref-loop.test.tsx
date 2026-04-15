@@ -8,7 +8,7 @@ import {
 import { useRafLoop } from '@/hooks/use-ref-loop';
 
 describe('useRafLoop', () => {
-  let mockCallback: (deltaMs: number) => void;
+  let mockCallback: ReturnType<typeof vi.fn<(deltaMs: number) => void>>;
   let originalRAF: typeof globalThis.requestAnimationFrame;
   let originalCAF: typeof globalThis.cancelAnimationFrame;
 
