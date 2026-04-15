@@ -84,6 +84,8 @@ jobs:
           mise run be:format
           git diff --exit-code
         working-directory: ./backend/genai
+        env:
+          UV_FROZEN: 'true'
 
       - name: Show formatting diff on failure
         if: failure()
