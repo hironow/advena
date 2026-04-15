@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { useAudioContextState } from '@/components/visualizer/audio-context-provider';
-import { PauseIcon, RadioTowerIcon } from 'lucide-react';
+import { useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { useAudioContextState } from "@/components/visualizer/audio-context-provider";
+import { PauseIcon, RadioTowerIcon } from "lucide-react";
 
 const RadioAudioController: React.FC<{ src: string }> = ({ src }) => {
   const { audioCtx, analyser, initAudio } = useAudioContextState();
@@ -86,11 +86,7 @@ const RadioAudioController: React.FC<{ src: string }> = ({ src }) => {
 
   return (
     <div>
-      <Button
-        variant={'destructive'}
-        onClick={handleToggle}
-        disabled={!audioBuffer}
-      >
+      <Button variant={"destructive"} onClick={handleToggle} disabled={!audioBuffer}>
         {isPlaying ? <PauseIcon /> : <RadioTowerIcon />}
       </Button>
     </div>

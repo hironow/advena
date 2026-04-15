@@ -26,23 +26,19 @@ jobs:
           echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
           echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
 
-      - name: Set up Node
-        uses: actions/setup-node@v6
+      - name: Set up Vite Plus
+        uses: voidzero-dev/setup-vp@v1
         with:
-          node-version: '22.18.0'
-          cache: 'npm'
-          cache-dependency-path: ./frontend/web/pnpm-lock.yaml
-
-      - name: Install pnpm
-        run: npm install -g pnpm
+          run-install: false
+          cache: true
 
       - name: Install dependencies
-        run: mise exec -- pnpm install
+        run: vp install
         working-directory: ./frontend/web
 
-      - name: Run format
+      - name: Run format check
         run: |
-          mise run fe:format
+          vp fmt
           git diff --exit-code
         working-directory: ./frontend/web
 
@@ -53,6 +49,9 @@ jobs:
 
   backend:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: 'read'
+      id-token: 'write'
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
@@ -62,8 +61,11 @@ jobs:
           echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
           echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
 
+      - name: Set up Takumi Guard PyPI
+        uses: flatt-security/setup-takumi-guard-pypi@v1
+
       - name: Install uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
           cache-dependency-glob: ./backend/genai/uv.lock
@@ -71,7 +73,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Install dependencies
         run: mise exec -- uv sync --frozen
@@ -82,21 +84,19 @@ jobs:
           mise run be:format
           git diff --exit-code
         working-directory: ./backend/genai
+        env:
+          UV_FROZEN: 'true'
 
       - name: Show formatting diff on failure
         if: failure()
         run: git diff
         working-directory: ./backend/genai
 
-      - name: Set up Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: '22.18.0'
-          cache: 'npm'
-          cache-dependency-path: ./frontend/web/pnpm-lock.yaml
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Install json2ts
-        run: npm install -g json-schema-to-typescript
+        run: bun install -g json-schema-to-typescript
         # below python to typescript gen requires json2ts
 
       - name: Run gen
@@ -104,6 +104,8 @@ jobs:
           mise run be:gen
           git diff --exit-code
         working-directory: ./backend/genai
+        env:
+          UV_FROZEN: 'true'
 
       - name: Show gen diff on failure
         if: failure()

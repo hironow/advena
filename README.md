@@ -77,13 +77,13 @@ mr fe:format ::: be:format ::: fe:test ::: be:test
 
 ### Add dependencies
 
-frontend uses [pnpm](https://github.com/pnpm/pnpm):
+frontend uses [bun](https://bun.sh/):
 
 ```bash
 # frontend
 cd frontend/web/
-mx pnpm add <package-name>
-mx pnpm add --save-dev <package-name>
+bun add <package-name>
+bun add -D <package-name>
 ```
 
 backend uses [uv](https://github.com/astral-sh/uv):

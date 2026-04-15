@@ -1,8 +1,8 @@
-import 'server-only';
-import { randomUUID } from 'node:crypto';
+import "server-only";
+import { randomUUID } from "node:crypto";
 
 // Eventarc のエンドポイント（ローカルでのシミュレーション用）
-const EVENTARC_ENDPOINT_BASE = 'http://localhost:8000';
+const EVENTARC_ENDPOINT_BASE = "http://localhost:8000";
 export const EVENTARC_ENDPOINT_ADD_USER = `${EVENTARC_ENDPOINT_BASE}/add_user`;
 export const EVENTARC_ENDPOINT_ADD_KEYWORD = `${EVENTARC_ENDPOINT_BASE}/add_keyword`;
 
@@ -28,13 +28,13 @@ export const createCloudEventBody = (
   const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
   const time = new Date().toISOString();
   return {
-    specversion: '1.0',
+    specversion: "1.0",
     id: randomUUID(),
     source: `//firestore.googleapis.com/projects/${projectId}/databases/(default)/documents`,
-    type: 'google.cloud.firestore.document.v1.created',
+    type: "google.cloud.firestore.document.v1.created",
     time,
     // JSON で送信するために変更
-    datacontenttype: 'application/json',
+    datacontenttype: "application/json",
     subject: `documents/${collection}/${doc_id}`,
     // Python 側が document フィールドを期待しているので追加
     document: `${collection}/${doc_id}`,
@@ -53,19 +53,17 @@ export const sendCloudEvent = async (
     console.info(`[COMMAND] Event body: ${JSON.stringify(eventBody)}`);
 
     const response = await fetch(url.toString(), {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/cloudevents+json',
+        "Content-Type": "application/cloudevents+json",
       },
       body: JSON.stringify(eventBody),
     });
 
     if (!response.ok) {
-      console.error(
-        `[ERROR] Failed to send CloudEvent: ${response.status} ${response.statusText}`,
-      );
+      console.error(`[ERROR] Failed to send CloudEvent: ${response.status} ${response.statusText}`);
     } else {
-      console.info('[INFO] CloudEvent sent successfully.');
+      console.info("[INFO] CloudEvent sent successfully.");
     }
   } catch (error) {
     console.error(`[ERROR] Exception while sending CloudEvent: ${error}`);

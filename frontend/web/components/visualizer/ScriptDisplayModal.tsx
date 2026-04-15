@@ -1,35 +1,33 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import type { FC } from 'react';
-import type { RadioShow } from '@/lib/firestore/generated/entity_radio_show';
+import { useState, useEffect, useRef } from "react";
+import type { FC } from "react";
+import type { RadioShow } from "@/lib/firestore/generated/entity_radio_show";
 
-import { Button } from '../ui/button';
-import { CrossIcon, LogsIcon } from '../icons';
-import { Card } from '../ui/card';
-import { DotGothic16 } from 'next/font/google';
-import { ArrowUp, ArrowDown } from 'lucide-react';
+import { Button } from "../ui/button";
+import { CrossIcon, LogsIcon } from "../icons";
+import { Card } from "../ui/card";
+import { DotGothic16 } from "next/font/google";
+import { ArrowUp, ArrowDown } from "lucide-react";
 
 const dotGothic16 = DotGothic16({
-  weight: '400',
-  subsets: ['latin'],
+  weight: "400",
+  subsets: ["latin"],
 });
 
 interface ScriptDisplayModalProps {
   radioShow: RadioShow;
 }
 
-export const ScriptDisplayModal: FC<ScriptDisplayModalProps> = ({
-  radioShow,
-}) => {
+export const ScriptDisplayModal: FC<ScriptDisplayModalProps> = ({ radioShow }) => {
   // モーダルの開閉状態
   const [isOpen, setIsOpen] = useState(false);
   // テキスト内容の状態管理
-  const [content, setContent] = useState<string>('');
+  const [content, setContent] = useState<string>("");
   // 読み込み状態
   const [loading, setLoading] = useState(false);
   // エラー状態
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<string>("");
 
   // スクロール可能な領域への ref を作成
   const cardRef = useRef<HTMLDivElement>(null);
@@ -39,8 +37,8 @@ export const ScriptDisplayModal: FC<ScriptDisplayModalProps> = ({
   // モーダルを閉じる処理（状態のリセットを含む）
   const closeModal = () => {
     setIsOpen(false);
-    setContent('');
-    setError('');
+    setContent("");
+    setError("");
   };
 
   // モーダルが開いたら radioShow.script_url からテキストを取得する
@@ -68,14 +66,14 @@ export const ScriptDisplayModal: FC<ScriptDisplayModalProps> = ({
   // 上にスクロールする処理（例：300pxずつ上に移動）
   const scrollUp = () => {
     if (cardRef.current) {
-      cardRef.current.scrollBy({ top: -300, behavior: 'smooth' });
+      cardRef.current.scrollBy({ top: -300, behavior: "smooth" });
     }
   };
 
   // 下にスクロールする処理（例：300pxずつ下に移動）
   const scrollDown = () => {
     if (cardRef.current) {
-      cardRef.current.scrollBy({ top: 300, behavior: 'smooth' });
+      cardRef.current.scrollBy({ top: 300, behavior: "smooth" });
     }
   };
 
@@ -90,10 +88,7 @@ export const ScriptDisplayModal: FC<ScriptDisplayModalProps> = ({
         // 画面全体を覆うモーダルのラッパー
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           {/* 背景のオーバーレイ。クリックでモーダルを閉じる */}
-          <div
-            className="absolute inset-0 bg-black opacity-50"
-            onClick={closeModal}
-          />
+          <div className="absolute inset-0 bg-black opacity-50" onClick={closeModal} />
 
           {/* モーダル本体とスクロールボタンを内包するコンテナ */}
           <div className="relative">
@@ -108,12 +103,10 @@ export const ScriptDisplayModal: FC<ScriptDisplayModalProps> = ({
             <Card
               ref={cardRef}
               className="relative z-10 w-full max-w-xl p-6 overflow-auto max-h-[80vh]"
-              style={{ WebkitOverflowScrolling: 'touch' }}
+              style={{ WebkitOverflowScrolling: "touch" }}
             >
               <div className="flex justify-between items-center mb-4">
-                <h2 className={`text-xl font-bold ${dotGothic16.className}`}>
-                  Script
-                </h2>
+                <h2 className={`text-xl font-bold ${dotGothic16.className}`}>Script</h2>
                 <Button variant="ghost" onClick={closeModal}>
                   <CrossIcon />
                 </Button>

@@ -27,18 +27,11 @@ jobs:
           echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
           echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
 
-      - name: Set up Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: '22.18.0'
-          cache: 'npm'
-          cache-dependency-path: ./frontend/web/pnpm-lock.yaml
-
-      - name: Install pnpm
-        run: npm install -g pnpm
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
-        run: mise exec -- pnpm install
+        run: bun install
         working-directory: ./frontend/web
 
       - name: Run test
@@ -68,8 +61,11 @@ jobs:
           workload_identity_provider: 'projects/38358387786/locations/global/workloadIdentityPools/github/providers/my-repo'
           service_account: 'github-actions-on-advena@advena-dev.iam.gserviceaccount.com'
 
+      - name: Set up Takumi Guard PyPI
+        uses: flatt-security/setup-takumi-guard-pypi@v1
+
       - name: Install uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
           cache-dependency-glob: ./backend/genai/uv.lock
@@ -77,7 +73,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Install dependencies
         run: mise exec -- uv sync --frozen

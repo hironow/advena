@@ -1,17 +1,12 @@
-import 'server-only';
+import "server-only";
 
-import type { AppOptions } from 'firebase-admin/app';
-import {
-  getApps,
-  initializeApp as initializeAdminApp,
-  cert,
-} from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
-import { getFirestore } from 'firebase-admin/firestore';
-import type { ServiceAccount } from 'firebase-admin';
+import type { AppOptions } from "firebase-admin/app";
+import { getApps, initializeApp as initializeAdminApp, cert } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
+import { getFirestore } from "firebase-admin/firestore";
+import type { ServiceAccount } from "firebase-admin";
 
-export const useEmulator =
-  process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === 'true';
+export const useEmulator = process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === "true";
 
 /**
  * Firebase Admin SDK のアプリ (singleton)
@@ -28,7 +23,7 @@ const getAdminApp = () => {
             projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
             clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
             // 改行文字を正しく復元
-            privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+            privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
           } as ServiceAccount),
         };
 

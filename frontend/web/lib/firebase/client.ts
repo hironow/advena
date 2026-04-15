@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import type { FirebaseOptions } from 'firebase/app';
-import { getApps, initializeApp as initializeClientApp } from 'firebase/app';
-import { getAuth, connectAuthEmulator } from 'firebase/auth';
-import type { Auth } from 'firebase/auth';
-import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
-import type { Firestore } from 'firebase/firestore';
-import { getStorage, connectStorageEmulator } from 'firebase/storage';
+import type { FirebaseOptions } from "firebase/app";
+import { getApps, initializeApp as initializeClientApp } from "firebase/app";
+import { getAuth, connectAuthEmulator } from "firebase/auth";
+import type { Auth } from "firebase/auth";
+import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
+import type { Firestore } from "firebase/firestore";
+import { getStorage, connectStorageEmulator } from "firebase/storage";
 
 // see: https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -16,11 +16,11 @@ import { getStorage, connectStorageEmulator } from 'firebase/storage';
 function createFirebaseClientApp(): ReturnType<typeof initializeClientApp> {
   const clientApps = getApps();
   if (clientApps.length > 0) {
-    console.info('[Firebase] Use existing client app');
+    console.info("[Firebase] Use existing client app");
     return clientApps[0];
   }
 
-  console.info('[Firebase] Initialize client app');
+  console.info("[Firebase] Initialize client app");
   const options: FirebaseOptions = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
     authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -36,21 +36,21 @@ function createFirebaseClientApp(): ReturnType<typeof initializeClientApp> {
 export const app = createFirebaseClientApp();
 
 export const db: Firestore = getFirestore(app);
-if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === 'true') {
-  connectFirestoreEmulator(db, '127.0.0.1', 8080);
-  console.info('[Firebase] Using Firestore emulator');
+if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === "true") {
+  connectFirestoreEmulator(db, "127.0.0.1", 8080);
+  console.info("[Firebase] Using Firestore emulator");
 }
 
 export const auth: Auth = getAuth(app);
-if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === 'true') {
-  connectAuthEmulator(auth, 'http://127.0.0.1:9099');
-  console.info('[Firebase] Using Auth emulator');
+if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === "true") {
+  connectAuthEmulator(auth, "http://127.0.0.1:9099");
+  console.info("[Firebase] Using Auth emulator");
 }
 
 export const storage = getStorage(app);
-if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === 'true') {
-  connectStorageEmulator(storage, '127.0.0.1', 9199);
-  console.info('[Firebase] Using Storage emulator');
+if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === "true") {
+  connectStorageEmulator(storage, "127.0.0.1", 9199);
+  console.info("[Firebase] Using Storage emulator");
 }
 
 // TODO: RemoteConfig

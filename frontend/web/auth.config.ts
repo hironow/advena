@@ -1,12 +1,12 @@
-import type { NextAuthConfig } from 'next-auth';
+import type { NextAuthConfig } from "next-auth";
 
 export const authConfig = {
   debug: true,
   pages: {
-    signIn: '/',
-    signOut: '/',
-    error: '/status', // TODO: 状態ページを作成する (メンテナンス中含む)
-    newUser: '/',
+    signIn: "/",
+    signOut: "/",
+    error: "/status", // TODO: 状態ページを作成する (メンテナンス中含む)
+    newUser: "/",
   },
   providers: [
     // added later in auth.ts since it requires bcrypt which is only compatible with Node.js
@@ -15,11 +15,11 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isOnRoot = nextUrl.pathname.startsWith('/');
-      const isOnLogin = nextUrl.pathname.startsWith('/login');
+      const isOnRoot = nextUrl.pathname.startsWith("/");
+      const isOnLogin = nextUrl.pathname.startsWith("/login");
 
       if (isLoggedIn && isOnLogin) {
-        return Response.redirect(new URL('/', nextUrl as unknown as URL));
+        return Response.redirect(new URL("/", nextUrl as unknown as URL));
       }
 
       if (isOnLogin) {
@@ -32,7 +32,7 @@ export const authConfig = {
       }
 
       if (isLoggedIn) {
-        return Response.redirect(new URL('/', nextUrl as unknown as URL));
+        return Response.redirect(new URL("/", nextUrl as unknown as URL));
       }
 
       return true;

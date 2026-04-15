@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import styles from './isometric.module.css';
-import IsometricBackground from './IsometricBackground';
-import IsometricPlayer from './IsometricPlayer';
-import IsometricCamera from './IsometricCamera';
-import { dummy_tile_map, zero_layer_map } from './tileset';
+import React, { useEffect, useState } from "react";
+import styles from "./isometric.module.css";
+import IsometricBackground from "./IsometricBackground";
+import IsometricPlayer from "./IsometricPlayer";
+import IsometricCamera from "./IsometricCamera";
+import { dummy_tile_map, zero_layer_map } from "./tileset";
 
 // TODO: playerのポジションが変わった時だけに発火してcallbackする関数(modalの表示など)
 
@@ -23,8 +23,7 @@ export default function IsometricWorld({ cb }: IsometricWorldProps) {
   const layerMap = zero_layer_map;
 
   const initialPlayerPos = { x: 0, y: 0, layer: layerMap[0][0] };
-  const [playerPos, setPlayerPos] =
-    useState<typeof initialPlayerPos>(initialPlayerPos);
+  const [playerPos, setPlayerPos] = useState<typeof initialPlayerPos>(initialPlayerPos);
 
   // プレイヤーのタイル座標更新を受け取る (描画のpx座標ではない)
   const handlePlayerPosUpdate = (x: number, y: number, layer: number) => {
@@ -53,11 +52,7 @@ export default function IsometricWorld({ cb }: IsometricWorldProps) {
           })}
           className={styles.camera}
         >
-          <IsometricBackground
-            map={map}
-            layerMap={layerMap}
-            className={styles.background}
-          />
+          <IsometricBackground map={map} layerMap={layerMap} className={styles.background} />
           <IsometricPlayer
             map={map}
             layerMap={layerMap}

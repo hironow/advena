@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { useWindowSize } from 'usehooks-ts';
+import { useRouter } from "next/navigation";
+import { useWindowSize } from "usehooks-ts";
 
-import { SidebarToggle } from '@/components/sidebar-toggle';
-import { useSidebar } from './ui/sidebar';
-import { memo } from 'react';
-import GoogleAuthButton from './google-auth-button';
+import { SidebarToggle } from "@/components/sidebar-toggle";
+import { useSidebar } from "./ui/sidebar";
+import { memo } from "react";
+import GoogleAuthButton from "./google-auth-button";
 
 function PureChatHeader() {
   const _router = useRouter();

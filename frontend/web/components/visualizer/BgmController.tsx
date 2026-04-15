@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React, { useEffect, useRef, useState } from 'react';
-import { useAudioContextState } from './audio-context-provider';
-import { Button } from '../ui/button';
-import { StopIcon } from '../icons';
-import { MusicIcon } from 'lucide-react';
+import React, { useEffect, useRef, useState } from "react";
+import { useAudioContextState } from "./audio-context-provider";
+import { Button } from "../ui/button";
+import { StopIcon } from "../icons";
+import { MusicIcon } from "lucide-react";
 
 const BgmController: React.FC<{ src: string }> = ({ src }) => {
   const { audioCtx, analyser, initAudio } = useAudioContextState();

@@ -49,18 +49,14 @@ jobs:
       - name: 'Authorize Docker push'
         run: gcloud auth configure-docker us-central1-docker.pkg.dev
 
-      - name: Set up Node
-        uses: actions/setup-node@v6
+      - name: Set up Vite Plus
+        uses: voidzero-dev/setup-vp@v1
         with:
-          node-version: '22.18.0'
-          cache: 'npm'
-          cache-dependency-path: ./frontend/web/pnpm-lock.yaml
-
-      - name: Install pnpm
-        run: npm install -g pnpm
+          run-install: false
+          cache: true
 
       - name: Install dependencies
-        run: mise exec -- pnpm install
+        run: vp install
         working-directory: ./frontend/web
 
       - name: Run build dev
@@ -128,8 +124,11 @@ jobs:
       - name: 'Authorize Docker push'
         run: gcloud auth configure-docker us-central1-docker.pkg.dev
 
+      - name: Set up Takumi Guard PyPI
+        uses: flatt-security/setup-takumi-guard-pypi@v1
+
       - name: Install uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
           cache-dependency-glob: ./backend/genai/uv.lock
@@ -137,7 +136,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Install dependencies
         run: mise exec -- uv sync --frozen
