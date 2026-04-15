@@ -27,11 +27,14 @@ jobs:
           echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
           echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
 
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@v2
+      - name: Set up Vite Plus
+        uses: voidzero-dev/setup-vp@v1
+        with:
+          run-install: false
+          cache: true
 
       - name: Install dependencies
-        run: bun install
+        run: vp install
         working-directory: ./frontend/web
 
       - name: Run test
@@ -60,6 +63,9 @@ jobs:
           project_id: 'advena-dev'
           workload_identity_provider: 'projects/38358387786/locations/global/workloadIdentityPools/github/providers/my-repo'
           service_account: 'github-actions-on-advena@advena-dev.iam.gserviceaccount.com'
+
+      - name: Set up Takumi Guard PyPI
+        uses: flatt-security/setup-takumi-guard-pypi@v1
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7

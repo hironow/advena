@@ -26,14 +26,14 @@ jobs:
           echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
           echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
 
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@v2
-
-      - name: Install Vite Plus
-        run: curl -fsSL https://vite.plus | bash
+      - name: Set up Vite Plus
+        uses: voidzero-dev/setup-vp@v1
+        with:
+          run-install: false
+          cache: true
 
       - name: Install dependencies
-        run: bun install
+        run: vp install
         working-directory: ./frontend/web
 
       - name: Run format check
@@ -49,6 +49,9 @@ jobs:
 
   backend:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: 'read'
+      id-token: 'write'
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
@@ -57,6 +60,9 @@ jobs:
           curl https://mise.run | sh
           echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
           echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
+
+      - name: Set up Takumi Guard PyPI
+        uses: flatt-security/setup-takumi-guard-pypi@v1
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
