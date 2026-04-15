@@ -49,18 +49,11 @@ jobs:
       - name: 'Authorize Docker push'
         run: gcloud auth configure-docker us-central1-docker.pkg.dev
 
-      - name: Set up Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: '24.14.1'
-          cache: 'npm'
-          cache-dependency-path: ./frontend/web/pnpm-lock.yaml
-
-      - name: Install pnpm
-        run: npm install -g pnpm
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
-        run: mise exec -- pnpm install
+        run: bun install
         working-directory: ./frontend/web
 
       - name: Run build dev

@@ -202,19 +202,24 @@ echo "🏷️  ${TAG}"
 
 # frontend dir tasks
 [tasks."fe:dev"]
-run = "dotenvx run -- pnpm run dev"
+run = "dotenvx run -- bun run dev"
 dir = "frontend/web/"
 
 [tasks."fe:update"]
-run = "pnpm update && pnpm install"
+run = "bun update && bun install"
 dir = "frontend/web/"
 
 [tasks."fe:format"]
-run = "pnpm run format"
+run = "bun run format"
 dir = "frontend/web/"
 
 [tasks."fe:test"]
-run = "pnpm run test"
+run = "bun run test"
+dir = "frontend/web/"
+
+[tasks."fe:check"]
+description = "Run format, lint, and type checks via vp"
+run = "vp check"
 dir = "frontend/web/"
 
 [tasks."fe:build:dev"]
