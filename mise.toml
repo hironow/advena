@@ -1,6 +1,6 @@
 [tools]
 node = "lts"
-python = "3.14.4"
+python = "3.14.5"
 
 [vars]
 GOOGLE_CLOUD_LOCATION = "us-central1"
