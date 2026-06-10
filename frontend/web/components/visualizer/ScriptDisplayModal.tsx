@@ -114,17 +114,18 @@ export const ScriptDisplayModal: FC<ScriptDisplayModalProps> = ({ radioShow }) =
               <div>
                 {loading && <p>読み込み中...</p>}
                 {error && <p className="text-red-500">エラー: {error}</p>}
-                {!loading && !error && (
-                  // <pre> タグで改行や空白もそのまま表示
-                  <pre
-                    className="whitespace-pre-wrap"
-                    style={{
-                      fontFamily: dotGothic16.style.fontFamily,
-                    }}
-                  >
-                    {content}
-                  </pre>
-                )}
+                {!loading &&
+                  !error && (
+                    // <pre> タグで改行や空白もそのまま表示
+                    <pre
+                      className="whitespace-pre-wrap"
+                      style={{
+                        fontFamily: dotGothic16.style.fontFamily,
+                      }}
+                    >
+                      {content}
+                    </pre>
+                  )}
               </div>
             </Card>
 
