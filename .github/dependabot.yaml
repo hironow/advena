@@ -1,0 +1,63 @@
+# Dependabot version updates (first-party; replaces Renovate where present).
+# hironow house style (firepact/tablecodec/dotfiles): 7-day cooldown for
+# supply-chain hardening (security updates bypass it), and each ecosystem
+# grouped into a single PR so a week's bumps land together.
+version: 2
+updates:
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+    labels: ["dependencies", "github-actions"]
+    commit-message:
+      prefix: "ci"
+    groups:
+      github-actions:
+        patterns: ["*"]
+
+  - package-ecosystem: "npm"
+    directory: "/frontend/web"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+    labels: ["dependencies", "npm"]
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      npm:
+        patterns: ["*"]
+
+  - package-ecosystem: "uv"
+    directory: "/backend/genai"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+    labels: ["dependencies", "uv"]
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      uv:
+        patterns: ["*"]
+
+  - package-ecosystem: "docker"
+    directories:
+      - "/backend/genai"
+      - "/frontend/web"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+    labels: ["dependencies", "docker"]
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      docker:
+        patterns: ["*"]
