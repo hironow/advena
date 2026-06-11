@@ -20,24 +20,20 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v6
-      - name: Use mise
-        run: |
-          curl https://mise.run | sh
-          echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
-          echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
       - name: Set up Bun
-        uses: oven-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
 
       - name: Install dependencies
         run: bun install
         working-directory: ./frontend/web
 
+      # inlined from mise task fe:test
       - name: Run test
         run: |
           set -eo pipefail
-          mise run fe:test
+          bun run test
         working-directory: ./frontend/web
 
   backend:
@@ -47,14 +43,9 @@ jobs:
       id-token: 'write'
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v6
-      - name: Use mise
-        run: |
-          curl https://mise.run | sh
-          echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
-          echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
-      - uses: 'google-github-actions/auth@v3'
+      - uses: 'google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093' # v3
         with:
           # use permissions above
           project_id: 'advena-dev'
@@ -62,27 +53,29 @@ jobs:
           service_account: 'github-actions-on-advena@advena-dev.iam.gserviceaccount.com'
 
       - name: Set up Takumi Guard PyPI
-        uses: flatt-security/setup-takumi-guard-pypi@v1
+        uses: flatt-security/setup-takumi-guard-pypi@733047c120b6377fa05fb77f714df8d8cd3a41a9 # v1
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
         with:
           enable-cache: true
           cache-dependency-glob: ./backend/genai/uv.lock
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
         with:
           python-version: '3.14'
 
       - name: Install dependencies
-        run: mise exec -- uv sync --frozen
+        run: uv sync --frozen
         working-directory: ./backend/genai
 
+      # inlined from mise task be:test (incl. its GOOGLE_CLOUD_PROJECT env)
       - name: Run test
         run: |
           set -eo pipefail
-          mise run be:test
+          uv run pytest --log-cli-level=INFO
         working-directory: ./backend/genai
         env:
           CI: 'true'
+          GOOGLE_CLOUD_PROJECT: 'test-project'
