@@ -5,11 +5,11 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "cloudevents>=2.1.0,<3",
+    "cloudevents>=2.2.0,<3",
     "fastapi>=0.136.3",
     "feedparser>=6.0.11",
     "firebase-admin>=7.4.0",
-    "google-auth>=2.53.0",
+    "google-auth>=2.54.0",
     "google-cloud-aiplatform>=1.76.0",
     "google-cloud-firestore>=2.27.0",
     "google-cloud-storage>=2.19.0",
@@ -17,8 +17,8 @@ dependencies = [
     "google-cloud-texttospeech>=2.24.0",
     "google-generativeai>=0.8.3",
     "helium>=7.0.2",
-    "litellm>=1.88.0",
-    "lmnr[all]>=0.7.52",
+    "litellm>=1.88.1",
+    "lmnr[all]>=0.7.53",
     "pillow>=11.1.0",
     "pydantic>=2.13.4",
     "ratelimit>=2.2.1",
@@ -36,7 +36,7 @@ dev = [
     "pydantic-to-typescript>=2",
     "pytest>=8.3.4",
     "pytest-asyncio>=1.4.0",
-    "ruff>=0.15.16",
+    "ruff>=0.15.17",
     "tokencost>=0.1.17",
 ]
 
