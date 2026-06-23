@@ -1,18 +1,15 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { useWindowSize } from 'usehooks-ts';
+import { useRouter } from "next/navigation";
+import { useWindowSize } from "usehooks-ts";
 
-import { SidebarToggle } from '@/components/sidebar-toggle';
-import { Button } from '@/components/ui/button';
-import { PlusIcon } from './icons';
-import { useSidebar } from './ui/sidebar';
-import { memo } from 'react';
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
-import GoogleAuthButton from './google-auth-button';
+import { SidebarToggle } from "@/components/sidebar-toggle";
+import { useSidebar } from "./ui/sidebar";
+import { memo } from "react";
+import GoogleAuthButton from "./google-auth-button";
 
 function PureChatHeader() {
-  const router = useRouter();
+  const _router = useRouter();
   const { open } = useSidebar();
 
   const { width: windowWidth } = useWindowSize();
@@ -32,6 +29,6 @@ function PureChatHeader() {
   );
 }
 
-export const ChatHeader = memo(PureChatHeader, (prevProps, nextProps) => {
+export const ChatHeader = memo(PureChatHeader, (_prevProps, _nextProps) => {
   return true;
 });

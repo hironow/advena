@@ -1,5 +1,5 @@
-import { object, string } from 'zod';
+import { z } from "zod";
 
-export const signInSchema = object({
-  idToken: string({ required_error: 'IdToken is required' }).min(1),
+export const signInSchema = z.object({
+  idToken: z.string().min(1, "IdToken is required"),
 });

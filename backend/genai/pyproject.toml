@@ -5,28 +5,28 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "cloudevents>=1.11.0",
-    "fastapi>=0.115.6",
+    "cloudevents>=2.1.0,<3",
+    "fastapi>=0.136.3",
     "feedparser>=6.0.11",
-    "firebase-admin>=6.6.0",
-    "google-auth>=2.38.0",
+    "firebase-admin>=7.4.0",
+    "google-auth>=2.53.0",
     "google-cloud-aiplatform>=1.76.0",
-    "google-cloud-firestore>=2.20.0",
+    "google-cloud-firestore>=2.27.0",
     "google-cloud-storage>=2.19.0",
     "google-cloud-tasks>=2.18.0",
     "google-cloud-texttospeech>=2.24.0",
     "google-generativeai>=0.8.3",
-    "helium>=5.1.0",
-    "litellm>=1.60.0",
-    "lmnr[all]>=0.4.55",
+    "helium>=7.0.2",
+    "litellm>=1.88.0",
+    "lmnr[all]>=0.7.52",
     "pillow>=11.1.0",
-    "pydantic>=2.10.5",
+    "pydantic>=2.13.4",
     "ratelimit>=2.2.1",
     "sickle>=0.7.0",
-    "smolagents[litellm]>=1.7.0",
+    "smolagents[litellm]>=1.26.0",
     "tenacity>=9.0.0",
-    "types-protobuf>=5.29.1.20250208",
-    "uvicorn>=0.34.0",
+    "types-protobuf>=7.34.1.20260518",
+    "uvicorn>=0.49.0",
     "weave>=0.51.31",
 ]
 
@@ -35,8 +35,8 @@ dev = [
     "mock-firestore",
     "pydantic-to-typescript>=2",
     "pytest>=8.3.4",
-    "pytest-asyncio>=0.25.2",
-    "ruff>=0.9.1",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.15.16",
     "tokencost>=0.1.17",
 ]
 
@@ -68,12 +68,9 @@ known-third-party = []
 # Preserve types, even if a file imports `from __future__ import annotations`.
 keep-runtime-typing = true
 
-[tool.pytest]
-norecursedirs = [".venv", "src/swarm/examples/*"]
-
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "function"  # "class", "module", "package", "session"
+norecursedirs = [".venv", "src/swarm/examples/*"]
 
 [tool.uv.sources]
 mock-firestore = { git = "https://github.com/hironow/python-mock-firestore.git" }
-litellm = { git = "https://github.com/BerriAI/litellm.git", rev = "main" }

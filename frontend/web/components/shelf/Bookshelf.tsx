@@ -1,11 +1,8 @@
-'use client';
+"use client";
 
-import React, { memo, useCallback } from 'react';
-import type {
-  RadioShow,
-  RadioShowBook,
-} from '@/lib/firestore/generated/entity_radio_show';
-import Image from 'next/image';
+import React, { memo, useCallback } from "react";
+import type { RadioShow, RadioShowBook } from "@/lib/firestore/generated/entity_radio_show";
+import Image from "next/image";
 
 interface BookCoverProps {
   book: RadioShowBook;
@@ -25,9 +22,7 @@ function BookCoverComponent({ book, onSelect }: BookCoverProps) {
         height={220} // 必要に応じてサイズを調整
         className="object-cover rounded-md"
       />
-      <p className="mt-2 text-center text-sm font-medium text-gray-800">
-        {book.title}
-      </p>
+      <p className="mt-2 text-center text-sm font-medium text-gray-800">{book.title}</p>
     </div>
   );
 }
@@ -37,7 +32,7 @@ export const BookCover = memo(BookCoverComponent);
 export function Bookshelf({ radioShow }: { radioShow?: RadioShow }) {
   const books = radioShow?.books || [];
 
-  const handleSelectBook = useCallback((book: RadioShowBook) => {
+  const handleSelectBook = useCallback((_book: RadioShowBook) => {
     // console.log('Selected book:', book.url);
     // 必要に応じて外部リンクへの遷移処理などを追加
   }, []);

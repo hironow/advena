@@ -13,7 +13,7 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 100vw; 
+  width: 100vw;
   height: 100vh;
   transform: translate(-50%, -50%);
   background-color: #dfdfdf;
@@ -37,8 +37,8 @@
   img .tile {
     -webkit-user-drag: none; /* Chrome, Safari */
     -webkit-user-select: none; /* Safari, Chrome */
-    -moz-user-select: none;    /* Firefox */
-    -ms-user-select: none;     /* IE/Edge */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE/Edge */
     user-select: none;
   }
 }
@@ -52,8 +52,8 @@
   img .tile {
     -webkit-user-drag: none; /* Chrome, Safari */
     -webkit-user-select: none; /* Safari, Chrome */
-    -moz-user-select: none;    /* Firefox */
-    -ms-user-select: none;     /* IE/Edge */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE/Edge */
     user-select: none;
   }
 }

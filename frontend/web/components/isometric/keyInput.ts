@@ -1,4 +1,4 @@
-import { consoleLogWithStyle } from './utils';
+import { consoleLogWithStyle } from "./utils";
 
 // keyInput.ts
 export const keysDown = {
@@ -11,16 +11,16 @@ export const keysDown = {
 export function initKeyListeners() {
   const handleKeyDown = (e: KeyboardEvent) => {
     switch (e.key.toLowerCase()) {
-      case 'w':
+      case "w":
         keysDown.w = true;
         break;
-      case 'a':
+      case "a":
         keysDown.a = true;
         break;
-      case 's':
+      case "s":
         keysDown.s = true;
         break;
-      case 'd':
+      case "d":
         keysDown.d = true;
         break;
     }
@@ -28,29 +28,29 @@ export function initKeyListeners() {
 
   const handleKeyUp = (e: KeyboardEvent) => {
     switch (e.key.toLowerCase()) {
-      case 'w':
+      case "w":
         keysDown.w = false;
         break;
-      case 'a':
+      case "a":
         keysDown.a = false;
         break;
-      case 's':
+      case "s":
         keysDown.s = false;
         break;
-      case 'd':
+      case "d":
         keysDown.d = false;
         break;
     }
   };
 
-  window.addEventListener('keydown', handleKeyDown);
-  window.addEventListener('keyup', handleKeyUp);
+  window.addEventListener("keydown", handleKeyDown);
+  window.addEventListener("keyup", handleKeyUp);
 
-  consoleLogWithStyle('%cisometric%c KeyInput listeners initialized');
+  consoleLogWithStyle("%cisometric%c KeyInput listeners initialized");
 
   // アンマウント時に削除するなら
   return () => {
-    window.removeEventListener('keydown', handleKeyDown);
-    window.removeEventListener('keyup', handleKeyUp);
+    window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("keyup", handleKeyUp);
   };
 }

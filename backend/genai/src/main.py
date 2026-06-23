@@ -4,7 +4,7 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 import google.auth as gauth
-from cloudevents.http import from_http  # type: ignore
+from cloudevents.v1.http import from_http  # type: ignore
 from fastapi import FastAPI, Request, Response
 from pydantic import BaseModel
 

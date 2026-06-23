@@ -1,12 +1,10 @@
-'use client';
+"use client";
 
-import type { User } from 'next-auth';
-import { useRouter } from 'next/navigation';
+import type { User } from "next-auth";
+import { useRouter } from "next/navigation";
 
-import { PlusIcon } from '@/components/icons';
-import { SidebarHistory } from '@/components/sidebar-history';
-import { SidebarUserNav } from '@/components/sidebar-user-nav';
-import { Button } from '@/components/ui/button';
+import { SidebarHistory } from "@/components/sidebar-history";
+import { SidebarUserNav } from "@/components/sidebar-user-nav";
 import {
   Sidebar,
   SidebarContent,
@@ -14,23 +12,25 @@ import {
   SidebarHeader,
   SidebarMenu,
   useSidebar,
-} from '@/components/ui/sidebar';
-import Link from 'next/link';
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
-import { DotGothic16 } from 'next/font/google';
-import GoogleAuthButton from './google-auth-button';
-import { RadioShow } from '@/lib/firestore/generated/entity_radio_show';
+} from "@/components/ui/sidebar";
+import Link from "next/link";
+import { DotGothic16 } from "next/font/google";
+import GoogleAuthButton from "./google-auth-button";
+import type { RadioShow } from "@/lib/firestore/generated/entity_radio_show";
 
 const dotGothic16 = DotGothic16({
-  weight: '400',
-  subsets: ['latin'],
+  weight: "400",
+  subsets: ["latin"],
 });
 
 export function AppSidebar({
   user,
   radioShows,
-}: { user: User | undefined; radioShows: RadioShow[] }) {
-  const router = useRouter();
+}: {
+  user: User | undefined;
+  radioShows: RadioShow[];
+}) {
+  const _router = useRouter();
   const { setOpenMobile } = useSidebar();
 
   return (

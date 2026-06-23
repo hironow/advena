@@ -23,14 +23,9 @@ jobs:
       id-token: 'write'
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - name: Use mise
-        run: |
-          curl https://mise.run | sh
-          echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
-          echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
-      - uses: 'google-github-actions/auth@v2'
+      - uses: 'google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093' # v3
         with:
           # use permissions above
           # see: https://github.com/google-github-actions/auth/blob/main/docs/EXAMPLES.md
@@ -39,7 +34,7 @@ jobs:
           service_account: 'github-actions-on-advena@advena-dev.iam.gserviceaccount.com'
 
       - name: 'Set up Cloud SDK'
-        uses: 'google-github-actions/setup-gcloud@v2'
+        uses: 'google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db' # v3
         with:
           version: '>= 363.0.0'
 
@@ -49,25 +44,22 @@ jobs:
       - name: 'Authorize Docker push'
         run: gcloud auth configure-docker us-central1-docker.pkg.dev
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
+      - name: Set up Vite Plus
+        uses: voidzero-dev/setup-vp@2dec1e33f4ab2c6d5bce1b0c4607961bb1a3f7a1 # v1
         with:
-          node-version: '22.14.0'
-          cache: 'npm'
-          cache-dependency-path: ./frontend/web/pnpm-lock.yaml
-
-      - name: Install pnpm
-        run: npm install -g pnpm
+          run-install: false
+          cache: true
 
       - name: Install dependencies
-        run: mise exec -- pnpm install
+        run: vp install
         working-directory: ./frontend/web
 
+      # build/push steps inlined from mise tasks fe:build:* / fe:push:*
       - name: Run build dev
         if: github.ref == 'refs/heads/develop'
         run: |
           set -eo pipefail
-          mise run fe:build:dev
+          docker build --platform linux/amd64 -f Dockerfile.dev -t frontend-advena-dev .
         working-directory: ./frontend/web
         env: # use dotenvx .env.keys for Next.js build with protected github option (allow hironow, and select non-hironow, actions and reusable workflows)
           DOTENV_PRIVATE_KEY_DEV: ${{ secrets.FRONTEND_WEB_DOTENV_PRIVATE_KEY_DEV }}
@@ -76,23 +68,35 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           set -eo pipefail
-          mise run fe:build:prd
+          docker build --platform linux/amd64 -f Dockerfile.prd -t frontend-advena-prd .
         working-directory: ./frontend/web
         env: # use dotenvx .env.keys for Next.js build with protected github option
           DOTENV_PRIVATE_KEY_PRD: ${{ secrets.FRONTEND_WEB_DOTENV_PRIVATE_KEY_PRD }}
-  
+
       - name: Run push dev
         if: github.ref == 'refs/heads/develop'
         run: |
           set -eo pipefail
-          mise run fe:push:dev
+          BRANCH=$(git symbolic-ref --short HEAD)
+          COMMIT=$(git describe --tags --always)
+          TAG="${BRANCH}-${COMMIT}-dev"
+          NAME="us-central1-docker.pkg.dev/advena-dev/advena/frontend-advena:${TAG}"
+          echo "Deploying ${NAME}"
+          docker tag frontend-advena-dev:latest "${NAME}"
+          docker push "${NAME}"
         working-directory: ./frontend/web
-  
+
       - name: Run push prd
         if: github.ref == 'refs/heads/main'
         run: |
           set -eo pipefail
-          mise run fe:push:prd
+          BRANCH=$(git symbolic-ref --short HEAD)
+          COMMIT=$(git describe --tags --always)
+          TAG="${BRANCH}-${COMMIT}-prd"
+          NAME="us-central1-docker.pkg.dev/advena-dev/advena/frontend-advena:${TAG}"
+          echo "Deploying ${NAME}"
+          docker tag frontend-advena-prd:latest "${NAME}"
+          docker push "${NAME}"
         working-directory: ./frontend/web
 
 
@@ -103,14 +107,9 @@ jobs:
       id-token: 'write'
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - name: Use mise
-        run: |
-          curl https://mise.run | sh
-          echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
-          echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
-      - uses: 'google-github-actions/auth@v2'
+      - uses: 'google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093' # v3
         with:
           # use permissions above
           project_id: 'advena-dev'
@@ -118,7 +117,7 @@ jobs:
           service_account: 'github-actions-on-advena@advena-dev.iam.gserviceaccount.com'
 
       - name: 'Set up Cloud SDK'
-        uses: 'google-github-actions/setup-gcloud@v2'
+        uses: 'google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db' # v3
         with:
           version: '>= 363.0.0'
   
@@ -128,34 +127,38 @@ jobs:
       - name: 'Authorize Docker push'
         run: gcloud auth configure-docker us-central1-docker.pkg.dev
 
+      - name: Set up Takumi Guard PyPI
+        uses: flatt-security/setup-takumi-guard-pypi@733047c120b6377fa05fb77f714df8d8cd3a41a9 # v1
+
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
         with:
           enable-cache: true
           cache-dependency-glob: ./backend/genai/uv.lock
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Install dependencies
-        run: mise exec -- uv sync --frozen
+        run: uv sync --frozen
         working-directory: ./backend/genai
 
+      # build/push steps inlined from mise tasks be:build:* / be:push:*
       - name: Run build dev
         if: github.ref == 'refs/heads/develop'
         run: |
           set -eo pipefail
-          mise run be:build:dev
-        working-directory: ./backend/genai 
+          docker build --platform linux/amd64 -f Dockerfile.dev -t backend-advena-dev .
+        working-directory: ./backend/genai
         # not use dotenvx .env.keys for build
- 
+
       - name: Run build prd
         if: github.ref == 'refs/heads/main'
         run: |
           set -eo pipefail
-          mise run be:build:prd
+          docker build --platform linux/amd64 -f Dockerfile.prd -t backend-advena-prd .
         working-directory: ./backend/genai
         # not use dotenvx .env.keys for build
 
@@ -163,12 +166,24 @@ jobs:
         if: github.ref == 'refs/heads/develop'
         run: |
           set -eo pipefail
-          mise run be:push:dev
+          BRANCH=$(git symbolic-ref --short HEAD)
+          COMMIT=$(git describe --tags --always)
+          TAG="${BRANCH}-${COMMIT}-dev"
+          NAME="us-central1-docker.pkg.dev/advena-dev/advena/backend-advena:${TAG}"
+          echo "Deploying ${NAME}"
+          docker tag backend-advena-dev:latest "${NAME}"
+          docker push "${NAME}"
         working-directory: ./backend/genai
 
       - name: Run push prd
         if: github.ref == 'refs/heads/main'
         run: |
           set -eo pipefail
-          mise run be:push:prd
+          BRANCH=$(git symbolic-ref --short HEAD)
+          COMMIT=$(git describe --tags --always)
+          TAG="${BRANCH}-${COMMIT}-prd"
+          NAME="us-central1-docker.pkg.dev/advena-dev/advena/backend-advena:${TAG}"
+          echo "Deploying ${NAME}"
+          docker tag backend-advena-prd:latest "${NAME}"
+          docker push "${NAME}"
         working-directory: ./backend/genai

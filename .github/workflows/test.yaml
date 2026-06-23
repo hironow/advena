@@ -20,31 +20,25 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - name: Use mise
-        run: |
-          curl https://mise.run | sh
-          echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
-          echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
-          node-version: '22.14.0'
-          cache: 'npm'
-          cache-dependency-path: ./frontend/web/pnpm-lock.yaml
-
-      - name: Install pnpm
-        run: npm install -g pnpm
+          # Rust rewrite is distributed via the canary channel only; canary is a
+          # moving tag, so never reuse a cached executable.
+          bun-version: canary
+          no-cache: true
 
       - name: Install dependencies
-        run: mise exec -- pnpm install
+        run: bun install
         working-directory: ./frontend/web
 
+      # inlined from mise task fe:test
       - name: Run test
         run: |
           set -eo pipefail
-          mise run fe:test
+          bun run test
         working-directory: ./frontend/web
 
   backend:
@@ -54,39 +48,39 @@ jobs:
       id-token: 'write'
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - name: Use mise
-        run: |
-          curl https://mise.run | sh
-          echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
-          echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
-      - uses: 'google-github-actions/auth@v2'
+      - uses: 'google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093' # v3
         with:
           # use permissions above
           project_id: 'advena-dev'
           workload_identity_provider: 'projects/38358387786/locations/global/workloadIdentityPools/github/providers/my-repo'
           service_account: 'github-actions-on-advena@advena-dev.iam.gserviceaccount.com'
 
+      - name: Set up Takumi Guard PyPI
+        uses: flatt-security/setup-takumi-guard-pypi@733047c120b6377fa05fb77f714df8d8cd3a41a9 # v1
+
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
         with:
           enable-cache: true
           cache-dependency-glob: ./backend/genai/uv.lock
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Install dependencies
-        run: mise exec -- uv sync --frozen
+        run: uv sync --frozen
         working-directory: ./backend/genai
 
+      # inlined from mise task be:test (incl. its GOOGLE_CLOUD_PROJECT env)
       - name: Run test
         run: |
           set -eo pipefail
-          mise run be:test
+          uv run pytest --log-cli-level=INFO
         working-directory: ./backend/genai
         env:
           CI: 'true'
+          GOOGLE_CLOUD_PROJECT: 'test-project'
