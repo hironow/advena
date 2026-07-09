@@ -6,18 +6,18 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "cloudevents>=2.2.0,<3",
-    "fastapi>=0.138.0",
+    "fastapi>=0.138.1",
     "feedparser>=6.0.11",
     "firebase-admin>=7.4.0",
-    "google-auth>=2.55.0",
+    "google-auth>=2.55.1",
     "google-cloud-aiplatform>=1.76.0",
     "google-cloud-firestore>=2.27.0",
     "google-cloud-storage>=2.19.0",
-    "google-cloud-tasks>=2.18.0",
-    "google-cloud-texttospeech>=2.24.0",
+    "google-cloud-tasks>=2.23.0",
+    "google-cloud-texttospeech>=2.37.0",
     "google-generativeai>=0.8.3",
     "helium>=7.0.2",
-    "litellm>=1.89.2",
+    "litellm>=1.90.0",
     "lmnr[all]>=0.7.54",
     "pillow>=11.1.0",
     "pydantic>=2.13.4",
@@ -36,7 +36,7 @@ dev = [
     "pydantic-to-typescript>=2",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
-    "ruff>=0.15.18",
+    "ruff>=0.15.20",
     "tokencost>=0.1.17",
 ]
 
