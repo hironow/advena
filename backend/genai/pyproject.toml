@@ -6,9 +6,9 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "cloudevents>=2.2.0,<3",
-    "fastapi>=0.138.1",
+    "fastapi>=0.139.0",
     "feedparser>=6.0.11",
-    "firebase-admin>=7.4.0",
+    "firebase-admin>=7.5.0",
     "google-auth>=2.55.1",
     "google-cloud-aiplatform>=1.76.0",
     "google-cloud-firestore>=2.27.0",
@@ -17,17 +17,17 @@ dependencies = [
     "google-cloud-texttospeech>=2.37.0",
     "google-generativeai>=0.8.3",
     "helium>=7.0.2",
-    "litellm>=1.90.0",
+    "litellm>=1.90.3",
     "lmnr[all]>=0.7.54",
-    "pillow>=11.1.0",
+    "pillow>=12.3.0",
     "pydantic>=2.13.4",
     "ratelimit>=2.2.1",
     "sickle>=0.7.0",
     "smolagents[litellm]>=1.26.0",
     "tenacity>=9.0.0",
     "types-protobuf>=7.34.1.20260518",
-    "uvicorn>=0.49.0",
-    "weave>=0.51.31",
+    "uvicorn>=0.50.0",
+    "weave>=0.53.1",
 ]
 
 [dependency-groups]
