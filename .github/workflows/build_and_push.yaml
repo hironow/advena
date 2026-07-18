@@ -45,7 +45,7 @@ jobs:
         run: gcloud auth configure-docker us-central1-docker.pkg.dev
 
       - name: Set up Vite Plus
-        uses: voidzero-dev/setup-vp@13e7afb99c66525824db54e107d667216e795d37 # v1
+        uses: voidzero-dev/setup-vp@250f29ce396baf5e8f24498e17c0dfdebabc26eb # v1
         with:
           run-install: false
           cache: true
@@ -131,7 +131,7 @@ jobs:
         uses: flatt-security/setup-takumi-guard-pypi@733047c120b6377fa05fb77f714df8d8cd3a41a9 # v1
 
       - name: Install uv
-        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
         with:
           enable-cache: true
           cache-dependency-glob: ./backend/genai/uv.lock
