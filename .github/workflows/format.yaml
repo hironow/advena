@@ -34,12 +34,16 @@ jobs:
       - name: Run format check
         run: |
           vp fmt
-          git diff --exit-code
+          # Check only source formatting, not bun.lock: `vp install` above
+          # rewrites bun.lock (canary bun / vp is a moving target), which is a
+          # dependency-resolution artifact, not a formatting change. Excluding
+          # it stops every Dependabot bump from failing this format gate.
+          git diff --exit-code -- . ':!bun.lock'
         working-directory: ./frontend/web
 
       - name: Show formatting diff on failure
         if: failure()
-        run: git diff
+        run: git diff -- . ':!bun.lock'
         working-directory: ./frontend/web
 
   backend:
