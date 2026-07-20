@@ -28,6 +28,14 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
+    # Hold the TypeScript major (6->7). TS7 is the Go-native rewrite: it drops
+    # the classic 'main: ./lib/typescript.js' entry point, so next 16 thinks
+    # typescript is missing and dies trying to auto-install it during the
+    # Docker build. Take the rest of the weekly npm group. Revisit once next
+    # supports TS7 (crediflow holds the same major for its own reason).
+    ignore:
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
     groups:
       npm:
         patterns: ["*"]
