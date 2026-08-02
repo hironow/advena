@@ -18,7 +18,10 @@ updates:
       github-actions:
         patterns: ["*"]
 
-  - package-ecosystem: "npm"
+  # bun ecosystem: regenerates bun.lock alongside package.json. The old "npm"
+  # ecosystem only rewrote package.json and left bun.lock stale, desyncing the
+  # lockfile on every bump (had to be hand-synced on PR #146).
+  - package-ecosystem: "bun"
     directory: "/frontend/web"
     schedule:
       interval: "weekly"
