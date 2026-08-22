@@ -10,14 +10,14 @@ dependencies = [
     "feedparser>=6.0.14",
     "firebase-admin>=7.5.0",
     "google-auth>=2.56.3",
-    "google-cloud-aiplatform>=1.163.0",
+    "google-cloud-aiplatform>=1.164.0",
     "google-cloud-firestore>=2.28.1",
     "google-cloud-storage>=3.13.1",
     "google-cloud-tasks>=2.24.0",
     "google-cloud-texttospeech>=2.37.0",
     "helium>=7.0.3",
-    "litellm>=1.95.0",
-    "lmnr[all]>=0.7.58",
+    "litellm>=1.96.2",
+    "lmnr[all]>=0.7.59",
     "pillow>=12.3.0",
     "pydantic>=2.13.4",
     "ratelimit>=2.2.1",
@@ -25,8 +25,8 @@ dependencies = [
     "smolagents[litellm]>=1.26.0",
     "tenacity>=9.0.0",
     "types-protobuf>=7.34.1.20260518",
-    "uvicorn>=0.52.1",
-    "weave>=0.53.4",
+    "uvicorn>=0.52.3",
+    "weave>=0.53.6",
 ]
 
 [dependency-groups]
@@ -35,7 +35,7 @@ dev = [
     "pydantic-to-typescript>=2",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
-    "ruff>=0.16.2",
+    "ruff>=0.16.3",
     "tokencost>=0.1.17",
 ]
 
