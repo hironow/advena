@@ -1,3 +1,5 @@
+VP := env("VP", "vp")
+
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
 check: check-test-types lint-workflows frontend-install backend-install frontend-format backend-format frontend-test backend-test
@@ -12,7 +14,7 @@ backend-install:
     cd backend/genai && uv sync --frozen --python 3.14
 
 frontend-format:
-    cd frontend/web && vp fmt --check
+    cd frontend/web && {{VP}} fmt --check
 
 backend-format:
     cd backend/genai && uv run --frozen --python 3.14 ruff check --select I
@@ -34,7 +36,7 @@ check-generated:
     git diff --exit-code -- frontend/web/lib/firestore/generated
 
 fix-format:
-    cd frontend/web && vp fmt
+    cd frontend/web && {{VP}} fmt
     cd backend/genai && uv run --frozen --python 3.14 ruff check --select I --fix tests/conftest.py
     cd backend/genai && uv run --frozen --python 3.14 ruff format tests/conftest.py
 
@@ -44,3 +46,11 @@ check-test-types:
 install-actionlint:
     go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
     if [ -n "${GITHUB_PATH:-}" ]; then printf '%s/bin\n' "$(go env GOPATH)" >> "$GITHUB_PATH"; fi
+
+# Match the formatter used by CI without changing the host installation.
+install-vp-macos:
+    mkdir -p output/vp
+    curl -fsSL https://github.com/voidzero-dev/vite-plus/releases/download/v1.1.0/vp-aarch64-apple-darwin.tar.gz -o output/vp/vp-aarch64-apple-darwin.tar.gz
+    curl -fsSL https://github.com/voidzero-dev/vite-plus/releases/download/v1.1.0/vp-checksums.txt -o output/vp/vp-checksums.txt
+    cd output/vp && rg ' vp-aarch64-apple-darwin.tar.gz$' vp-checksums.txt | shasum -a 256 -c -
+    tar -xzf output/vp/vp-aarch64-apple-darwin.tar.gz -C output/vp

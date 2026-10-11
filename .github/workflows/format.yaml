@@ -26,6 +26,7 @@ jobs:
       - name: Set up Vite Plus
         uses: voidzero-dev/setup-vp@3754dd7dbdb32bd8f6d28b6043de13ad3a75f21f # v1.21.1
         with:
+          version: "1.1.0"
           run-install: false
           cache: true
 
@@ -129,4 +130,5 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4
-      - run: just install-actionlint lint-workflows
+      - run: just install-actionlint
+      - run: just lint-workflows
