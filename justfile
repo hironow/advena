@@ -46,11 +46,3 @@ check-test-types:
 install-actionlint:
     go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
     if [ -n "${GITHUB_PATH:-}" ]; then printf '%s/bin\n' "$(go env GOPATH)" >> "$GITHUB_PATH"; fi
-
-# Match the formatter used by CI without changing the host installation.
-install-vp-macos:
-    mkdir -p output/vp
-    curl -fsSL https://github.com/voidzero-dev/vite-plus/releases/download/v1.1.0/vp-aarch64-apple-darwin.tar.gz -o output/vp/vp-aarch64-apple-darwin.tar.gz
-    curl -fsSL https://github.com/voidzero-dev/vite-plus/releases/download/v1.1.0/vp-checksums.txt -o output/vp/vp-checksums.txt
-    cd output/vp && rg ' vp-aarch64-apple-darwin.tar.gz$' vp-checksums.txt | shasum -a 256 -c -
-    tar -xzf output/vp/vp-aarch64-apple-darwin.tar.gz -C output/vp
