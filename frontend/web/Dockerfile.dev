@@ -6,7 +6,7 @@ FROM node:lts-alpine AS base
 # Stage 1: Install dependencies
 FROM base AS deps
 WORKDIR /app
-COPY package.json bun.lock ./
+COPY package.json bun.lock .npmrc ./
 # bun canary = Rust rewrite line. npm's bun@canary dist-tag is stale
 # (pre-rewrite), so copy the binary from the official image instead —
 # the -alpine (musl) variant is required on an alpine base.

@@ -1,11 +1,28 @@
 import os
 
+import google.auth
 import pytest
+from google.auth.credentials import AnonymousCredentials
 
 from src.logger import logger
 
+_test_auth = pytest.MonkeyPatch()
 
-def pytest_configure(config):
+
+def _anonymous_credentials(
+    *args: object, **kwargs: object
+) -> tuple[AnonymousCredentials, str]:
+    return AnonymousCredentials(), "test-project"
+
+
+def pytest_unconfigure(config: pytest.Config) -> None:
+    _test_auth.undo()
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    # Cloud calls are replaced in individual tests; client construction needs
+    # credentials before collection and must never read the developer's ADC.
+    _test_auth.setattr(google.auth, "default", _anonymous_credentials)
     # pytest開始時に一度だけ呼び出されるフック
     logger.info("Pytest is starting up...")
 
