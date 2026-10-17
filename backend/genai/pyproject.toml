@@ -6,27 +6,27 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "cloudevents>=2.2.0,<3",
-    "fastapi>=0.142.2",
+    "fastapi>=0.143.0",
     "feedparser>=6.0.14",
     "firebase-admin>=7.7.0",
-    "google-auth>=2.59.1",
-    "google-cloud-aiplatform>=2.3.0",
-    "google-cloud-firestore>=2.34.0",
-    "google-cloud-storage>=3.16.0",
+    "google-auth>=2.61.0",
+    "google-cloud-aiplatform>=2.4.0",
+    "google-cloud-firestore>=2.34.1",
+    "google-cloud-storage>=3.17.0",
     "google-cloud-tasks>=2.26.0",
     "google-cloud-texttospeech>=2.38.0",
     "helium>=7.0.3",
-    "litellm>=1.103.2",
-    "lmnr[all]>=0.7.64",
+    "litellm>=1.104.2",
+    "lmnr[all]>=0.7.66",
     "pillow>=12.3.0",
-    "pydantic>=2.13.5",
+    "pydantic>=2.14.0",
     "ratelimit>=2.2.1",
     "sickle>=0.7.0",
     "smolagents[litellm]>=1.26.0",
     "tenacity>=9.0.0",
     "types-protobuf>=7.35.1.20260906",
     "uvicorn>=0.54.0",
-    "weave>=0.53.11",
+    "weave>=0.53.12",
 ]
 
 [dependency-groups]
@@ -35,7 +35,7 @@ dev = [
     "pydantic-to-typescript>=2",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
-    "ruff>=0.16.10",
+    "ruff>=0.17.0",
     "tokencost>=0.1.17",
 ]
 
