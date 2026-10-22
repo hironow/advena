@@ -43,6 +43,13 @@ dev = [
 [tool.ruff]
 exclude = ["dist", ".venv"]
 
+[tool.uv]
+# Security exception for certifi 2026.10.19 (uploaded 2026-10-20), scoped so it
+# composes with any machine-level cooldown instead of overriding it. Remove
+# this dated exception after 2026-10-27T02:25:00Z, then regenerate and check
+# uv.lock.
+exclude-newer-package = { certifi = "2026-10-21T00:00:00Z" }
+
 [tool.ruff.lint]
 select = [
     "E",  # pycodestyle errors
