@@ -1,12 +1,11 @@
 import os
 import re
 
-import litellm
 import tenacity
 import weave
 from lmnr import Laminar as L  # type: ignore
 from lmnr import observe  # type: ignore
-from smolagents import LiteLLMModel, ToolCallingAgent  # type: ignore
+from smolagents import ToolCallingAgent  # type: ignore
 from tenacity import (
     retry,
     retry_if_exception_type,
@@ -15,13 +14,14 @@ from tenacity import (
 )
 
 from src.llm.config import INSTRUCTION_PROMPT
+from src.llm.gemini_model import GeminiModel
 from src.logger import logger
 
 # 必要に応じて最小文字数（またはトークン数）の閾値を設定
 MIN_RESPONSE_LENGTH = 100
 
 # LLM settings
-MODEL_ID = "gemini-2.0-flash-001"
+MODEL_ID = "gemini-3.8-flash"
 # 微調整対象のパラメータ
 INITIAL_TEMPERATURE = 0.08
 
@@ -40,8 +40,6 @@ SCRIPT_PATTERN = re.compile(r"<script\b[^>]*>(.*?)</script>", re.DOTALL)
 
 if os.getenv("CI") == "true":
     # CI 環境では weave と Laminar を初期化しない
-    # LiteLLM のデバッグログを有効化
-    # litellm._turn_on_debug()
     pass
 else:
     weave.init(project_name=os.getenv("WEAVE_PROJECT_NAME", ""))
@@ -77,8 +75,8 @@ def call_agent_with_dataset(dataset: str) -> str:
     """
     # use smolagents as llm agent
     # see: https://cloud.google.com/vertex-ai/generative-ai/docs/learn/models#gemini-models
-    model = LiteLLMModel(
-        MODEL_ID,
+    model = GeminiModel(
+        os.getenv("GEMINI_MODEL", MODEL_ID),
         temperature=temp_holder.temperature,
         config={"safety_settings": safety_settings},
     )

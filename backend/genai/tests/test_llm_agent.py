@@ -3,8 +3,8 @@ import pytest
 from src.llm import agent
 
 
-# 外部依存する LiteLLMModel のダミー実装
-class DummyLiteLLMModel:
+# 外部依存する GeminiModel のダミー実装
+class DummyGeminiModel:
     def __init__(self, model_id, temperature, config):
         self.model_id = model_id
         self.temperature = temperature
@@ -28,8 +28,8 @@ def test_call_agent(monkeypatch):
     """
     call_agent 関数が、エージェントの run メソッドを呼び出して正しく結果を返すか検証するテスト
     """
-    # agent モジュール内の LiteLLMModel, ToolCallingAgent, INSTRUCTION_PROMPT をダミーに置き換える
-    monkeypatch.setattr(agent, "LiteLLMModel", DummyLiteLLMModel)
+    # agent モジュール内の GeminiModel, ToolCallingAgent, INSTRUCTION_PROMPT をダミーに置き換える
+    monkeypatch.setattr(agent, "GeminiModel", DummyGeminiModel)
     monkeypatch.setattr(agent, "ToolCallingAgent", DummyToolCallingAgent)
     monkeypatch.setattr(agent, "INSTRUCTION_PROMPT", "dummy prompt")
 
@@ -39,6 +39,26 @@ def test_call_agent(monkeypatch):
 
     # DummyToolCallingAgent.runと同じ
     assert result == "<think>dummy response</think>"
+
+
+@pytest.mark.parametrize(
+    "override, expected", [(None, "gemini-3.8-flash"), ("custom-model", "custom-model")]
+)
+def test_call_agent_selects_model_from_environment(monkeypatch, override, expected):
+    if override is None:
+        monkeypatch.delenv("GEMINI_MODEL", raising=False)
+    else:
+        monkeypatch.setenv("GEMINI_MODEL", override)
+    selected = []
+
+    def model_factory(model_id, **kwargs):
+        selected.append(model_id)
+        return DummyGeminiModel(model_id, **kwargs)
+
+    monkeypatch.setattr(agent, "GeminiModel", model_factory)
+    monkeypatch.setattr(agent, "ToolCallingAgent", DummyToolCallingAgent)
+    assert agent.call_agent_with_dataset("dataset") == "<think>dummy response</think>"
+    assert selected == [expected]
 
 
 def test_extract_script_block_found():
