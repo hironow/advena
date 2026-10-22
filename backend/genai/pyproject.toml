@@ -16,7 +16,7 @@ dependencies = [
     "google-cloud-tasks>=2.26.0",
     "google-cloud-texttospeech>=2.38.0",
     "helium>=7.0.3",
-    "litellm>=1.103.2",
+    "litellm>=1.103.2,<=1.106.2",
     "lmnr[all]>=0.7.64",
     "pillow>=12.3.0",
     "pydantic>=2.13.5",
@@ -44,10 +44,16 @@ dev = [
 exclude = ["dist", ".venv"]
 
 [tool.uv]
+# A dependency cooldown: only artifacts uploaded more than seven days ago are
+# resolution candidates, so a compromised release is not pulled in on day zero.
+# This is the control that would have blocked the 2026-10-21 litellm 1.107.0
+# supply-chain release (live on PyPI for about two hours); the equivalent host
+# setting is not tracked in this repository, so declare it here.
+exclude-newer = "7 days"
+
 # Security exception for certifi 2026.10.19 (uploaded 2026-10-20), scoped so it
-# composes with any machine-level cooldown instead of overriding it. Remove
-# this dated exception after 2026-10-27T02:25:00Z, then regenerate and check
-# uv.lock.
+# composes with the cooldown above instead of overriding it. Remove this dated
+# exception after 2026-10-27T02:25:00Z, then regenerate and check uv.lock.
 exclude-newer-package = { certifi = "2026-10-21T00:00:00Z" }
 
 [tool.ruff.lint]

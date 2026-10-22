@@ -801,7 +801,7 @@ requires-dist = [
     { name = "google-cloud-tasks", specifier = ">=2.26.0" },
     { name = "google-cloud-texttospeech", specifier = ">=2.38.0" },
     { name = "helium", specifier = ">=7.0.3" },
-    { name = "litellm", specifier = ">=1.103.2" },
+    { name = "litellm", specifier = ">=1.103.2,<=1.106.2" },
     { name = "lmnr", extras = ["all"], specifier = ">=0.7.64" },
     { name = "pillow", specifier = ">=12.3.0" },
     { name = "pydantic", specifier = ">=2.13.5" },
