@@ -3,34 +3,44 @@
 # supply-chain hardening (security updates bypass it), and each ecosystem
 # grouped into a single PR so a week's bumps land together.
 version: 2
+
+# One Dependabot pull request per week for the whole repo (owner ruling
+# 2026-09-14): every ecosystem below joins the `weekly` group, whose schedule is
+# this repo's slot on a weeknight JST (hub `just dependabot-slot <repo>`) — one CI
+# run on the runner pool per repo per week instead of one per ecosystem, and no
+# org-wide Monday burst. The per-ecosystem cooldown and labels are unchanged;
+# commit-message and open-pull-requests-limit live on the group (Dependabot
+# refuses them on the entries).
+multi-ecosystem-groups:
+  weekly:
+    schedule:
+      interval: "weekly"
+      day: "friday"
+      time: "16:25"
+      timezone: "Etc/UTC"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+
 updates:
 
   - package-ecosystem: "github-actions"
+    patterns: ["*"]
+    multi-ecosystem-group: "weekly"
     directory: "/"
-    schedule:
-      interval: "weekly"
     cooldown:
       default-days: 7
     labels: ["dependencies", "github-actions"]
-    commit-message:
-      prefix: "ci"
-    groups:
-      github-actions:
-        patterns: ["*"]
-
   # bun ecosystem: regenerates bun.lock alongside package.json. The old "npm"
   # ecosystem only rewrote package.json and left bun.lock stale, desyncing the
   # lockfile on every bump (had to be hand-synced on PR #146).
   - package-ecosystem: "bun"
+    patterns: ["*"]
+    multi-ecosystem-group: "weekly"
     directory: "/frontend/web"
-    schedule:
-      interval: "weekly"
     cooldown:
       default-days: 7
     labels: ["dependencies", "npm"]
-    commit-message:
-      prefix: "chore"
-      include: "scope"
     # Hold the TypeScript major (6->7). TS7 is the Go-native rewrite: it drops
     # the classic 'main: ./lib/typescript.js' entry point, so next 16 thinks
     # typescript is missing and dies trying to auto-install it during the
@@ -39,36 +49,19 @@ updates:
     ignore:
       - dependency-name: "typescript"
         update-types: ["version-update:semver-major"]
-    groups:
-      npm:
-        patterns: ["*"]
-
   - package-ecosystem: "uv"
+    patterns: ["*"]
+    multi-ecosystem-group: "weekly"
     directory: "/backend/genai"
-    schedule:
-      interval: "weekly"
     cooldown:
       default-days: 7
     labels: ["dependencies", "uv"]
-    commit-message:
-      prefix: "chore"
-      include: "scope"
-    groups:
-      uv:
-        patterns: ["*"]
-
   - package-ecosystem: "docker"
+    patterns: ["*"]
+    multi-ecosystem-group: "weekly"
     directories:
       - "/backend/genai"
       - "/frontend/web"
-    schedule:
-      interval: "weekly"
     cooldown:
       default-days: 7
     labels: ["dependencies", "docker"]
-    commit-message:
-      prefix: "chore"
-      include: "scope"
-    groups:
-      docker:
-        patterns: ["*"]
