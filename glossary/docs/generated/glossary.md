@@ -2,29 +2,6 @@
 
 # 用語と主張
 
-## Starter
-
-### 用語
-
-| 用語 | ID | 文脈 | 定義 | 定義依存 | 関連 |
-|---|---|---|---|---|---|
-| Customer | `customer` | sales | A party that wants the resource |  | Hold |
-| Resource | `resource` | sales | Something limited that cannot be given to two customers at once |  |  |
-| Hold | `hold` | sales | A time-limited reservation of the resource for one customer | Customer, Resource |  |
-| External confirmation | `externalConfirmation` | external | A result produced outside the system; it cannot be stopped and may arrive late | Customer |  |
-| Entitlement | `entitlement` | sales | The hard-to-revoke right to the resource, issued to a customer | Customer, Resource, External confirmation |  |
-| Emergency stop | `emergencyStop` | operations | The system autonomously stops accepting new holds and new confirmations | Hold, External confirmation |  |
-
-### 主張
-
-| 判定 | 主張 | 用語 | 証拠 |
-|---|---|---|---|
-| 証明済み | The glossary has unique IDs, no dangling references, and no circular definitions | Customer, Resource, Hold, Entitlement | Lean: `Glossary.Starter.terms_wellFormed` |
-| 反例あり | In the naive design (issue on confirmation alone), at most one customer is entitled to the resource | Entitlement, Hold, External confirmation | Quint 反例: `Spec/starter.qnt` `naive.exclusive` |
-| 証明済み | In the guarded design (issue only while the hold is alive), at most one customer is entitled to the resource, even across an emergency stop | Entitlement, Hold, External confirmation, Emergency stop | Quint + TLC 全状態: `Spec/starter.qnt` `guarded.exclusive` |
-| 反例あり | In the guarded design, no confirmed customer is left with neither an entitlement nor a refund | External confirmation, Entitlement, Emergency stop | Quint 反例: `Spec/starter.qnt` `guarded.noOrphan` |
-| 未決定 | How is a transaction resolved when its confirmation succeeds after the hold is gone? | External confirmation, Entitlement, Emergency stop | 業務側への質問。空白を示す反例: `Spec/starter.qnt` `guarded.noOrphan` |
-
 ## advena 新刊ラジオ
 
 ### 用語
@@ -33,7 +10,7 @@
 |---|---|---|---|---|---|
 | 新着書誌フィード | `ndlFeed` | collection | 国立国会図書館サーチが提供する新着書誌の RSS。latest_all(size) が URL を組み立て、fetch_rss が 300 秒のタイムアウトで取得する。取得した XML は GCS の private/rss/ にキャッシュする |  |  |
 | フィード項目 | `feedItem` | collection | 新着書誌フィードの 1 項目。タイトル、要約、リンク、ISBN または JP-e コード、項目日時を持つ | 新着書誌フィード |  |
-| 項目日時 | `itemDate` | collection | フィード項目の published。RSS が付けた日時で、書籍の発売日と同じ意味かは確かめていない。split_books が JST の日付に直して番組対象日と比べ、過去・当日・未来に分ける。未来の区分があるので、フィードには取得日より後の日付の項目も入りうる | フィード項目 |  |
+| 項目日時 | `itemDate` | collection | フィード項目の pubDate（feedparser の published）。split_books が JST の日付に直して番組対象日と比べ、過去・当日・未来に分ける。発売日ではない。NDL サーチの OpenSearch API で同じ記録を見ると、pubDate は時刻つきで発売日より前の日時（例: pubDate 2026-11-01 18:34、発売日 2026-12-11）で、発売日は dcterms:issued にある（2026-11-14 取得の 2 件で確認。advena が使う bib.xml の RSS で同じかは未確認）。NDL は pubDate の意味を文書で定義していない | フィード項目 |  |
 | 書誌メタデータ | `bibMetadata` | collection | ISBN または JP-e コードで OAI-PMH から取る書誌情報。private/oai_pmh/ にキャッシュする | フィード項目 |  |
 | 結合マスタデータ | `masterdata` | collection | 1 回の収集で得たフィード項目と書誌メタデータを結合した JSON。ファイル名は RSS の lastBuildDate から作り、private/masterdata/ に置く。番組文書はこのパスを持ち、制作実行はここから項目を選ぶ | フィード項目, 書誌メタデータ |  |
 | 収集実行 | `collectionRun` | collection | POST /async_task（kind=latest_all）で始まる処理。フィードと書誌を取り込み、結合マスタデータを書き、最後に制作待ちの番組文書を 1 つ作る。呼ばれるたびに新しい文書を作り、同じ日の文書が既にあるかは確かめない。起動元は Cloud Scheduler とされるが、ジョブの設定はリポジトリにない | 新着書誌フィード, 結合マスタデータ | 番組文書, 過去日指定の収集 |
@@ -64,6 +41,33 @@
 | 証明済み | 用語集は、ID が一意で、参照先が存在し、定義が循環していない | フィード項目, 結合マスタデータ, 番組文書, 公開済み番組, 制作実行 | Lean: `Glossary.Advena.terms_wellFormed` |
 | 反例あり | 現行コードでは、番組文書の status だけで、その番組がまだ公開に向けて進むのか、もう誰も扱わないのかを判別できる（status の写しと、コードから分けた 5 つの状況についての主張） | 制作待ち, 該当なし, 配信打ち切り, 制作実行 | Lean (否定を証明): `Glossary.Advena.creating_is_overloaded` |
 | 反例あり | 現行コードでは、番組対象日は番組文書だけで決まり、いつ制作しても同じ日になる（番組対象日の決め方の写しについての主張） | 番組対象日, 番組文書, 制作実行 | Lean (否定を証明): `Glossary.Advena.day_depends_on_production_time` |
+| 反例あり | 現行コードでは、1 つの番組対象日に公開済み番組は高々 1 本（番組 2 つ、実行枠 1 つ、2 日、再配信 2 回まで） | 放送枠, 公開済み番組, 収集実行, 過去日指定の収集 | Quint 反例: `Spec/radio_show.qnt` `code2.onePerDay` |
+| 反例あり | 現行コードでは、公開済み番組の台本と音声は同じ制作実行が書いたもの（ack 期限を過ぎた後の再配信を別のインスタンスが並行に処理する場合を含む。番組 1 つ、実行枠 2 つ） | 公開済み番組, 番組台本, 番組音声, 再配信, 制作実行 | Quint 反例: `Spec/radio_show.qnt` `code1.sameRun` |
+| 反例あり | 現行コードでは、公開した後に、公開 URL の先の台本と音声は変わらない（番組 1 つ、実行枠 2 つ） | 公開済み番組, 番組台本, 番組音声, 再配信 | Quint 反例: `Spec/radio_show.qnt` `code1.unchangedAfterPublish` |
+| 反例あり | 現行コードでは、同じ番組を同時に制作する（LLM と TTS を呼びうる）実行は高々 1 つ（番組 1 つ、実行枠 2 つ） | 制作実行, 再配信, 文書作成イベント | Quint 反例: `Spec/radio_show.qnt` `code1.oneProducerAtATime` |
+| 反例あり | 現行コードでは、制作が中断して再配信が JST の 0 時をまたいでも、公開済み番組は本来の日（broadcasted_at、無ければ収集した日）の番組である | 制作の中断, 番組対象日, 再配信, 公開済み番組 | Quint 反例: `Spec/radio_show.qnt` `code1.dayAsIntended` |
+| 反例あり | 現行コードでは、番組を進める操作が公平に実行されるなら、制作の中断が何度起きても、作成された番組はいずれ公開などの終わりの状態に至る | 制作の中断, 配信打ち切り, 該当なし, 制作待ち | Quint + TLC 反例: `Spec/radio_show.qnt` `code1.Liveness` |
+| 証明済み | 提案（番組対象日を作成時に固定して保存し、その日から文書の ID を作る、ほか 3 点）では、中断や 0 時またぎがあっても、1 つの番組対象日に公開済み番組は高々 1 本（番組 2 つ、実行枠 1 つ） | 放送枠, 番組対象日, 収集実行, 制作の中断 | Quint + TLC 全状態: `Spec/radio_show.qnt` `proposal2.onePerDay` |
+| 証明済み | 提案（status の確認をトランザクションにして制作権を世代つきで取り、台本と音声を世代ごとのパスに書き、世代が一致するときだけ公開する、ほか 3 点）では、公開済み番組の台本と音声は同じ制作実行が書いたもの（番組 1 つ、実行枠 2 つ） | 公開済み番組, 番組台本, 番組音声, 再配信, 制作の中断 | Quint + TLC 全状態: `Spec/radio_show.qnt` `proposal1.sameRun` |
+| 証明済み | 提案では、公開した後に、公開 URL の先の台本と音声は変わらない（番組 1 つ、実行枠 2 つ） | 公開済み番組, 番組台本, 番組音声 | Quint + TLC 全状態: `Spec/radio_show.qnt` `proposal1.unchangedAfterPublish` |
+| 証明済み | 提案では、制作が中断して再配信が JST の 0 時をまたいでも、公開済み番組は本来の日の番組である（番組 1 つ、実行枠 2 つ） | 制作の中断, 番組対象日, 公開済み番組 | Quint + TLC 全状態: `Spec/radio_show.qnt` `proposal1.dayAsIntended` |
+| 証明済み | 提案では、番組を進める操作（配信、制作の各段階、リースの期限切れ、回収処理）が公平に実行されるなら、制作の中断が何度起きても、作成された番組はいずれ公開・skipped・failed のどれかになる（番組 1 つ、実行枠 2 つ） | 制作の中断, 配信打ち切り, 該当なし, 制作待ち | Quint + TLC 全状態: `Spec/radio_show.qnt` `proposal1.Liveness` |
+| 反例あり | 提案から回収処理だけを除いても、作成された番組はいずれ終わりの状態に至る | 制作の中断, 配信打ち切り, 制作待ち | Quint + TLC 反例: `Spec/radio_show.qnt` `noSweep1.Liveness` |
+| 反例あり | 提案から「作成時に番組対象日を固定して保存し、その日から文書の ID を作る」だけを除いても、1 つの番組対象日に公開済み番組は高々 1 本（番組 2 つ、実行枠 1 つ） | 放送枠, 番組対象日, 収集実行 | Quint 反例: `Spec/radio_show.qnt` `noFixDay2.onePerDay` |
+| 反例あり | 提案から日付の固定だけを除いても、0 時をまたいだ再配信の後の公開済み番組は本来の日の番組である（番組 1 つ、実行枠 2 つ） | 番組対象日, 制作の中断, 公開済み番組 | Quint 反例: `Spec/radio_show.qnt` `noFixDay1.dayAsIntended` |
+| 反例あり | 提案から世代つきの制作権だけを除いても、公開済み番組の台本と音声は同じ制作実行が書いたもの（番組 1 つ、実行枠 2 つ） | 公開済み番組, 番組台本, 番組音声, 再配信 | Quint 反例: `Spec/radio_show.qnt` `noFence1.sameRun` |
+| 反例あり | 提案から skipped だけを除いても、該当なしと確かめられた番組は failed にならない（回収処理が creating のままの番組を failed にする） | 該当なし, 制作待ち | Quint 反例: `Spec/radio_show.qnt` `noTerminal1.noItemsNotFailed` |
+| 反例あり | 提案では、同じ番組を同時に制作する実行は高々 1 つ（リースが切れた後も古い実行は動き続けうる） | 制作実行, 再配信 | Quint 反例: `Spec/radio_show.qnt` `proposal1.oneProducerAtATime` |
+| 証明済み | 提案では、該当なしと確かめられた番組は failed にならない（skipped になる。failed は公開できなかった番組だけに使う）（番組 1 つ、実行枠 2 つ） | 該当なし, 制作待ち | Quint + TLC 全状態: `Spec/radio_show.qnt` `proposal1.noItemsNotFailed` |
+| 反例あり | 現行コードで、トランザクション内の検索が「該当なし」という結果を守らない場合でも、1 つの firebase_uid に利用者文書は高々 1 つ（同じ人の 2 つのサインイン） | 利用者文書, 聴取者 | Quint 反例: `Spec/account.qnt` `accountUnguarded.oneUserPerUid` |
+| 証明済み | 現行コードで、トランザクション内の検索が「該当なし」という結果も守る場合、1 つの firebase_uid に利用者文書は高々 1 つ（同じ人の 2 つのサインイン） | 利用者文書, 聴取者 | Quint + TLC 全状態: `Spec/account.qnt` `accountGuarded.oneUserPerUid` |
+| 未決定 | 番組で紹介する「その日の本」は、その日に発売される本か、その日に NDL の記録が登録・更新された本か。現行コードは pubDate で選んでおり、後者に近い | フィード項目, 項目日時, 番組対象日 | 業務側への質問。モデルで示せない理由: フィードのデータの意味の問題で、状態の遷移では示せない。根拠は NDL サーチの OpenSearch API の記録（pubDate と dcterms:issued が違う日） |
+| 未決定 | 同じ番組対象日に番組が既にあるとき、運用者の再実行やスケジューラの再試行は、番組を差し替えるのか、2 本目として加えるのか、断るのか | 放送枠, 過去日指定の収集, 収集実行 | 業務側への質問。空白を示す反例: `Spec/radio_show.qnt` `code2.onePerDay` |
+| 未決定 | 制作が失敗した日（配信打ち切り）の番組をどうするか。諦めるのか、遅れて作るのか、誰がいつ気づき、聴取者に何を見せるのか | 制作の中断, 配信打ち切り, 放送枠 | 業務側への質問。空白を示す反例: `Spec/radio_show.qnt` `code1.Liveness`, `Spec/radio_show.qnt` `noSweep1.Liveness` |
+| 未決定 | broadcasted_at の無い番組の日付は、収集した日か、制作した日か。遅れて制作したとき、どちらの日の本を紹介するのか | 番組対象日, 制作の中断, 収集実行 | 業務側への質問。空白を示す反例: `Spec/radio_show.qnt` `code1.dayAsIntended` |
+| 未決定 | 該当なしの日に、聴取者に何を見せるか。何も出さないのか、新刊がなかったと知らせるのか | 該当なし, 制作待ち, 公開済み番組 | 業務側への質問。空白を示す反例: `Spec/radio_show.qnt` `code1.Liveness` |
+| 未決定 | 1 本の番組のために LLM と TTS を何回まで呼んでよいか（費用）。重複を減らそうとリースを長くすると、止まった実行の後の再開が遅れる | 制作実行, 再配信, 文書作成イベント | 業務側への質問。空白を示す反例: `Spec/radio_show.qnt` `code1.oneProducerAtATime`, `Spec/radio_show.qnt` `proposal1.oneProducerAtATime` |
+| 未決定 | 同じ人が 2 つの端末からほぼ同時に初めてサインインしたとき、利用者文書が 2 つできることはあるか（Firestore のトランザクションが「該当なし」という検索結果を守るか） | 利用者文書, 聴取者 | 業務側への質問。空白を示す反例: `Spec/account.qnt` `accountUnguarded.oneUserPerUid` |
 | 未決定 | 公開済み番組を訂正または取り下げる手段を持つべきか。持つなら、誰が決め、聴取者に何を見せるか | 公開済み番組, 状態の命名規約 | 業務側への質問。モデルで示せない理由: コードに取り下げの経路がない。status は creating と created だけで、コメントにある deleting と error は型にも代入にも無い。音声と台本は public/ の固定パスにあり、Firestore rules は書き込みを全て拒む。モデルには取り下げの操作が存在しない |
 | 未決定 | キーワード番組は提供するのか。提供するなら、1 日 1 本の放送枠はキーワードごとか、全体で 1 本か | キーワード番組, 登録キーワード, 放送枠 | 業務側への質問。モデルで示せない理由: キーワード番組の処理は pass で、登録キーワードを書き込む経路もない。到達できる状態が無いのでモデルでは示せない |
 

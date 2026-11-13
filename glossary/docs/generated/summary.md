@@ -2,14 +2,12 @@
 
 # 集計
 
-<!-- book: Starter -->
 <!-- book: advena 新刊ラジオ -->
-<!-- evidence: holds: 1; violated: 2 -->
+<!-- evidence: holds: 7; violated: 13 -->
 <!-- control: undeclared -->
 
 | 用語集 | 用語 | 主張 | 証明済み | 反例あり | 未決定 |
 |---|---|---|---|---|---|
-| Starter | 6 | 5 | 2 | 2 | 1 |
-| advena 新刊ラジオ | 25 | 5 | 1 | 2 | 2 |
-| 合計 | 31 | 10 | 3 | 4 | 3 |
+| advena 新刊ラジオ | 25 | 32 | 8 | 15 | 9 |
+| 合計 | 25 | 32 | 8 | 15 | 9 |
 

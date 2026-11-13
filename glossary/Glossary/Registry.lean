@@ -1,5 +1,4 @@
 import Glossary.Render
-import Glossary.Starter
 import Glossary.Advena
 
 /-!
@@ -16,7 +15,7 @@ namespace Glossary
 
 def labels : Labels := Labels.ja
 
-def books : List BookView := [Starter.book.view labels, Advena.book.view labels]
+def books : List BookView := [Advena.book.view labels]
 
 /-- The comparison with a tool-less control (workflow step 5, Tier 3): `.run` once an
 `experiments/<name>/` has `protocol.md` committed before `result.md`, or `.skipped "<reason>"`. -/

@@ -1,2 +1,8 @@
 # One scripted test per line: <file> <module>
-Spec/starter.qnt naive
+Spec/radio_show.qnt code1
+Spec/radio_show.qnt code2
+Spec/radio_show.qnt proposal1
+Spec/radio_show.qnt proposal2
+Spec/radio_show.qnt noTerminal1
+Spec/account.qnt accountUnguarded
+Spec/account.qnt accountGuarded

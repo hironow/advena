@@ -38,7 +38,7 @@ def terms : List (Entry Term Ctx) := [
     anchors := ["backend/genai/src/book/feed.py#class FeedEntry(BaseModel)",
                 "backend/genai/src/book/feed.py#def convert_to_entry_item"] },
   { id := itemDate, label := "項目日時", context := .collection,
-    gloss := "フィード項目の published。RSS が付けた日時で、書籍の発売日と同じ意味かは確かめていない。split_books が JST の日付に直して番組対象日と比べ、過去・当日・未来に分ける。未来の区分があるので、フィードには取得日より後の日付の項目も入りうる",
+    gloss := "フィード項目の pubDate（feedparser の published）。split_books が JST の日付に直して番組対象日と比べ、過去・当日・未来に分ける。発売日ではない。NDL サーチの OpenSearch API で同じ記録を見ると、pubDate は時刻つきで発売日より前の日時（例: pubDate 2026-11-01 18:34、発売日 2026-12-11）で、発売日は dcterms:issued にある（2026-11-14 取得の 2 件で確認。advena が使う bib.xml の RSS で同じかは未確認）。NDL は pubDate の意味を文書で定義していない",
     defDeps := [feedItem],
     anchors := ["backend/genai/src/book/feed.py#published_parsed = feed.get(\"published_parsed\")",
                 "backend/genai/src/event_sourcing/workflows.py#future[link] = mst_book"] },
@@ -233,6 +233,26 @@ theorem day_depends_on_production_time : ¬ DayFixedByDocument := by
   intro h
   exact absurd (h none 1 2) (by decide)
 
+/-! ## モデルへの参照
+
+Spec/radio_show.qnt のモジュール:
+- code1: 現行コード、番組 1 つ、実行枠 2 つ（2 つの実行が同じ番組を並行に扱える）
+- code2: 現行コード、番組 2 つ、実行枠 1 つ
+- proposal1, proposal2: 提案の 4 点（作成時に日付を固定、世代つきの制作権、skipped、回収処理）を入れたもの。規模は code1, code2 と同じ
+- noSweep1: 提案から回収処理だけを除いたもの
+どれも JST の日付 2 日、再配信は 2 回まで。
+
+Spec/account.qnt: 同じ firebase_uid での 2 つのサインイン。 -/
+
+def radio (main invariant : String) : QuintRef :=
+  { file := "Spec/radio_show.qnt", main, invariant }
+
+def radioLiveness (main : String) : QuintRef :=
+  { file := "Spec/radio_show.qnt", main, invariant := "Liveness", temporal := true }
+
+def account (main invariant : String) : QuintRef :=
+  { file := "Spec/account.qnt", main, invariant }
+
 def claims : List (Claim Term) := [
   { about := [feedItem, masterdata, radioShow, publishedShow, productionRun],
     statement := "用語集は、ID が一意で、参照先が存在し、定義が循環していない",
@@ -246,18 +266,112 @@ def claims : List (Claim Term) := [
     statement := "現行コードでは、番組対象日は番組文書だけで決まり、いつ制作しても同じ日になる（番組対象日の決め方の写しについての主張）",
     verdict := .counterexample,
     evidence := .leanRefutes "Glossary.Advena.day_depends_on_production_time" DayFixedByDocument day_depends_on_production_time },
+  -- 現行コード
+  { about := [broadcastSlot, publishedShow, collectionRun, staffRerun],
+    statement := "現行コードでは、1 つの番組対象日に公開済み番組は高々 1 本（番組 2 つ、実行枠 1 つ、2 日、再配信 2 回まで）",
+    verdict := .counterexample, evidence := .violated (radio "code2" "onePerDay") },
+  { about := [publishedShow, showScript, showAudio, redelivery, productionRun],
+    statement := "現行コードでは、公開済み番組の台本と音声は同じ制作実行が書いたもの（ack 期限を過ぎた後の再配信を別のインスタンスが並行に処理する場合を含む。番組 1 つ、実行枠 2 つ）",
+    verdict := .counterexample, evidence := .violated (radio "code1" "sameRun") },
+  { about := [publishedShow, showScript, showAudio, redelivery],
+    statement := "現行コードでは、公開した後に、公開 URL の先の台本と音声は変わらない（番組 1 つ、実行枠 2 つ）",
+    verdict := .counterexample, evidence := .violated (radio "code1" "unchangedAfterPublish") },
+  { about := [productionRun, redelivery, docCreatedEvent],
+    statement := "現行コードでは、同じ番組を同時に制作する（LLM と TTS を呼びうる）実行は高々 1 つ（番組 1 つ、実行枠 2 つ）",
+    verdict := .counterexample, evidence := .violated (radio "code1" "oneProducerAtATime") },
+  { about := [productionHalt, broadcastDay, redelivery, publishedShow],
+    statement := "現行コードでは、制作が中断して再配信が JST の 0 時をまたいでも、公開済み番組は本来の日（broadcasted_at、無ければ収集した日）の番組である",
+    verdict := .counterexample, evidence := .violated (radio "code1" "dayAsIntended") },
+  { about := [productionHalt, deadLetter, noItemsDay, showCreating],
+    statement := "現行コードでは、番組を進める操作が公平に実行されるなら、制作の中断が何度起きても、作成された番組はいずれ公開などの終わりの状態に至る",
+    verdict := .counterexample, evidence := .violated (radioLiveness "code1") },
+  -- 提案（モデルの中だけ。コードは変えていない）
+  { about := [broadcastSlot, broadcastDay, collectionRun, productionHalt],
+    statement := "提案（番組対象日を作成時に固定して保存し、その日から文書の ID を作る、ほか 3 点）では、中断や 0 時またぎがあっても、1 つの番組対象日に公開済み番組は高々 1 本（番組 2 つ、実行枠 1 つ）",
+    verdict := .proved, evidence := .holds (radio "proposal2" "onePerDay") },
+  { about := [publishedShow, showScript, showAudio, redelivery, productionHalt],
+    statement := "提案（status の確認をトランザクションにして制作権を世代つきで取り、台本と音声を世代ごとのパスに書き、世代が一致するときだけ公開する、ほか 3 点）では、公開済み番組の台本と音声は同じ制作実行が書いたもの（番組 1 つ、実行枠 2 つ）",
+    verdict := .proved, evidence := .holds (radio "proposal1" "sameRun") },
+  { about := [publishedShow, showScript, showAudio],
+    statement := "提案では、公開した後に、公開 URL の先の台本と音声は変わらない（番組 1 つ、実行枠 2 つ）",
+    verdict := .proved, evidence := .holds (radio "proposal1" "unchangedAfterPublish") },
+  { about := [productionHalt, broadcastDay, publishedShow],
+    statement := "提案では、制作が中断して再配信が JST の 0 時をまたいでも、公開済み番組は本来の日の番組である（番組 1 つ、実行枠 2 つ）",
+    verdict := .proved, evidence := .holds (radio "proposal1" "dayAsIntended") },
+  { about := [productionHalt, deadLetter, noItemsDay, showCreating],
+    statement := "提案では、番組を進める操作（配信、制作の各段階、リースの期限切れ、回収処理）が公平に実行されるなら、制作の中断が何度起きても、作成された番組はいずれ公開・skipped・failed のどれかになる（番組 1 つ、実行枠 2 つ）",
+    verdict := .proved, evidence := .holds (radioLiveness "proposal1") },
+  { about := [productionHalt, deadLetter, showCreating],
+    statement := "提案から回収処理だけを除いても、作成された番組はいずれ終わりの状態に至る",
+    verdict := .counterexample, evidence := .violated (radioLiveness "noSweep1") },
+  { about := [broadcastSlot, broadcastDay, collectionRun],
+    statement := "提案から「作成時に番組対象日を固定して保存し、その日から文書の ID を作る」だけを除いても、1 つの番組対象日に公開済み番組は高々 1 本（番組 2 つ、実行枠 1 つ）",
+    verdict := .counterexample, evidence := .violated (radio "noFixDay2" "onePerDay") },
+  { about := [broadcastDay, productionHalt, publishedShow],
+    statement := "提案から日付の固定だけを除いても、0 時をまたいだ再配信の後の公開済み番組は本来の日の番組である（番組 1 つ、実行枠 2 つ）",
+    verdict := .counterexample, evidence := .violated (radio "noFixDay1" "dayAsIntended") },
+  { about := [publishedShow, showScript, showAudio, redelivery],
+    statement := "提案から世代つきの制作権だけを除いても、公開済み番組の台本と音声は同じ制作実行が書いたもの（番組 1 つ、実行枠 2 つ）",
+    verdict := .counterexample, evidence := .violated (radio "noFence1" "sameRun") },
+  { about := [noItemsDay, showCreating],
+    statement := "提案から skipped だけを除いても、該当なしと確かめられた番組は failed にならない（回収処理が creating のままの番組を failed にする）",
+    verdict := .counterexample, evidence := .violated (radio "noTerminal1" "noItemsNotFailed") },
+  { about := [productionRun, redelivery],
+    statement := "提案では、同じ番組を同時に制作する実行は高々 1 つ（リースが切れた後も古い実行は動き続けうる）",
+    verdict := .counterexample, evidence := .violated (radio "proposal1" "oneProducerAtATime") },
+  { about := [noItemsDay, showCreating],
+    statement := "提案では、該当なしと確かめられた番組は failed にならない（skipped になる。failed は公開できなかった番組だけに使う）（番組 1 つ、実行枠 2 つ）",
+    verdict := .proved, evidence := .holds (radio "proposal1" "noItemsNotFailed") },
+  -- 利用者文書
+  { about := [userDoc, listener],
+    statement := "現行コードで、トランザクション内の検索が「該当なし」という結果を守らない場合でも、1 つの firebase_uid に利用者文書は高々 1 つ（同じ人の 2 つのサインイン）",
+    verdict := .counterexample, evidence := .violated (account "accountUnguarded" "oneUserPerUid") },
+  { about := [userDoc, listener],
+    statement := "現行コードで、トランザクション内の検索が「該当なし」という結果も守る場合、1 つの firebase_uid に利用者文書は高々 1 つ（同じ人の 2 つのサインイン）",
+    verdict := .proved, evidence := .holds (account "accountGuarded" "oneUserPerUid") },
+  -- 業務への質問（業界の分類の出典は docs/business-gaps.md）
+  { about := [feedItem, itemDate, broadcastDay],
+    statement := "番組で紹介する「その日の本」は、その日に発売される本か、その日に NDL の記録が登録・更新された本か。現行コードは pubDate で選んでおり、後者に近い",
+    verdict := .undecided,
+    evidence := .questionOutsideModel "フィードのデータの意味の問題で、状態の遷移では示せない。根拠は NDL サーチの OpenSearch API の記録（pubDate と dcterms:issued が違う日）",
+    industry := some (.answered "NDL のデータでは発売日は dcterms:issued にあり、pubDate は発売日より前の時刻つき日時だった（2 件を確認）。pubDate の定義を NDL は文書にしていない") },
+  { about := [broadcastSlot, staffRerun, collectionRun],
+    statement := "同じ番組対象日に番組が既にあるとき、運用者の再実行やスケジューラの再試行は、番組を差し替えるのか、2 本目として加えるのか、断るのか",
+    verdict := .undecided, evidence := .question [radio "code2" "onePerDay"],
+    industry := some (.answered "Podcast では差し替えが定まっている。エピソードの GUID は変えず、重複は処理されないか削除されうる（Apple）。Cloud Scheduler は同じ予定の重複実行がありうるとし、冪等な受け手を求める") },
+  { about := [productionHalt, deadLetter, broadcastSlot],
+    statement := "制作が失敗した日（配信打ち切り）の番組をどうするか。諦めるのか、遅れて作るのか、誰がいつ気づき、聴取者に何を見せるのか",
+    verdict := .undecided, evidence := .question [radioLiveness "code1", radioLiveness "noSweep1"],
+    industry := some (.gap "日次の自動生成音声で、生成に失敗した日の扱いを公表した例は見つからない。Spotify Daily Drive の更新漏れの苦情はある（コミュニティ投稿、二次情報）") },
+  { about := [broadcastDay, productionHalt, collectionRun],
+    statement := "broadcasted_at の無い番組の日付は、収集した日か、制作した日か。遅れて制作したとき、どちらの日の本を紹介するのか",
+    verdict := .undecided, evidence := .question [radio "code1" "dayAsIntended"],
+    industry := some (.answered "日次番組の題名の日付は放送枠の日付で、pubDate は公開時刻（NHK ラジオニュースの RSS で確認）。制作が遅れても枠の日付が番組の日付になる") },
+  { about := [noItemsDay, showCreating, publishedShow],
+    statement := "該当なしの日に、聴取者に何を見せるか。何も出さないのか、新刊がなかったと知らせるのか",
+    verdict := .undecided, evidence := .question [radioLiveness "code1"],
+    industry := some (.gap "空の日の指針は見つからない。日次ニュース番組は別の回で枠を埋め、Alexa は 7 日より古い項目を無視して「新しい内容がない」と告げる。聴取者への影響の証拠は弱い") },
+  { about := [productionRun, redelivery, docCreatedEvent],
+    statement := "1 本の番組のために LLM と TTS を何回まで呼んでよいか（費用）。重複を減らそうとリースを長くすると、止まった実行の後の再開が遅れる",
+    verdict := .undecided, evidence := .question [radio "code1" "oneProducerAtATime", radio "proposal1" "oneProducerAtATime"],
+    industry := some (.answered "Eventarc は少なくとも 1 回の配信で重複がありうるとし、event ID を鍵にした冪等なハンドラを勧める。Cloud Run もタイムアウト後に処理が続きうるとして冪等なリクエストを勧める") },
+  { about := [userDoc, listener],
+    statement := "同じ人が 2 つの端末からほぼ同時に初めてサインインしたとき、利用者文書が 2 つできることはあるか（Firestore のトランザクションが「該当なし」という検索結果を守るか）",
+    verdict := .undecided, evidence := .question [account "accountUnguarded" "oneUserPerUid"],
+    industry := some (.answered "Firestore は直列化可能な分離を保証すると明記する。ただし文書が説明するロックは読んだ文書単位で、検索結果が空の場合の仕組みは書かれていない") },
   { about := [publishedShow, statusConvention],
     statement := "公開済み番組を訂正または取り下げる手段を持つべきか。持つなら、誰が決め、聴取者に何を見せるか",
     verdict := .undecided,
-    evidence := .questionOutsideModel "コードに取り下げの経路がない。status は creating と created だけで、コメントにある deleting と error は型にも代入にも無い。音声と台本は public/ の固定パスにあり、Firestore rules は書き込みを全て拒む。モデルには取り下げの操作が存在しない" },
+    evidence := .questionOutsideModel "コードに取り下げの経路がない。status は creating と created だけで、コメントにある deleting と error は型にも代入にも無い。音声と台本は public/ の固定パスにあり、Firestore rules は書き込みを全て拒む。モデルには取り下げの操作が存在しない",
+    industry := some (.gap "AI 音声の訂正告知の慣行は見つからない。Washington Post の AI 個人向け podcast は誤った引用を出し、訂正を出さなかった（報道、二次情報）。放送法 9 条の訂正放送は放送事業者の義務で、求めに応じて送る配信には及ばない") },
   { about := [keywordShow, userKeyword, broadcastSlot],
     statement := "キーワード番組は提供するのか。提供するなら、1 日 1 本の放送枠はキーワードごとか、全体で 1 本か",
     verdict := .undecided,
-    evidence := .questionOutsideModel "キーワード番組の処理は pass で、登録キーワードを書き込む経路もない。到達できる状態が無いのでモデルでは示せない" }
+    evidence := .questionOutsideModel "キーワード番組の処理は pass で、登録キーワードを書き込む経路もない。到達できる状態が無いのでモデルでは示せない",
+    industry := some (.answered "個人向けの日次音声は、話題ごとではなく利用者ごとに 1 日 1 本にまとめるのが主流（Google Daily Listen、Washington Post。二次情報）") }
 ]
 
--- 停止の場面は、自分のモデルが入るまで starter が担う。モデルを入れたらこの行を置き換える。
-def book : Book Term Ctx := { title := "advena 新刊ラジオ", terms, claims, stopScene := .inBook "Starter" }
+def book : Book Term Ctx := { title := "advena 新刊ラジオ", terms, claims, stopScene := .modelled }
 
 theorem book_check : book.check = true := by decide
 

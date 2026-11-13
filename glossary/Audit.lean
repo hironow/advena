@@ -6,8 +6,6 @@ Add one line for every theorem that a claim cites as evidence. -/
 #print axioms Glossary.check_sound
 #print axioms Glossary.check_add
 #print axioms Glossary.Progress.resolvable
-#print axioms Glossary.Starter.terms_wellFormed
-#print axioms Glossary.Starter.book_check
 #print axioms Glossary.Advena.terms_wellFormed
 #print axioms Glossary.Advena.book_check
 #print axioms Glossary.Advena.creating_is_overloaded
