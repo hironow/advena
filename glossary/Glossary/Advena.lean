@@ -14,7 +14,7 @@ import Glossary.Claim
 namespace Glossary.Advena
 
 inductive Term where
-  | ndlFeed | feedItem | itemDate | bibMetadata | masterdata | collectionRun
+  | ndlFeed | feedItem | itemDate | bibMetadata | coverImage | masterdata | collectionRun
   | broadcastDay | broadcastSlot | radioShow | showCreating
   | docCreatedEvent | redelivery | deadLetter
   | showScript | showAudio | productionRun | noItemsDay | publishedShow | productionHalt
@@ -47,6 +47,11 @@ def terms : List (Entry Term Ctx) := [
     defDeps := [feedItem],
     anchors := ["backend/genai/src/book/oai_pmh.py#def get_metadata_by_isbn",
                 "backend/genai/src/book/oai_pmh.py#def get_metadata_by_jp_e_code"] },
+  { id := coverImage, label := "書影", context := .collection,
+    gloss := "本の表紙の画像。収集実行が ISBN または JP-e コードから NDL サーチの書影 API の URL を組み立て、番組の本の thumbnail_url として保存し、本棚に表示する。NDL はこの書影 API を 2026-03-31 に終了した（NDL サーチのお知らせ）ので、今は表示されない見込み（画面では確かめていない）",
+    defDeps := [feedItem],
+    anchors := ["backend/genai/src/book/book.py#THUMBNAIL_URL_BASE = \"https://ndlsearch.ndl.go.jp/thumbnail/\"",
+                "frontend/web/components/shelf/Bookshelf.tsx#src={book.thumbnail_url}"] },
   { id := masterdata, label := "結合マスタデータ", context := .collection,
     gloss := "1 回の収集で得たフィード項目と書誌メタデータを結合した JSON。ファイル名は RSS の lastBuildDate から作り、private/masterdata/ に置く。番組文書はこのパスを持ち、制作実行はここから項目を選ぶ",
     defDeps := [feedItem, bibMetadata],
@@ -364,6 +369,11 @@ def claims : List (Claim Term) := [
     verdict := .undecided,
     evidence := .questionOutsideModel "コードに取り下げの経路がない。status は creating と created だけで、コメントにある deleting と error は型にも代入にも無い。音声と台本は public/ の固定パスにあり、Firestore rules は書き込みを全て拒む。モデルには取り下げの操作が存在しない",
     industry := some (.gap "AI 音声の訂正告知の慣行は見つからない。Washington Post の AI 個人向け podcast は誤った引用を出し、訂正を出さなかった（報道、二次情報）。放送法 9 条の訂正放送は放送事業者の義務で、求めに応じて送る配信には及ばない") },
+  { about := [coverImage, publishedShow],
+    statement := "NDL サーチの書影 API が終わった後、本棚に表紙の画像を出すのか。出すなら、どこから、どの利用条件で取るのか",
+    verdict := .undecided,
+    evidence := .questionOutsideModel "外部のサービスの終了と利用条件の問題で、状態の遷移では示せない。コードは終了した API の URL を今も組み立てている",
+    industry := some (.answered "NDL は JPRO の利用規約改定に伴い書影 API を 2026-03-31 に終了し、代わりの経路は示さず、書影は日本出版インフラセンター（JPO）に問い合わせるよう案内している") },
   { about := [keywordShow, userKeyword, broadcastSlot],
     statement := "キーワード番組は提供するのか。提供するなら、1 日 1 本の放送枠はキーワードごとか、全体で 1 本か",
     verdict := .undecided,

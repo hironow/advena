@@ -16,6 +16,8 @@
 | 項目日時 | `itemDate` | `backend/genai/src/event_sourcing/workflows.py` | `future[link] = mst_book` |
 | 書誌メタデータ | `bibMetadata` | `backend/genai/src/book/oai_pmh.py` | `def get_metadata_by_isbn` |
 | 書誌メタデータ | `bibMetadata` | `backend/genai/src/book/oai_pmh.py` | `def get_metadata_by_jp_e_code` |
+| 書影 | `coverImage` | `backend/genai/src/book/book.py` | `THUMBNAIL_URL_BASE = "https://ndlsearch.ndl.go.jp/thumbnail/"` |
+| 書影 | `coverImage` | `frontend/web/components/shelf/Bookshelf.tsx` | `src={book.thumbnail_url}` |
 | 結合マスタデータ | `masterdata` | `backend/genai/src/blob/storage.py` | `MASTERDATA_DIR = f"{PRIVATE_DIR}/masterdata"` |
 | 結合マスタデータ | `masterdata` | `backend/genai/src/event_sourcing/workflows.py` | `rss_sig = last_build_date.strftime` |
 | 収集実行 | `collectionRun` | `backend/genai/src/main.py` | `KIND_LATEST_ALL = "latest_all"` |
