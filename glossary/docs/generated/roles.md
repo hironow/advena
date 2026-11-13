@@ -32,3 +32,23 @@
 | 反例あり | In the guarded design, no confirmed customer is left with neither an entitlement nor a refund | External confirmation, Entitlement, Emergency stop | Quint 反例: `Spec/starter.qnt` `guarded.noOrphan` |
 | 未決定 | How is a transaction resolved when its confirmation succeeds after the hold is gone? | External confirmation, Entitlement, Emergency stop | 業務側への質問。空白を示す反例: `Spec/starter.qnt` `guarded.noOrphan` |
 
+## advena 新刊ラジオ
+
+<!-- stop-scene: ok; in book Starter -->
+<!-- roles-tagged: 4 -->
+
+停止の場面: 次の用語集で検査モデルにした: Starter
+
+| 役割 | 用語 |
+|---|---|
+| 資源 (Resource) | 放送枠 |
+| 仮確保 (Hold) | なし |
+| 外部の確認 (External confirmation) | 文書作成イベント |
+| 権利 (Entitlement) | 公開済み番組 |
+| 停止 (Stop) | 制作の中断 |
+| 計画停止 (Planned stop) | なし |
+| 期限 (Deadline) | なし |
+| 代わりの経路 (Fallback channel) | なし |
+| 供給の取り消し (Supply cancellation) | なし |
+| 振替 (Reallocation) | なし |
+
