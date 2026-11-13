@@ -2,7 +2,7 @@ VP := env("VP", "vp")
 
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
-check: check-test-types lint-workflows frontend-install backend-install frontend-format backend-format frontend-test backend-test
+check: check-test-types lint-workflows frontend-install backend-install frontend-format backend-format frontend-test backend-test glossary::check
 
 lint-workflows:
     actionlint .github/workflows/*.yaml
