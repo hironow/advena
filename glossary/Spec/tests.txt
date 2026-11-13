@@ -1,0 +1,2 @@
+# One scripted test per line: <file> <module>
+Spec/starter.qnt naive

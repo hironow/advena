@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Stop a commit whose generated documents do not match the glossaries.
+set -euo pipefail
+just glossary generated-check

@@ -1,0 +1,11 @@
+name = "glossary"
+defaultTargets = ["Glossary", "claims"]
+# Core's opt-in extra linters (no external package). With `lake build --wfail`, a finding fails the gate.
+leanOptions = { linter.extra = true }
+
+[[lean_lib]]
+name = "Glossary"
+
+[[lean_exe]]
+name = "claims"
+root = "Main"

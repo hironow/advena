@@ -46,3 +46,6 @@ check-test-types:
 install-actionlint:
     go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
     if [ -n "${GITHUB_PATH:-}" ]; then printf '%s/bin\n' "$(go env GOPATH)" >> "$GITHUB_PATH"; fi
+
+# Provable glossary: `just glossary check`, `just glossary generate`
+mod glossary
