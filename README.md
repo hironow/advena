@@ -6,6 +6,8 @@
     コードネーム: advena アドヴェナ
 </p>
 
+業務用語と、その主張の検査（Lean と Quint）は [glossary/](glossary/README.md) にあります。
+
 ## Preparing for develop
 
 Install [mise](https://github.com/jdx/mise), and add aliases:

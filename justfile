@@ -2,7 +2,7 @@ VP := env("VP", "vp")
 
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
-check: check-test-types lint-workflows frontend-install backend-install frontend-format backend-format frontend-test backend-test
+check: check-test-types lint-workflows frontend-install backend-install frontend-format backend-format frontend-test backend-test glossary::check
 
 lint-workflows:
     actionlint .github/workflows/*.yaml
@@ -46,3 +46,6 @@ check-test-types:
 install-actionlint:
     go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
     if [ -n "${GITHUB_PATH:-}" ]; then printf '%s/bin\n' "$(go env GOPATH)" >> "$GITHUB_PATH"; fi
+
+# Provable glossary: `just glossary check`, `just glossary generate`
+mod glossary

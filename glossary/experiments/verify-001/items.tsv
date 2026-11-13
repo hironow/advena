@@ -1,0 +1,13 @@
+item	variant	module	property	truth
+01	v1011	single	dayAsIntended	holds
+02	v0000	pair	onePerDay	violated
+03	v0010	single	noItemsNotFailed	holds
+04	v0100	single	noItemsNotFailed	holds
+05	v0000	single	unchangedAfterPublish	violated
+06	v1010	single	noItemsNotFailed	holds
+07	v0100	single	sameRun	holds
+08	v1000	single	sameRun	violated
+09	v1010	pair	onePerDay	holds
+10	v0110	pair	onePerDay	violated
+11	v1010	single	unchangedAfterPublish	violated
+12	v0010	single	unchangedAfterPublish	violated

@@ -1,0 +1,67 @@
+name: Glossary
+
+# The provable glossary (glossary/): Lean proofs, Quint model checks, generated documents, and the
+# code anchors of every term. A code change that renames or removes an anchored declaration fails here.
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  # DO NOT use pull_request_target, use pull_request
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+      - main
+      - develop
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-glossary
+  cancel-in-progress: true
+
+jobs:
+  check:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # control-check compares the commits that added each experiment's protocol and result
+          fetch-depth: 0
+
+      - uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: canary
+          no-cache: true
+
+      - name: Install ripgrep
+        run: sudo apt-get update && sudo apt-get install -y ripgrep
+
+      - name: Use Java 21 from the runner image (TLC)
+        run: |
+          set -euo pipefail
+          test -n "${JAVA_HOME_21_X64:-}"
+          echo "JAVA_HOME=${JAVA_HOME_21_X64}" >> "$GITHUB_ENV"
+          echo "${JAVA_HOME_21_X64}/bin" >> "$GITHUB_PATH"
+
+      - name: Install elan (pinned release, checksum verified)
+        env:
+          ELAN_VERSION: v4.2.4
+          ELAN_SHA256: 42b94d4244e8353142c456ec0e4ca6528fd898a6c604d4059f494e706e431f63
+        run: |
+          set -euo pipefail
+          curl -sSfL -o "$RUNNER_TEMP/elan.tar.gz" \
+            "https://github.com/leanprover/elan/releases/download/${ELAN_VERSION}/elan-x86_64-unknown-linux-gnu.tar.gz"
+          echo "${ELAN_SHA256}  $RUNNER_TEMP/elan.tar.gz" | sha256sum -c -
+          tar -xf "$RUNNER_TEMP/elan.tar.gz" -C "$RUNNER_TEMP"
+          "$RUNNER_TEMP/elan-init" -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Run the glossary gate
+        run: just glossary check

@@ -1,3 +1,4 @@
 private/
 .claude/settings.local.json
 /output/vp/
+/glossary-scan/
