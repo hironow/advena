@@ -19,6 +19,6 @@ def books : List BookView := [Advena.book.view labels]
 
 /-- The comparison with a tool-less control (workflow step 5, Tier 3): `.run` once an
 `experiments/<name>/` has `protocol.md` committed before `result.md`, or `.skipped "<reason>"`. -/
-def control : Control := .undeclared
+def control : Control := .run
 
 end Glossary

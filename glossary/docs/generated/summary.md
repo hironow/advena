@@ -4,7 +4,7 @@
 
 <!-- book: advena 新刊ラジオ -->
 <!-- evidence: holds: 7; violated: 13 -->
-<!-- control: undeclared -->
+<!-- control: run -->
 
 | 用語集 | 用語 | 主張 | 証明済み | 反例あり | 未決定 |
 |---|---|---|---|---|---|
