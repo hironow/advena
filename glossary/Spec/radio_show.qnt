@@ -133,15 +133,20 @@ module radio {
   def dayTaken(day: int): bool =
     SHOWS.exists(s => docs.get(s).status != "none" and docs.get(s).storedDay == day)
 
-  // 収集実行。arg は broadcasted_at (0 = 指定なし)、items は結合マスタデータに項目がある日付
-  action collect(s: str, arg: int, items: Set[int]): bool = all {
+  // 結合マスタデータに項目がある日付: 収集した日 (itemsToday) と翌日 (itemsTomorrow) のどちらにあるか
+  pure def itemDays(t: int, itemsToday: bool, itemsTomorrow: bool): Set[int] =
+    Set(t, t + 1).filter(d => (d == t and itemsToday) or (d == t + 1 and itemsTomorrow))
+
+  // 収集実行。arg は broadcasted_at (0 = 指定なし)
+  action collect(s: str, arg: int, itemsToday: bool, itemsTomorrow: bool): bool = all {
     // 引数の範囲 (step が選ぶ範囲と同じ。直接呼ぶ scripted run もこの範囲に限る)
     arg == 0 or (1 <= arg and arg <= today),
-    items.subseteq(Set(today, today + 1).filter(d => d <= LAST_DAY)),
+    not(itemsTomorrow) or today < LAST_DAY,
     docs.get(s).status == "none",
     not(FIX_DAY) or not(dayTaken(dayFor(arg, today))),
     docs' = docs.set(s, { ...noDoc, status: "creating", createdOn: today,
-      storedDay: if (FIX_DAY) dayFor(arg, today) else arg, items: items, pending: true }),
+      storedDay: if (FIX_DAY) dayFor(arg, today) else arg,
+      items: itemDays(today, itemsToday, itemsTomorrow), pending: true }),
     today' = today, runs' = runs, scriptBlob' = scriptBlob, audioBlob' = audioBlob,
   }
 
@@ -267,9 +272,10 @@ module radio {
     nondet s = SHOWS.oneOf()
     nondet r = RUNS.oneOf()
     nondet arg = Set(0).union(1.to(today)).oneOf()
-    nondet items = Set(today, today + 1).filter(d => d <= LAST_DAY).powerset().oneOf()
+    nondet itemsToday = Set(true, false).oneOf()
+    nondet itemsTomorrow = Set(true, false).oneOf()
     any {
-      collect(s, arg, items), deliver(s, r), check(r), writeScript(r), writeAudio(r), publish(r),
+      collect(s, arg, itemsToday, itemsTomorrow), deliver(s, r), check(r), writeScript(r), writeAudio(r), publish(r),
       depFails(r), ackTimeout(r), kill(r), leaseExpires(s), sweep(s),
     },
     midnight,
@@ -319,7 +325,7 @@ module code1 {
   // ack 期限を過ぎた r1 が動き続けるうちに、再配信を受けた r2 が同じパスに台本を書く。
   // r1 が公開すると、公開 URL の先の台本は r2、音声は r1 のもの
   run mixedScriptAndAudioTest =
-    init.then(collect("s1", 0, Set(1))).then(deliver("s1", "r1")).then(check("r1"))
+    init.then(collect("s1", 0, true, false)).then(deliver("s1", "r1")).then(check("r1"))
       .then(writeScript("r1")).then(ackTimeout("r1"))
       .then(deliver("s1", "r2")).then(check("r2")).then(writeScript("r2"))
       .then(writeAudio("r1")).then(publish("r1"))
@@ -327,7 +333,7 @@ module code1 {
 
   // 該当なしで 204 を返すと、配信は終わり、番組は creating のまま残る
   run noItemsLeavesCreatingTest =
-    init.then(collect("s1", 0, Set())).then(deliver("s1", "r1")).then(check("r1"))
+    init.then(collect("s1", 0, false, false)).then(deliver("s1", "r1")).then(check("r1"))
       .expect(and {
         docs.get("s1").status == "creating",
         not(docs.get("s1").pending), not(docs.get("s1").dead),
@@ -336,7 +342,7 @@ module code1 {
 
   // 依存先の失敗が再配信の上限まで続くと、配信は打ち切られ、番組は creating のまま残る
   run haltUntilDeadLetterTest =
-    init.then(collect("s1", 0, Set(1))).then(deliver("s1", "r1")).then(check("r1"))
+    init.then(collect("s1", 0, true, false)).then(deliver("s1", "r1")).then(check("r1"))
       .then(writeScript("r1")).then(depFails("r1"))
       .then(deliver("s1", "r1")).then(check("r1")).then(depFails("r1"))
       .expect(docs.get("s1").dead and docs.get("s1").status == "creating")
@@ -344,7 +350,7 @@ module code1 {
   // 制作が中断し、再配信が JST の 0 時をまたぐと、番組対象日が翌日になる。
   // 結合マスタデータに翌日の日付の項目があれば、翌日の番組として公開される
   run lateProductionTest =
-    init.then(collect("s1", 0, Set(1, 2))).then(deliver("s1", "r1")).then(check("r1"))
+    init.then(collect("s1", 0, true, true)).then(deliver("s1", "r1")).then(check("r1"))
       .then(depFails("r1")).then(midnight)
       .then(deliver("s1", "r1")).then(check("r1")).then(writeScript("r1")).then(writeAudio("r1"))
       .then(publish("r1"))
@@ -358,7 +364,7 @@ module code2 {
 
   // 同じ日に収集実行が 2 回動く (スケジューラの再試行、運用者の再実行)。どちらも公開される
   run twoShowsOneDayTest =
-    init.then(collect("s1", 0, Set(1))).then(collect("s2", 0, Set(1)))
+    init.then(collect("s1", 0, true, false)).then(collect("s2", 0, true, false))
       .then(deliver("s1", "r1")).then(check("r1")).then(writeScript("r1")).then(writeAudio("r1")).then(publish("r1"))
       .then(deliver("s2", "r1")).then(check("r1")).then(writeScript("r1")).then(writeAudio("r1")).then(publish("r1"))
       .expect(not(onePerDay))
@@ -371,7 +377,7 @@ module proposal1 {
 
   // 修正が働く場面: リースが切れた後の古い実行 r1 の公開は拒まれ、公開されるのは r2 の台本と音声
   run staleRunIsFencedTest =
-    init.then(collect("s1", 0, Set(1))).then(deliver("s1", "r1")).then(check("r1"))
+    init.then(collect("s1", 0, true, false)).then(deliver("s1", "r1")).then(check("r1"))
       .then(writeScript("r1")).then(ackTimeout("r1")).then(leaseExpires("s1"))
       .then(deliver("s1", "r2")).then(check("r2")).then(writeScript("r2")).then(writeAudio("r2")).then(publish("r2"))
       .then(writeAudio("r1")).then(publish("r1"))
@@ -383,14 +389,14 @@ module proposal1 {
 
   // 修正が働く場面: 配信打ち切りの後、回収処理が番組を failed にする
   run sweeperClosesDeadLetterTest =
-    init.then(collect("s1", 0, Set(1))).then(deliver("s1", "r1")).then(check("r1")).then(depFails("r1"))
+    init.then(collect("s1", 0, true, false)).then(deliver("s1", "r1")).then(check("r1")).then(depFails("r1"))
       .then(deliver("s1", "r1")).then(check("r1")).then(depFails("r1"))
       .then(sweep("s1"))
       .expect(docs.get("s1").dead and docs.get("s1").status == "failed")
 
   // 修正が働く場面: 該当なしは skipped
   run noItemsIsSkippedTest =
-    init.then(collect("s1", 0, Set())).then(deliver("s1", "r1")).then(check("r1"))
+    init.then(collect("s1", 0, false, false)).then(deliver("s1", "r1")).then(check("r1"))
       .expect(docs.get("s1").status == "skipped")
 }
 
@@ -401,10 +407,10 @@ module proposal2 {
 
   // 修正が働く場面: 同じ日の 2 回目の収集は文書を作れない。翌日の収集は作れる
   run secondCollectSameDayRefusedTest =
-    init.then(collect("s1", 0, Set(1))).then(collect("s2", 0, Set(1))).fail()
+    init.then(collect("s1", 0, true, false)).then(collect("s2", 0, true, false)).fail()
 
   run nextDayCollectAllowedTest =
-    init.then(collect("s1", 0, Set(1, 2))).then(midnight).then(collect("s2", 0, Set(2)))
+    init.then(collect("s1", 0, true, true)).then(midnight).then(collect("s2", 0, true, false))
       .expect(docs.get("s1").storedDay == 1 and docs.get("s2").storedDay == 2)
 }
 
@@ -440,6 +446,6 @@ module noTerminal1 {
 
   // 該当なしの番組が creating のまま残り、回収処理が failed にする
   run noItemsBecomesFailedTest =
-    init.then(collect("s1", 0, Set())).then(deliver("s1", "r1")).then(check("r1")).then(sweep("s1"))
+    init.then(collect("s1", 0, false, false)).then(deliver("s1", "r1")).then(check("r1")).then(sweep("s1"))
       .expect(docs.get("s1").checkedNoItems and docs.get("s1").status == "failed" and not(noItemsNotFailed))
 }
